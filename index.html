@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tablets</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tablets">
+<meta name="theme-color" content="#10151b">
+
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#17212b;--mute:#5d6b79;--line:#dde3e9;--acc:#2a6fdb;--ok:#1f9d55;--warn:#d98a00;--bad:#d64545;--okbg:#e4f6ec;--warnbg:#fff3d6;--badbg:#fde6e6}
+@media (prefers-color-scheme:dark){:root{--bg:#10151b;--card:#19212a;--ink:#e8eef4;--mute:#9aa9b8;--line:#2a3541;--acc:#6aa2ff;--ok:#4cc58a;--warn:#f0b340;--bad:#ff7a7a;--okbg:#14301f;--warnbg:#3a2f12;--badbg:#3b1b1b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,sans-serif;padding-bottom:84px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 10px) 16px 8px}
+h1{font-size:22px;margin:0}
+.sub{color:var(--mute);font-size:13px}
+#syncbar{margin-top:6px;background:var(--warnbg);color:var(--warn);padding:7px 12px;border-radius:10px;font-weight:650;font-size:13px}
+#banner{position:fixed;left:0;right:0;top:0;z-index:20;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;font-weight:600;color:#fff;background:var(--ok);transform:translateY(-120%);transition:transform .2s}
+#banner.show{transform:none}
+#banner.err{background:var(--bad)}
+main{padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.name{font-weight:650}
+.big{font-size:20px;font-weight:700}
+.mute{color:var(--mute);font-size:13px}
+.bar{height:8px;border-radius:5px;background:var(--line);margin:8px 0 6px;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:5px}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:650}
+.p-ok{background:var(--okbg);color:var(--ok)}.p-warn{background:var(--warnbg);color:var(--warn)}.p-bad{background:var(--badbg);color:var(--bad)}
+.alert{border-left:5px solid var(--warn);background:var(--card);border-radius:10px;padding:10px 12px;margin:10px 0;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.alert.bad{border-left-color:var(--bad)}.alert.info{border-left-color:var(--acc)}
+.alert b{display:block}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:10}
+nav button{flex:1;border:0;background:none;color:var(--mute);padding:10px 2px 12px;font:600 12px system-ui}
+nav button.on{color:var(--acc)}
+nav .ic{display:block;font-size:20px}
+nav .dot{position:absolute;background:var(--bad);color:#fff;border-radius:99px;font-size:10px;padding:0 5px;margin-left:4px}
+label{display:block;margin:10px 0 4px;font-weight:600;font-size:14px}
+input,select,textarea,button.btn{font:inherit;width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.btn{background:var(--acc);color:#fff;border:0;font-weight:650;margin-top:12px}
+button.btn.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+button.btn.sm{width:auto;padding:6px 12px;margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:15;display:none}
+.sheet.show{display:block}
+.sheet>div{position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow:auto;background:var(--bg);border-radius:18px 18px 0 0;padding:16px}
+h2{font-size:17px;margin:18px 0 4px}
+.ev{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:8px 0;font-size:14px}
+.ev button{border:0;background:none;color:var(--bad);font-weight:700}
+a.lnk{color:var(--acc);font-weight:600}
+</style>
+</head>
+<body>
+<div id="banner"></div>
+<header><h1>Tablets</h1><div class="sub" id="sub"></div><div id="syncbar" hidden></div></header>
+<main id="main"></main>
+<nav id="nav"></nav>
+<div class="sheet" id="sheet"><div id="sheetBody"></div></div>
+
+<script>
+'use strict';
+const BUILD='2026-11-22d';
+const KEY='tablets.v1';
+const DAY=864e5;
+
+/* ---------- starting data (Ian's counts, 22 Nov 2026 21:25) ---------- */
+/*SEED_BEGIN*/
+const SEED={meta:{items:0,settings:0,trips:0},tomb:{},receipts:[],
+  settings:{lead:5,gap:14,margin:2,amTime:'08:00',pmTime:'21:30',buyLow:45,preTripDays:14,pharmacies:[]},
+  items:[],baselines:{},baseAt:'NOW',events:[],trips:[],orders:[],seq:1};
+/*SEED_END*/
+
+/* ---------- state ---------- */
+let st=load();
+function fix(o){o.rc=o.rc||{};o.receipts=o.receipts||[];o.meta=o.meta||{items:0,settings:0,trips:0};o.tomb=o.tomb||{};
+  if(o.baseAt==='NOW'){const d=new Date(),p=n=>String(n).padStart(2,'0');o.baseAt=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T00:00:00'}
+  o.settings=o.settings||{};if(o.settings.buyLow===undefined)o.settings.buyLow=o.settings['diabeto'+'neLow']||45;if(!Array.isArray(o.settings.pharmacies))o.settings.pharmacies=[{name:'Day Lewis Chemist Andover',sender:'Day-Lewis',use:true}];
+  return o}
+const isOpen=o=>['requested','approved','part'].includes(o.status);
+function load(){try{const r=localStorage.getItem(KEY);if(r)return fix(JSON.parse(r))}catch(e){}return fix(JSON.parse(JSON.stringify(SEED)))}
+/* every change goes through save(): it stamps what changed (so devices can merge) and asks for a sync */
+let SNAP=null,dirty=false;
+function snapNow(){
+  const o={};
+  o.items=JSON.stringify([st.items,st.baselines,st.baseAt]);o.settings=JSON.stringify(st.settings);o.trips=JSON.stringify(st.trips);
+  o.orders={};for(const x of st.orders){const {u,...r}=x;o.orders[x.id]=JSON.stringify(r)}
+  o.ids=new Set([...st.events.map(e=>e.id),...st.receipts.map(r=>r.id)]);
+  return o;
+}
+function stamp(){
+  const cur=snapNow(),now=Date.now();
+  if(SNAP){
+    for(const s of ['items','settings','trips'])if(cur[s]!==SNAP[s])st.meta[s]=now;
+    for(const x of st.orders)if(SNAP.orders[x.id]!==cur.orders[x.id])x.u=now;
+    for(const id of SNAP.ids)if(!cur.ids.has(id))st.tomb[id]=now;
+  }
+  SNAP=cur;
+}
+function save(){
+  stamp();dirty=true;
+  try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){if(!window.__DEMO)banner('Could not save: '+e,true)}
+  if(typeof syncSoon==='function')syncSoon();
+}
+const uid=()=>Date.now()*1000+Math.floor(Math.random()*1000);
+SNAP=snapNow();
+function banner(msg,err){const b=document.getElementById('banner');b.textContent=msg;b.className='show'+(err?' err':'');clearTimeout(banner.t);banner.t=setTimeout(()=>b.className='',err?6000:3500)}
+
+/* ---------- date helpers ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const lts=d=>ymd(d)+'T'+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+const pd=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const sod=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
+const nice=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+const niceS=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+function slotT(day,slot){const [h,m]=(slot==='am'?st.settings.amTime:st.settings.pmTime).split(':').map(Number);const x=new Date(day);x.setHours(h,m,0,0);return x}
+
+/* ---------- ENGINE ---------- */
+function inFV(day,slot){
+  const ds=ymd(day);
+  for(const t of st.trips){
+    if(ds>t.from&&ds<t.to)return true;
+    if(ds===t.from&&slot==='pm')return true;
+    if(ds===t.to&&slot==='am')return true;
+  }
+  return false;
+}
+function isPaused(it,ds){return st.events.some(e=>e.type==='pause'&&(e.item==='all'||e.item===it.id)&&ds>=e.from&&ds<=e.to)}
+function isMissed(it,ds,slot){return st.events.some(e=>e.type==='missed'&&(e.item==='all'||e.item===it.id)&&e.date===ds&&(e.slot==='both'||e.slot===slot))}
+
+/* simulate one item. Returns stock at `now` (per place) and the moment it runs out. */
+function sim(it,now){
+  const t0=new Date(st.baseAt);
+  const pools={uk:st.baselines[it.id]||0,fv:0};
+  const pts=[];
+  for(const e of st.events){
+    if(e.item!==it.id)continue;
+    if(e.type==='recount')pts.push({t:new Date(e.at),e});
+    else if(e.type==='delivery'||e.type==='extra'||e.type==='move')pts.push({t:new Date(e.at||(e.date+'T12:00:00')),e});
+  }
+  for(const p of pts){} // (sorted below with doses)
+  let snap=null,runOut=null,out=false;
+  const take=(loc,amt)=>{ // returns true if fully covered
+    const other=loc==='uk'?'fv':'uk';
+    let need=amt;
+    const a=Math.min(pools[loc],need);pools[loc]-=a;need-=a;
+    if(need>1e-9){const b=Math.min(pools[other],need);pools[other]-=b;need-=b}
+    return need<=1e-9;
+  };
+  const end=addD(now,900);
+  for(let day=sod(t0);day<=end&&!runOut;day=addD(day,1)){
+    const ds=ymd(day);
+    const els=[];
+    for(const p of pts)if(p.t>=day&&p.t<addD(day,1)&&p.t>=t0)els.push({t:p.t,kind:'pt',e:p.e});
+    for(const slot of ['am','pm']){
+      const amt=it[slot];if(!amt)continue;
+      const t=slotT(day,slot);if(t<=t0)continue;
+      els.push({t,kind:'dose',slot,amt});
+    }
+    els.sort((a,b)=>a.t-b.t);
+    for(const el of els){
+      if(!snap&&el.t>now)snap={uk:pools.uk,fv:pools.fv};
+      if(el.kind==='pt'){
+        const e=el.e;
+        if(e.type==='recount'){pools[e.loc||'uk']=e.qty}
+        else if(e.type==='delivery'){pools[e.loc||'uk']+=e.qty}
+        else if(e.type==='extra'){take(inFV(day,'am')?'fv':'uk',e.qty)}
+        else if(e.type==='move'){const from=e.from||'uk',to=from==='uk'?'fv':'uk';const q=Math.min(e.qty,pools[from]);pools[from]-=q;pools[to]+=q}
+      }else{
+        if(isPaused(it,ds)||isMissed(it,ds,el.slot))continue;
+        const ok=take(inFV(day,el.slot)?'fv':'uk',el.amt);
+        if(!ok){runOut=el.t;out=el.t<=now;break}
+      }
+    }
+  }
+  if(!snap)snap={uk:pools.uk,fv:pools.fv};
+  const total=snap.uk+snap.fv;
+  const perDay=(it.am||0)+(it.pm||0);
+  return {uk:snap.uk,fv:snap.fv,total,runOut,out,perDay,daysLeft:runOut?Math.floor((runOut-now)/DAY):null};
+}
+function thr(){const s=st.settings;return s.lead+s.gap+s.margin}
+function lastOrderDate(it,r){return r.runOut?addD(r.runOut,-thr()):null}
+
+/* ---------- alerts ---------- */
+function computeAlerts(now){
+  const A=[];const S=st.settings;const T=thr();
+  const R={};for(const it of st.items)R[it.id]=sim(it,now);
+  for(const it of st.items){
+    const r=R[it.id];
+    if(it.src==='pa'){
+      if(r.out||(r.daysLeft!==null&&r.daysLeft<=T)){
+        let msg=r.out?'You have run out.':'About '+r.daysLeft+' days left (runs out '+niceS(r.runOut)+').';
+        const open=st.orders.find(o=>o.item===it.id&&isOpen(o));
+        if(open)continue;
+        const late=it.next&&it.next>ymd(addD(r.runOut||now,-S.lead));
+        A.push({lvl:'bad',t:'Order '+it.name+' now',m:msg+(late&&it.next>ymd(now)?' Patient Access will not issue before '+niceS(pd(it.next))+', which is too late: ask the surgery to release it early.':''),item:it.id,sort:r.daysLeft??-1});
+      }else if(r.runOut&&it.next&&it.next>ymd(addD(r.runOut,-S.lead))){
+        A.push({lvl:'warn',t:it.name+': issue date is after you run out',m:'Runs out '+niceS(r.runOut)+' but the next issue is '+niceS(pd(it.next))+'. You may need the surgery to release it early.',item:it.id,sort:r.daysLeft+500});
+      }
+    }
+    if(it.src==='diab'&&r.daysLeft!==null&&r.daysLeft<=(S.buyLow||45)){
+      A.push({lvl:'warn',t:'Buy '+it.name.replace(/ \(.*/,'')+' (bulk deal, up to 5 boxes)',m:'About '+r.daysLeft+' days left. Look for a bulk deal.',item:it.id,sort:r.daysLeft,diab:it.name.replace(/ \(.*/,'')});
+    }
+    if(it.src==='fv'){
+      const trips=st.trips.map(t=>({...t,toD:pd(t.to)})).sort((a,b)=>a.toD-b.toD);
+      if(r.runOut){
+        const before=trips.filter(t=>t.toD<r.runOut&&t.toD>=sod(now));
+        const lastT=before[before.length-1];
+        if(!lastT)A.push({lvl:'bad',t:'No trip to 24B before '+it.name+' runs out',m:'Runs out '+niceS(r.runOut)+'. Plan a trip, or ask someone to buy it at Mercadona.',item:it.id,sort:r.daysLeft});
+        else{
+          const dd=Math.round((lastT.toD-sod(now))/DAY);
+          if(dd<=4)A.push({lvl:'bad',t:'Buy '+it.name+' at Mercadona before you leave 24B',m:'You leave '+niceS(lastT.toD)+' and run out '+niceS(r.runOut)+'. This is your last chance before it runs out.',item:it.id,sort:dd-100});
+          else if(before.length===1&&dd<=30)A.push({lvl:'info',t:it.name+': buy on your trip ending '+niceS(lastT.toD),m:'Last trip before it runs out ('+niceS(r.runOut)+'). You will be reminded 3 to 4 days before you leave.',item:it.id,sort:dd});
+        }
+      }
+    }
+  }
+  /* before leaving the UK: will prescribed stock still cover you after the trip? */
+  for(const t of st.trips){
+    const from=pd(t.from),to=pd(t.to);
+    const days=Math.round((from-sod(now))/DAY);
+    if(days<0||days>S.preTripDays)continue;
+    const bad=[];
+    for(const it of st.items){
+      if(it.src!=='pa')continue;
+      const open=st.orders.find(o=>o.item===it.id&&isOpen(o));
+      if(open)continue;
+      const r=sim(it,to);
+      if(r.out||(r.runOut&&Math.floor((r.runOut-to)/DAY)<=S.lead+S.margin))bad.push(it.name.replace(/ \(.*/,''));
+    }
+    if(bad.length)A.push({lvl:days<=5?'bad':'warn',t:'Before you leave for 24B ('+niceS(from)+')',m:'These would be low or empty when you get back on '+niceS(to)+': '+bad.join(', ')+'. Order and collect them at Day Lewis before you go.',sort:days-1000});
+  }
+  for(const o of st.orders){
+    const it=st.items.find(i=>i.id===o.item);if(!it)continue;
+    if(o.status==='rejected')A.push({lvl:'bad',t:'Order rejected: '+it.name,m:'Your GP rejected the request made on '+niceS(pd(o.date))+'. Check with the surgery.',item:o.item,sort:-500});
+    if(o.status==='part'){const owed=o.qty-(o.recv||0);A.push({lvl:'warn',t:'Still owed: '+it.name,m:'Day Lewis gave '+qtyTxt(it,o.recv||0)+' of '+qtyTxt(it,o.qty)+'. '+qtyTxt(it,owed)+' still owed from the order of '+niceS(pd(o.date))+'.',item:o.item,sort:40});continue}
+    if(o.status==='approved'||o.status==='requested')A.push({lvl:'info',t:(o.status==='approved'?'Approved: ':'Requested: ')+it.name,m:'Expected about '+niceS(pd(o.expected))+' (collect at Day Lewis, Andover).',item:o.item,sort:50});
+  }
+  A.sort((a,b)=>a.sort-b.sort);
+  return {A,R};
+}
+
+/* ---------- views ---------- */
+let tab='stock';
+const $=id=>document.getElementById(id);
+function qtyTxt(it,q){
+  if(it.unit==='box'){return (Math.round(q*10)/10)+' boxes ('+Math.round(q*30)+' days)'}
+  const u=it.unit==='ml'?' ml':'';
+  return (Math.round(q*10)/10)+u;
+}
+function render(keepScroll){
+  const now=new Date();
+  const {A,R}=computeAlerts(now);
+  subLine();
+  const nBad=A.filter(a=>a.lvl==='bad').length;
+  const tabs=[['stock','▤','Stock'],['alerts','⚠','Alerts'+(nBad?'<span class="dot">'+nBad+'</span>':'')],['recv','⬇','Receive'],['log','✎','Log'],['orders','✚','Orders'],['set','⚙','Settings']];
+  $('nav').innerHTML=tabs.map(t=>'<button class="'+(tab===t[0]?'on':'')+'" onclick="go(\''+t[0]+'\')"><span class="ic">'+t[1]+'</span>'+t[2]+'</button>').join('');
+  $('main').innerHTML=({stock:vStock,alerts:vAlerts,log:vLog,orders:vOrders,recv:vRecv,set:vSet})[tab](A,R,now);
+  if(tab==='log')logType();
+  if(keepScroll!==true)window.scrollTo(0,0);
+}
+function go(t){tab=t;render()}
+function vStock(A,R,now){
+  const items=[...st.items].sort((a,b)=>(R[a.id].daysLeft??9999)-(R[b.id].daysLeft??9999));
+  const T=thr();
+  let h='';
+  if(!st.items.length)return '<div class="card"><h2 style="margin-top:0">Welcome</h2><p>No tablets yet. Pick one:</p><button class="btn" onclick="go(\'set\')">Join the shared list with a 4-digit code</button><button class="btn sec" onclick="go(\'set\')">Import a CSV list (Settings)</button><p class="mute">Settings has both. The first person to set up uses Import CSV or Start sharing.</p></div>';
+  if(A.some(a=>a.lvl==='bad'))h+='<div class="alert bad"><b>'+A.filter(a=>a.lvl==='bad').length+' thing(s) need you</b>See the Alerts tab.</div>';
+  for(const it of items){
+    const r=R[it.id];
+    const dl=r.daysLeft;
+    const cls=r.out||(dl!==null&&dl<=T&&it.src==='pa')?'bad':(dl!==null&&dl<=T+14)?'warn':'ok';
+    const col={bad:'var(--bad)',warn:'var(--warn)',ok:'var(--ok)'}[cls];
+    const pct=dl===null?100:Math.max(3,Math.min(100,dl/180*100));
+    const lo=lastOrderDate(it,r);
+    h+='<div class="card" onclick="openItem(\''+it.id+'\')"><div class="row"><span class="name">'+it.name+'</span><span class="pill p-'+cls+'">'+(r.out?'OUT':dl===null?'plenty':dl+' days')+'</span></div>'
+     +'<div class="bar"><i style="width:'+pct+'%;background:'+col+'"></i></div>'
+     +'<div class="row"><span class="big">'+qtyTxt(it,r.total)+'</span><span class="mute">'+(r.runOut?'runs out '+niceS(r.runOut):'')+'</span></div>'
+     +'<div class="mute">'+(it.src==='pa'&&lo?'order by '+niceS(lo)+' · ':'')+(r.fv>0.001?'UK '+qtyTxt(it,r.uk)+' · 24B '+qtyTxt(it,r.fv):'')+'</div></div>';
+  }
+  return h;
+}
+function vAlerts(A){
+  if(!A.length)return '<div class="card">All good. Nothing needs doing.</div>';
+  return A.map(a=>'<div class="alert '+a.lvl+'"><b>'+a.t+'</b>'+a.m+(a.diab?'<div style="margin-top:8px">'+diabLinks(a.diab)+'</div>':'')+'</div>').join('');
+}
+function diabLinks(name){
+  const q=encodeURIComponent((name||'')+' tablets');
+  return '<a class="lnk" href="https://www.google.com/search?tbm=shop&q='+q+'" target="_blank">Compare prices</a> · <a class="lnk" href="https://www.amazon.co.uk/s?k='+q+'" target="_blank">Amazon</a> · <a class="lnk" href="https://www.hollandandbarrett.com/search/?query='+q+'" target="_blank">Holland &amp; Barrett</a>';
+}
+function itemOptions(all){return (all?'<option value="all">All tablets</option>':'')+st.items.map(i=>'<option value="'+i.id+'">'+i.name+'</option>').join('')}
+function vLog(){
+  const today=ymd(new Date());
+  const evs=[...st.events].sort((a,b)=>(b.date||b.at||'').localeCompare(a.date||a.at||'')).slice(0,40);
+  return '<div class="card"><h2 style="margin-top:0">Add an exception</h2>'
+   +'<label>What happened</label><select id="lt" onchange="logType()"><option value="missed">Missed a dose</option><option value="delivery">Box received</option><option value="recount">Recount (set the real number)</option><option value="extra">Took extra</option><option value="pause">Paused (from–to)</option><option value="move">Moved between UK and 24B</option></select>'
+   +'<label>Tablet</label><select id="li">'+itemOptions(true)+'</select>'
+   +'<div id="lf"></div>'
+   +'<button class="btn" onclick="addLog()">Save</button></div>'
+   +'<h2>History</h2><div class="card">'+(evs.length?evs.map(e=>'<div class="ev"><span>'+evText(e)+'</span><button onclick="delEv('+e.id+')">✕</button></div>').join(''):'<span class="mute">Nothing logged. Normal days need nothing.</span>')+'</div>'
+   +'';
+}
+function evText(e){
+  const it=e.item==='all'?'All':(st.items.find(i=>i.id===e.item)||{name:e.item}).name;
+  const d=e.date?niceS(pd(e.date)):'';
+  if(e.type==='missed')return d+' · missed '+({am:'morning',pm:'evening',both:'both doses'})[e.slot]+' · '+it;
+  if(e.type==='delivery')return d+' · received '+e.qty+' · '+it;
+  if(e.type==='recount')return niceS(new Date(e.at))+' · recount '+e.qty+' ('+(e.loc==='fv'?'24B':'UK')+') · '+it;
+  if(e.type==='extra')return d+' · took extra '+e.qty+' · '+it;
+  if(e.type==='pause')return niceS(pd(e.from))+' to '+niceS(pd(e.to))+' · paused · '+it;
+  if(e.type==='move')return d+' · moved '+e.qty+' '+(e.from==='fv'?'24B → UK':'UK → 24B')+' · '+it;
+  return JSON.stringify(e);
+}
+function logType(){
+  const t=$('lt').value,today=ymd(new Date());
+  const D=(id,l,v)=>'<label>'+l+'</label><input type="date" id="'+id+'" value="'+(v||today)+'">';
+  const N=(id,l,v)=>'<label>'+l+'</label><input type="number" step="any" id="'+id+'" value="'+(v||'')+'" inputmode="decimal">';
+  let h='';
+  if(t==='missed')h=D('ld','Date')+'<label>Which dose</label><select id="ls"><option value="am">Morning</option><option value="pm">Evening</option><option value="both">Both</option></select>';
+  if(t==='delivery')h=D('ld','Date')+N('lq','How many (tablets / ml / boxes)');
+  if(t==='recount')h=N('lq','Number you have now')+'<label>Where</label><select id="lloc"><option value="uk">UK (home)</option><option value="fv">24B</option></select>';
+  if(t==='extra')h=D('ld','Date')+N('lq','How many extra');
+  if(t==='pause')h=D('lf1','From')+D('lf2','To');
+  if(t==='move')h=D('ld','Date')+N('lq','How many')+'<label>Direction</label><select id="lmv"><option value="uk">UK → 24B</option><option value="fv">24B → UK</option></select>';
+  $('lf').innerHTML=h;
+}
+function addLog(){
+  const t=$('lt').value,item=$('li').value;
+  const e={id:uid(),type:t,item};
+  const num=()=>parseFloat($('lq').value);
+  if(t==='missed'){e.date=$('ld').value;e.slot=$('ls').value}
+  else if(t==='pause'){e.from=$('lf1').value;e.to=$('lf2').value;if(e.to<e.from)return banner('End date is before start',true)}
+  else{
+    const q=num();if(!(q>=0))return banner('Enter a number',true);
+    e.qty=q;
+    if(t==='recount'){e.loc=$('lloc').value;e.at=lts(new Date())}
+    else{e.date=$('ld').value;if(e.date===ymd(new Date()))e.at=lts(new Date())}
+    if(t==='move')e.from=$('lmv').value;
+    if(item==='all')return banner('Pick one tablet for this',true);
+  }
+  if((t==='missed'||t==='pause')&&item==='all'){}
+  st.events.push(e);save();banner('Saved: '+evText(e));render();
+}
+function delEv(id){st.events=st.events.filter(e=>e.id!==id);save();banner('Removed');render()}
+function vOrders(A,R,now){
+  const T=thr();
+  const need=st.items.filter(i=>i.src==='pa'&&R[i.id].daysLeft!==null&&R[i.id].daysLeft<=T+14&&!st.orders.find(o=>o.item===i.id&&isOpen(o)));
+  let h='<button class="btn" style="margin-top:12px" onclick="go(\'recv\')">⬇ Bulk receipt: bags from the pharmacy</button><h2>To order (Patient Access → Day Lewis, Andover)</h2>';
+  h+=need.length?need.map(i=>'<div class="card"><div class="row"><span class="name">'+i.name+'</span><span class="mute">'+R[i.id].daysLeft+' days</span></div><div class="mute">Issue '+i.issue+' · allowed from '+(i.next?niceS(pd(i.next)):'now')+'</div><button class="btn sm" style="margin-top:8px" onclick="markOrdered(\''+i.id+'\')">I ordered it</button></div>').join(''):'<div class="card mute">Nothing due yet.</div>';
+  const open=st.orders.filter(o=>o.status!=='collected'&&o.status!=='cancelled');
+  h+='<h2>Open orders</h2>';
+  h+=open.length?open.map(o=>{const it=st.items.find(i=>i.id===o.item);return '<div class="card"><div class="row"><span class="name">'+it.name+'</span><span class="pill p-'+(o.status==='rejected'?'bad':'warn')+'">'+o.status+'</span></div><div class="mute">Ordered '+niceS(pd(o.date))+' · expected '+niceS(pd(o.expected))+' · ordered '+qtyTxt(it,o.qty)+(o.recv?' · received '+qtyTxt(it,o.recv)+' · OWED '+qtyTxt(it,Math.max(0,o.qty-o.recv)):'')+'</div><div class="grid2" style="margin-top:8px"><button class="btn sm sec" onclick="setOrder('+o.id+',\'approved\')">Approved</button><button class="btn sm sec" onclick="setOrder('+o.id+',\'rejected\')">Rejected</button><button class="btn sm" onclick="recvItem(\''+o.item+'\')">Receive</button><button class="btn sm sec" onclick="setOrder('+o.id+',\'cancelled\')">Cancel</button></div></div>'}).join(''):'<div class="card mute">No open orders.</div>';
+  return h;
+}
+function markOrdered(id){const it=st.items.find(i=>i.id===id);const d=new Date();st.orders.push({id:uid(),item:id,date:ymd(d),expected:ymd(addD(d,st.settings.lead)),qty:it.issue,status:'requested'});save();banner('Order noted: '+it.name);render()}
+function setOrder(id,s){
+  const o=st.orders.find(x=>x.id===id);if(!o)return;o.status=s;
+  if(s==='cancelled'&&o.recv>0)o.status='part';
+  banner('Order '+s);
+  save();render();
+}
+function vTrips(){
+  const rows=st.trips.map((t,i)=>'<div class="card"><div class="row"><span class="name">24B trip</span><button class="btn sm sec" onclick="delTrip('+i+')">Remove</button></div><div class="grid2"><div><label>Fly out</label><input type="date" value="'+t.from+'" onchange="upTrip('+i+',\'from\',this.value)"></div><div><label>Fly home</label><input type="date" value="'+t.to+'" onchange="upTrip('+i+',\'to\',this.value)"></div></div></div>').join('');
+  return rows+'<button class="btn" onclick="addTrip()">Add a trip</button><p class="mute">While you are in 24B, doses are taken from the 24B stock first. Enter the 24B count with Log → Recount → 24B.</p>';
+}
+function upTrip(i,k,v){st.trips[i][k]=v;save();banner('Trip saved');render()}
+function delTrip(i){st.trips.splice(i,1);save();banner('Trip removed');render()}
+function addTrip(){const d=ymd(addD(new Date(),30));st.trips.push({from:d,to:ymd(addD(new Date(),44))});st.trips.sort((a,b)=>a.from.localeCompare(b.from));save();banner('Trip added: set the dates');render()}
+function vSet(){
+  const s=st.settings;
+  const f=(k,l)=>'<label>'+l+'</label><input type="number" value="'+s[k]+'" onchange="upSet(\''+k+'\',+this.value)">';
+  return vShare()+vPhoneOnly()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
+   +'<div class="card"><h2 style="margin-top:0">Dose times</h2><div class="grid2"><div><label>Morning</label><input type="time" value="'+s.amTime+'" onchange="upSetS(\'amTime\',this.value)"></div><div><label>Evening</label><input type="time" value="'+s.pmTime+'" onchange="upSetS(\'pmTime\',this.value)"></div></div></div>'
+   +'<div class="card"><h2 style="margin-top:0">Import / export tablets (CSV)</h2><div class="mute">Columns: name, unit, morning, evening, box_size, source (prescription / supplement-uk / supplement-spain), stock_now, stock_24b, order_qty, next_issue, days_per_box, note. Empty cells leave things unchanged. Names are matched to your existing tablets; new names are added.</div>'
+   +'<label>Choose a CSV file</label><input type="file" accept=".csv,text/csv,text/plain" onchange="csvFile(this)">'
+   +'<label>Or paste CSV text</label><textarea id="csvt" rows="4" placeholder="name,unit,morning,evening,..."></textarea>'
+   +'<button class="btn" onclick="importCSV($(\'csvt\').value)">Import pasted CSV</button><button class="btn sec" onclick="exportCSV()">Show my list as CSV (copy it)</button>'
+   +'<button class="btn sec" onclick="if(window.AndroidApp)AndroidApp.pinShortcut();else banner(\'Only in the phone app\',true)">Add Tablets icon to home screen</button></div>'
+   +'<div class="card"><h2 style="margin-top:0">Backup</h2><button class="btn sec" onclick="exportData()">Show my data (copy it)</button><textarea id="bk" rows="4" style="margin-top:8px" placeholder="Paste data here to restore"></textarea><button class="btn sec" onclick="importData()">Restore from pasted data</button><button class="btn sec" onclick="resetAll()">Reset to 22 Nov starting counts</button></div>'
+   +'<h2>24B trips</h2>'+vTrips()
+   +'<p class="mute">Spec: D:\\_system\\claude\\tablets\\SPEC.md</p>';
+}
+function upSet(k,v){st.settings[k]=v;save();banner('Setting saved');render()}
+function upSetS(k,v){st.settings[k]=v;save();banner('Setting saved');render()}
+function exportData(){const t=$('bk');t.value=JSON.stringify(st);t.select();try{navigator.clipboard.writeText(t.value);banner('Copied to clipboard')}catch(e){banner('Select all and copy')}}
+function importData(){try{const o=JSON.parse($('bk').value);if(!o.items||!o.baselines)throw 0;st=fix(o);save();banner('Restored');render()}catch(e){banner('That is not valid backup data',true)}}
+function resetAll(){if(confirm('Delete all logged exceptions and orders and go back to the 22 Nov counts?')){st=fix(JSON.parse(JSON.stringify(SEED)));save();banner('Reset');render()}}
+
+/* ---------- item sheet ---------- */
+function openItem(id){
+  const it=st.items.find(i=>i.id===id);const now=new Date();const r=sim(it,now);
+  const lo=lastOrderDate(it,r);
+  let h='<div class="row"><h2 style="margin:0">'+it.name+'</h2><button class="btn sm sec" onclick="closeSheet()">Close</button></div>'
+   +'<div class="mute">'+it.why+'</div>'
+   +'<div class="card"><div class="big">'+qtyTxt(it,r.total)+'</div><div class="mute">Morning '+(it.unit==='box'?'1 type':qtyTxt(it,it.am))+' · Evening '+(it.unit==='box'?'2 type':qtyTxt(it,it.pm))+' · pack '+it.pack+'</div>'
+   +'<div class="mute">'+(r.runOut?'Runs out '+nice(r.runOut)+' ('+r.daysLeft+' days)':'No run-out in the next 2 years')+(lo&&it.src==='pa'?' · order by '+nice(lo):'')+'</div></div>'
+   +'<label>Recount: I actually have</label><input type="number" step="any" id="rc" inputmode="decimal"><button class="btn" onclick="quickRecount(\''+id+'\')">Save recount (UK)</button>'
+   +'<div class="grid2"><div><label>Morning dose</label><input type="number" step="any" id="ea" value="'+(it.unit==='box'?'':it.am)+'" '+(it.unit==='box'?'disabled':'')+'></div><div><label>Evening dose</label><input type="number" step="any" id="ep" value="'+(it.unit==='box'?'':it.pm)+'" '+(it.unit==='box'?'disabled':'')+'></div></div>'
+   +'<label>Box size (what one tap adds in Receive)</label><input type="number" step="any" id="ek" value="'+it.pack+'">'
+   +'<button class="btn sec" onclick="saveDose(\''+id+'\')">Save doses and box size</button>'
+   +(it.src==='diab'?'<p>'+diabLinks(it.name.replace(/ \(.*/,''))+'</p>':'');
+  $('sheetBody').innerHTML=h;$('sheet').className='sheet show';
+}
+function closeSheet(){$('sheet').className='sheet'}
+function quickRecount(id){const q=parseFloat($('rc').value);if(!(q>=0))return banner('Enter a number',true);st.events.push({id:uid(),type:'recount',item:id,loc:'uk',qty:q,at:lts(new Date())});save();closeSheet();banner('Recount saved');render()}
+function saveDose(id){const it=st.items.find(i=>i.id===id);if(it.unit!=='box'){it.am=parseFloat($('ea').value)||0;it.pm=parseFloat($('ep').value)||0}const k=parseFloat($('ek').value);if(k>0)it.pack=k;save();closeSheet();banner('Saved: doses apply to all dates since the last count');render()}
+
+/* ---------- BULK RECEIPT: tap per box, back/forward like photos ---------- */
+let rcIdx=0;
+const openFor=id=>st.orders.filter(o=>o.item===id&&isOpen(o)).sort((a,b)=>a.date.localeCompare(b.date))[0];
+function recvList(){const w=st.items.filter(i=>openFor(i.id)),r=st.items.filter(i=>!openFor(i.id));return [...w,...r]}
+const U=it=>it.unit==='box'?'box':it.unit==='ml'?'ml':it.unit;
+function recvItem(id){const L=recvList();rcIdx=Math.max(0,L.findIndex(i=>i.id===id));go('recv')}
+function rcAdd(id,n){const it=st.items.find(i=>i.id===id);const cur=st.rc[id]||0;st.rc[id]=Math.max(0,Math.round((cur+n)*1000)/1000);save();render(true)}
+function rcSet(id,v){const q=parseFloat(v);st.rc[id]=q>0?q:0;save();render(true)}
+function rcGo(d){const n=recvList().length+1;rcIdx=(rcIdx+d+n)%n;render(true)}
+function vRecv(){
+  const L=recvList();if(rcIdx>L.length)rcIdx=0;
+  const n=L.length+1;
+  const dots=(cur)=>'<div class="mute" style="text-align:center;margin:6px 0">'+(cur+1)+' of '+n+' · swipe or use Back / Next</div>';
+  const navb='<div class="grid2" style="position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 66px);z-index:9"><button class="btn sec" style="padding:14px" onclick="rcGo(-1)">◀ Back</button><button class="btn" style="padding:14px" onclick="rcGo(1)">Next ▶</button></div>';
+  if(rcIdx===L.length){
+    const lines=L.filter(i=>(st.rc[i.id]||0)>0);
+    let h='<h2 style="margin-top:6px">Check and save</h2>';
+    h+=lines.length?lines.map(i=>{const o=openFor(i.id);const got=st.rc[i.id];let s='';if(o){const rem=o.qty-(o.recv||0)-got;s=rem>0.0001?'<span class="pill p-warn">still owed '+qtyTxt(i,rem)+'</span>':'<span class="pill p-ok">order complete</span>'}else s='<span class="pill p-warn">no open order</span>';return '<div class="card"><div class="row"><span class="name">'+i.name+'</span>'+s+'</div><div class="big">+'+qtyTxt(i,got)+'</div></div>'}).join(''):'<div class="card mute">Nothing entered yet. Use Back to tap boxes.</div>';
+    h+='<button class="btn" onclick="saveReceipt()">Save receipt (add to stock)</button><button class="btn sec" onclick="rcClear()">Clear everything entered</button>';
+    const last=[...st.receipts].reverse().slice(0,3);
+    if(last.length)h+='<h2>Recent receipts</h2>'+last.map(r=>'<div class="card"><div class="row"><span class="name">'+niceS(pd(r.date))+'</span><button class="btn sm sec" onclick="undoReceipt('+r.id+')">Undo</button></div><div class="mute">'+r.lines.map(l=>{const it=st.items.find(i=>i.id===l.item);return it.name.replace(/ \(.*/,'')+' +'+Math.round(l.qty*10)/10}).join(', ')+'</div></div>').join('');
+    return dots(rcIdx)+h+navb+'<div style="height:70px"></div>';
+  }
+  const it=L[rcIdx],o=openFor(it.id),got=st.rc[it.id]||0,box=it.pack;
+  let status='';
+  if(o){
+    const prev=o.recv||0,rem=o.qty-prev;
+    const after=rem-got;
+    status='<div class="card"><div class="row"><span>Ordered</span><b>'+qtyTxt(it,o.qty)+'</b></div>'+(prev?'<div class="row"><span>Already received</span><b>'+qtyTxt(it,prev)+'</b></div>':'')+'<div class="row"><span>Expected in this bag</span><b>'+qtyTxt(it,rem)+'</b></div>'
+      +'<div style="margin-top:6px">'+(after>0.0001?(got>0?'<span class="pill p-warn">short: still owed '+qtyTxt(it,after)+'</span>':'<span class="pill p-bad">not received yet</span>'):(got>0?'<span class="pill p-ok">✓ order complete</span>':''))+'</div></div>';
+  }else status='<div class="card mute">No open order for this one. Anything you add still goes into stock.</div>';
+  return dots(rcIdx)
+   +'<div style="text-align:center"><div class="big" style="font-size:24px">'+it.name+'</div><div class="mute">one box = '+qtyTxt(it,box)+'</div></div>'
+   +status
+   +'<div style="text-align:center;margin:6px 0"><div class="mute">Received now</div><div style="font-size:46px;font-weight:800;line-height:1.1">'+(Math.round(got*10)/10)+(it.unit==='ml'?' ml':'')+'</div><div class="mute">'+(box>0?(Math.round(got/box*100)/100)+' boxes':'')+'</div></div>'
+   +'<button class="btn" style="font-size:26px;padding:22px" onclick="rcAdd(\''+it.id+'\','+box+')">+ 1 box</button>'
+   +'<div class="grid2" style="margin-top:10px"><button class="btn sec" onclick="rcAdd(\''+it.id+'\','+(-box)+')">− 1 box</button><button class="btn sec" onclick="rcAdd(\''+it.id+'\','+(box/2)+')">+ ½ box</button></div>'
+   +'<label>Or type the exact number</label><input type="number" step="any" inputmode="decimal" value="'+(got||'')+'" onchange="rcSet(\''+it.id+'\',this.value)" placeholder="e.g. 15">'
+   +navb+'<div style="height:70px"></div>';
+}
+function rcClear(){st.rc={};save();banner('Cleared');rcIdx=0;render(true)}
+function saveReceipt(){
+  const L=recvList();const lines=[];const rid=uid();const today=ymd(new Date());const msgs=[];
+  for(const it of L){
+    const q=st.rc[it.id]||0;if(q<=0)continue;
+    st.events.push({id:uid(),type:'delivery',item:it.id,date:today,at:lts(new Date()),qty:q,loc:'uk',rid});
+    const o=openFor(it.id);let oid=null,prevStatus=null;
+    if(o){oid=o.id;prevStatus=o.status;o.recv=(o.recv||0)+q;if(o.recv>=o.qty-1e-6){o.status='collected';o.done=today;msgs.push(it.name.replace(/ \(.*/,'')+' complete')}else{o.status='part';msgs.push(it.name.replace(/ \(.*/,'')+' owed '+Math.round((o.qty-o.recv)*10)/10)}}
+    lines.push({item:it.id,qty:q,order:oid,prev:prevStatus});
+  }
+  if(!lines.length)return banner('Nothing entered',true);
+  st.receipts.push({id:rid,date:today,lines});st.rc={};rcIdx=0;save();
+  banner('Saved '+lines.length+' items into stock. '+msgs.join(' · '));render(true);
+}
+function undoReceipt(rid){
+  const r=st.receipts.find(x=>x.id===rid);if(!r)return;
+  st.events=st.events.filter(e=>e.rid!==rid);
+  for(const l of r.lines){const o=st.orders.find(x=>x.id===l.order);if(o){o.recv=Math.max(0,(o.recv||0)-l.qty);o.status=o.recv>0?'part':(l.prev&&l.prev!=='part'?l.prev:'requested');delete o.done}}
+  st.receipts=st.receipts.filter(x=>x.id!==rid);save();banner('Receipt undone');render(true);
+}
+let tx=null;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{if(tab!=='recv'||tx===null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>70&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName))rcGo(dx<0?1:-1)},{passive:true});
+
+/* ---------- CSV import / export ---------- */
+const CSVCOLS=['name','unit','morning','evening','box_size','source','stock_now','stock_24b','order_qty','next_issue','days_per_box','note'];
+const SRC={prescription:'pa','supplement-uk':'diab','supplement-spain':'fv'};
+const SRCR={pa:'prescription',diab:'supplement-uk',fv:'supplement-spain'};
+function parseCSV(t){
+  const rows=[];let r=[],c='',q=false;
+  for(let i=0;i<t.length;i++){const ch=t[i];
+    if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
+    else if(ch==='"')q=true;
+    else if(ch===','){r.push(c);c=''}
+    else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;r.push(c);c='';if(r.some(x=>x.trim()!==''))rows.push(r);r=[]}
+    else c+=ch}
+  r.push(c);if(r.some(x=>x.trim()!==''))rows.push(r);return rows;
+}
+const normName=s=>s.toLowerCase().replace(/\(.*?\)/g,' ').replace(/[^a-z0-9.]+/g,' ').trim();
+const slug=s=>normName(s).replace(/[^a-z0-9]+/g,'')||('item'+Date.now());
+function csvFile(inp){const f=inp.files&&inp.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>importCSV(String(fr.result));fr.onerror=()=>banner('Could not read that file',true);fr.readAsText(f)}
+function importCSV(text){
+  const rows=parseCSV((text||'').replace(/^﻿/,''));
+  if(rows.length<2)return banner('CSV needs a header row and at least one tablet',true);
+  const H=rows[0].map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
+  if(H.indexOf('name')<0)return banner('CSV needs a "name" column',true);
+  let upd=0,add=0,cnt=0;const bad=[];
+  const now=lts(new Date());
+  for(let k=1;k<rows.length;k++){
+    const row=rows[k];const g=n=>{const i=H.indexOf(n);return i<0?'':(row[i]||'').trim()};
+    const name=g('name');if(!name)continue;
+    const num=n=>{const v=g(n);if(v==='')return null;const x=parseFloat(v);return isNaN(x)?NaN:x};
+    const vals={morning:num('morning'),evening:num('evening'),box_size:num('box_size'),stock_now:num('stock_now'),stock_24b:num('stock_24b'),order_qty:num('order_qty'),days_per_box:num('days_per_box')};
+    if(Object.values(vals).some(x=>Number.isNaN(x))){bad.push(name);continue}
+    const srcTxt=g('source').toLowerCase();if(srcTxt&&!SRC[srcTxt]){bad.push(name+' (source)');continue}
+    let it=st.items.find(i=>normName(i.name)===normName(name)||i.id===slug(name));
+    if(!it){it={id:slug(name),name,unit:g('unit')||'tablet',am:0,pm:0,pack:1,src:'pa',issue:0,next:'',why:''};st.items.push(it);st.baselines[it.id]=0;add++}else upd++;
+    if(g('unit'))it.unit=g('unit');
+    if(srcTxt)it.src=SRC[srcTxt];
+    if(vals.box_size!==null)it.pack=vals.box_size;
+    if(it.unit==='box'&&vals.days_per_box){it.am=it.pm=1/(2*vals.days_per_box)}
+    else{if(vals.morning!==null)it.am=vals.morning;if(vals.evening!==null)it.pm=vals.evening}
+    if(vals.order_qty!==null)it.issue=vals.order_qty;
+    if(g('next_issue'))it.next=g('next_issue');
+    if(g('note'))it.why=g('note');
+    if(vals.stock_now!==null){st.events.push({id:uid(),type:'recount',item:it.id,loc:'uk',qty:vals.stock_now,at:now});cnt++}
+    if(vals.stock_24b!==null){st.events.push({id:uid(),type:'recount',item:it.id,loc:'fv',qty:vals.stock_24b,at:now});cnt++}
+  }
+  save();
+  if(bad.length)banner('Skipped (bad numbers): '+bad.join(', ')+'. Others imported.',true);
+  else banner('Imported: '+upd+' updated, '+add+' new, '+cnt+' stock counts set');
+  render();
+}
+function exportCSV(){
+  const q=s=>/[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+  const now=new Date();
+  const lines=[CSVCOLS.join(',')];
+  for(const it of st.items){
+    const r=sim(it,now);const box=it.unit==='box';
+    const rd=x=>Math.round(x*100)/100;
+    lines.push([it.name,it.unit,box?'':it.am,box?'':it.pm,it.pack,SRCR[it.src]||'prescription',rd(r.uk),rd(r.fv),it.issue,it.next,box?rd(1/((it.am||0)+(it.pm||0))):'',it.why].map(v=>q(String(v))).join(','));
+  }
+  const ta=$('csvt');ta.value=lines.join('\n');ta.select();
+  try{navigator.clipboard.writeText(ta.value);banner('CSV copied to clipboard')}catch(e){banner('Select all and copy')}
+}
+
+/* ---------- SHARING + SYNC (Synology service; works offline from the last saved copy) ---------- */
+const API_DEFAULT='https://myev.cloudgough.synology.me:8443';
+const API=(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&new URLSearchParams(location.search).get('api'))||API_DEFAULT;
+const SKEY='tablets.sync.v1';
+let cfg=(()=>{try{return JSON.parse(localStorage.getItem(SKEY))||{}}catch(e){return {}}})();
+if(cfg.space&&!(()=>{try{return localStorage.getItem(KEY)}catch(e){return 1}})())cfg.v=0; /* local copy is gone: pull everything again */
+const hex=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(b=>b.toString(16).padStart(2,'0')).join('');
+function cfgSave(){try{localStorage.setItem(SKEY,JSON.stringify(cfg))}catch(e){}}
+function ensureIds(){if(!cfg.device){cfg.device=hex(16);cfg.token=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');cfgSave()}}
+let syncState=cfg.space?'pending':'off',syncAt=cfg.lastOk||0,syncing=false,syncTimer=null;
+async function api(path,body,ms){
+  const c=new AbortController(),t=setTimeout(()=>c.abort(),ms||9000);
+  try{
+    const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:c.signal});
+    let j={};try{j=await r.json()}catch(e){}
+    if(!r.ok){const e=new Error(j.error||('http '+r.status));e.http=r.status;e.code=j.error;throw e}
+    return j;
+  }finally{clearTimeout(t)}
+}
+const docNow=()=>({items:st.items,baselines:st.baselines,baseAt:st.baseAt,settings:st.settings,trips:st.trips,events:st.events,orders:st.orders,receipts:st.receipts,tomb:st.tomb,meta:st.meta});
+/* merge a remote document into the local state (same result on every device) */
+function mergeDoc(R){
+  if(!R||typeof R!=='object')return false;
+  const before=JSON.stringify(docNow());
+  const L=st,RM=R.meta||{};
+  const pick=(sec,fs)=>{if((RM[sec]||0)>(L.meta[sec]||0)){fs.forEach(f=>{if(R[f]!==undefined)L[f]=R[f]});L.meta[sec]=RM[sec]}};
+  pick('items',['items','baselines','baseAt']);pick('settings',['settings']);pick('trips',['trips']);
+  for(const [k,v] of Object.entries(R.tomb||{}))L.tomb[k]=Math.max(L.tomb[k]||0,v);
+  const union=(a,b)=>{const m=new Map();for(const x of [...(a||[]),...(b||[])])if(!m.has(x.id))m.set(x.id,x);return [...m.values()].filter(x=>!L.tomb[x.id])};
+  L.events=union(L.events,R.events);L.receipts=union(L.receipts,R.receipts);
+  const om=new Map();
+  for(const x of [...(L.orders||[]),...(R.orders||[])]){const o=om.get(x.id);if(!o||(x.u||0)>(o.u||0))om.set(x.id,x)}
+  L.orders=[...om.values()];
+  fix(L);
+  return JSON.stringify(docNow())!==before;
+}
+function applyRemoteStored(){SNAP=snapNow();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+function subLine(){
+  const s=document.getElementById('sub');if(!s)return;
+  const sy=cfg.space?(syncState==='ok'&&syncAt?'synced '+new Date(syncAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):syncState==='pending'?'syncing…':'saved data'):'';
+  s.textContent='Today '+nice(new Date())+' · counted '+nice(new Date(st.baseAt))+(sy?' · '+sy:'')+' · build '+BUILD;
+}
+function setSync(s){if(syncState!==s){syncState=s;paintSync()}}
+function paintSync(){
+  const bar=document.getElementById('syncbar');if(!bar)return;
+  const msg={offline:'No internet connection. Showing the last saved data.',server:'Synology not reachable. Showing the last saved data.',removed:'This device was removed from sharing. Join again with a new code.'}[syncState];
+  bar.textContent=msg||'';bar.hidden=!msg;subLine();
+  const t=document.getElementById('syncnote');
+  if(t)t.textContent=cfg.space?(syncState==='ok'&&syncAt?'synced '+new Date(syncAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):syncState==='pending'?'syncing…':'using saved data'):'not shared';
+}
+function syncSoon(){if(!cfg.space)return;clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,1500)}
+async function syncNow(){
+  if(!cfg.space||syncing)return;
+  if(navigator.onLine===false){setSync('offline');return}
+  syncing=true;
+  try{
+    let guard=0;
+    while(guard++<5){
+      const wantPush=dirty||cfg.v===undefined||cfg.v===0;
+      const body={device:cfg.device,token:cfg.token,space:cfg.space,base:cfg.v||0};
+      if(wantPush)body.doc=docNow();
+      const r=await api('/v1/tablets/sync',body);
+      if(r.same){break}
+      if(r.conflict||(!wantPush&&r.doc)){
+        const changed=mergeDoc(r.doc);cfg.v=r.v;cfgSave();
+        if(changed){applyRemoteStored();render(true)}
+        if(r.conflict){dirty=true;continue}
+        dirty=false;break;
+      }
+      if(r.ok){cfg.v=r.v;dirty=false;cfgSave();break}
+      if(r.doc===null&&!wantPush){break}
+    }
+    cfg.lastOk=Date.now();syncAt=cfg.lastOk;cfgSave();setSync('ok');paintSync();
+  }catch(e){
+    if(e.http===403||e.code==='not_a_member'){cfg={device:cfg.device,token:cfg.token};cfgSave();setSync('removed')}
+    else setSync(navigator.onLine===false?'offline':'server');
+  }finally{syncing=false}
+}
+async function startSharing(){
+  ensureIds();
+  try{
+    const r=await api('/v1/create',{device:cfg.device,token:cfg.token,cap:5,name:'Tablets',app:'tab'});
+    cfg.space=r.space;cfg.v=0;cfgSave();
+    const n=Date.now();st.meta.items=st.meta.settings=st.meta.trips=n;dirty=true;
+    try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}
+    syncState='pending';banner('Sharing started');await syncNow();
+    showCode(r.invite,r.inviteSeconds);render(true);
+  }catch(e){banner(e.code==='already_sharing'?'This device is already in a group':'Could not start sharing: '+(e.code||e.message),true)}
+}
+async function joinSharing(){
+  const code=(document.getElementById('jc').value||'').trim();
+  if(!/^\d{4}$/.test(code))return banner('Enter the 4 digits',true);
+  ensureIds();
+  try{
+    const r=await api('/v1/join',{device:cfg.device,token:cfg.token,code,app:'tab'});
+    cfg.space=r.space;cfg.v=0;cfgSave();syncState='pending';banner('Joined. Getting the tablet list…');await syncNow();render();
+  }catch(e){banner(({bad_code:'That code is wrong or has expired',too_many_tries:'Too many tries. Wait an hour.',group_full:'That group is full',wrong_app:'That code is for another app',already_sharing:'Already in a group'})[e.code]||('Could not join: '+(e.code||'no connection')),true)}
+}
+async function newCode(){
+  try{const r=await api('/v1/invite',{device:cfg.device,token:cfg.token,space:cfg.space});showCode(r.invite,r.inviteSeconds)}
+  catch(e){banner(e.code==='group_full'?'The group is full':'Could not get a code: '+(e.code||'no connection'),true)}
+}
+async function leaveSharing(){
+  if(!confirm('Stop sharing on this device? Your data stays here.'))return;
+  try{await api('/v1/leave',{device:cfg.device,token:cfg.token,space:cfg.space})}catch(e){}
+  cfg={device:cfg.device,token:cfg.token};cfgSave();syncState='off';banner('Stopped sharing on this device');render(true);
+}
+function showCode(code,secs){
+  document.getElementById('sheetBody').innerHTML='<div class="row"><h2 style="margin:0">Join code</h2><button class="btn sm sec" onclick="closeSheet()">Close</button></div><div style="text-align:center;margin:18px 0"><div style="font-size:64px;font-weight:800;letter-spacing:.15em">'+code+'</div><div class="mute">Works once, for '+Math.round((secs||600)/60)+' minutes. On the other phone: Settings → Join with a code.</div></div><button class="btn sec" onclick="newCode()">Make a different code</button>';
+  document.getElementById('sheet').className='sheet show';
+}
+const IS_ANDROID=!!window.AndroidApp,IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
+function vShare(){
+  const shared=!!cfg.space;
+  let h='<div class="card"><h2 style="margin-top:0">Sharing</h2>';
+  if(shared){
+    h+='<div class="mute">This device is shared with the others (Synology). Status: <b id="syncnote"></b>.</div><button class="btn" onclick="newCode()">New join code (for another phone or laptop)</button><button class="btn sec" onclick="syncNow();banner(\'Syncing…\')">Sync now</button><button class="btn sec" onclick="leaveSharing()">Stop sharing on this device</button>';
+  }else{
+    h+='<div class="mute">First device: start sharing. Other phones, the iPhone and the laptop: join with a 4-digit code from the first device.</div><button class="btn" onclick="startSharing()">Start sharing (first device)</button><label>Join with a code</label><input id="jc" inputmode="numeric" maxlength="4" placeholder="4 digits"><button class="btn sec" onclick="joinSharing()">Join</button>';
+  }
+  return h+'</div>';
+}
+function vPhoneOnly(){
+  const off=(on,label,note)=>'<div style="opacity:'+(on?1:.45)+';margin:10px 0"><label style="display:flex;gap:8px;align-items:center;margin:0"><input type="checkbox" disabled '+(on?'':'')+' style="width:auto"> '+label+'</label><div class="mute">'+note+'</div></div>';
+  let ph=st.settings.pharmacies.map((p,i)=>'<div class="card" style="margin:8px 0"><div class="name">'+p.name+'</div><div class="mute">Texts from "'+p.sender+'"</div><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" style="width:auto" '+(p.use?'checked':'')+' onchange="upPharm('+i+',this.checked)"> Use this pharmacy (untick to ignore it)</label></div>').join('');
+  return '<div class="card"><h2 style="margin-top:0">Pharmacy</h2>'+ph+'</div>'
+   +'<div class="card"><h2 style="margin-top:0">Android phone only</h2>'
+   +off(IS_ANDROID,'Read "ready to collect" texts from the pharmacy',IS_ANDROID?'Coming in the next update.':'Not available here: only the Android app can read texts.')
+   +'<div style="opacity:'+(IS_ANDROID?1:.45)+'"><button class="btn sec" '+(IS_ANDROID?'':'disabled')+' onclick="if(window.AndroidApp)AndroidApp.pinShortcut()">Add Tablets icon to home screen</button></div>'
+   +(IS_IOS?'<div class="mute" style="margin-top:8px">On this iPhone: tap the Share button in Safari, then <b>Add to Home Screen</b>.</div>':'')
+   +'</div>';
+}
+function upPharm(i,v){st.settings.pharmacies[i].use=v;save();banner(v?'Pharmacy in use':'Pharmacy ignored')}
+window.addEventListener('online',()=>syncNow());
+window.addEventListener('offline',()=>{if(cfg.space)setSync('offline')});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
+setInterval(()=>{if(cfg.space&&!document.hidden)syncNow()},60000);
+setTimeout(()=>{paintSync();if(cfg.space)syncNow()},400);
+
+/* test hook for automated checks */
+window.__tablets={mergeDoc,docNow,syncNow,get cfg(){return cfg},sim,computeAlerts,get st(){return st},set st(v){st=v},thr,SEED,ymd,pd};
+render();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('sheet').classList.contains('show'))render()});
+
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
