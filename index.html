@@ -18,6 +18,38 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,san
 header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 10px) 16px 8px}
 h1{font-size:22px;margin:0}
 .sub{color:var(--mute);font-size:13px}
+.stepper{display:flex;align-items:center;justify-content:center;gap:14px;margin:8px 0}
+.stp{width:84px;height:84px;border-radius:50%;border:0;background:var(--acc);color:#fff;font:700 44px/1 system-ui;touch-action:manipulation;user-select:none}
+.stv{min-width:120px;text-align:center;font-size:54px;font-weight:800;line-height:1.1}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:90px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px 6px;font:600 14px system-ui}
+.seg button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+body.sosmode{padding-bottom:24px}
+.sosbar{background:#b3261e;color:#fff;font:800 20px system-ui;letter-spacing:.06em;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 12px;text-align:center}
+.sospad{padding:12px 16px}
+.sosname{font-size:30px;font-weight:800;line-height:1.15}
+.sosage{color:var(--mute);margin-bottom:8px}
+.sosrow{margin:12px 0;padding:10px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line)}
+.sosrow.red{border-color:#b3261e;background:var(--badbg)}
+.soslab{font:700 12px system-ui;letter-spacing:.08em;color:var(--mute)}
+.sosrow.red .soslab{color:var(--bad)}
+.sosval{font-size:18px;font-weight:600;margin-top:2px}
+.soscall{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#1b7f4b;color:#fff;border-radius:12px;padding:14px 16px;margin:8px 0;text-decoration:none;font-size:18px}
+.sosmeds{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.sosmed{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.sosmed.key{border-color:#b3261e}
+.sosmed span{color:var(--mute);font-size:14px}
+.sosnote{color:var(--mute);font-size:13px;margin-top:6px}
+.soslink{color:var(--acc);font-weight:600}
+.sospreview{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:10px;background:var(--bg)}
+.swtog{display:flex;gap:10px;align-items:center;margin:10px 0;font-weight:500}
+#chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:6px 14px;font:600 14px system-ui;cursor:pointer}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center}
+#lock[hidden]{display:none}
+.lockbox{width:min(320px,86vw);text-align:center}
+.lockbox input{text-align:center;font-size:24px;letter-spacing:.3em}
 #syncbar{margin-top:6px;background:var(--warnbg);color:var(--warn);padding:7px 12px;border-radius:10px;font-weight:650;font-size:13px}
 #banner{position:fixed;left:0;right:0;top:0;z-index:20;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;font-weight:600;color:#fff;background:var(--ok);transform:translateY(-120%);transition:transform .2s}
 #banner.show{transform:none}
@@ -57,14 +89,14 @@ a.lnk{color:var(--acc);font-weight:600}
 </head>
 <body>
 <div id="banner"></div>
-<header><h1>Tablets</h1><div class="sub" id="sub"></div><div id="syncbar" hidden></div></header>
+<header><h1>Tablets</h1><div class="sub" id="sub"></div><div id="chips"></div><div id="syncbar" hidden></div></header><div id="lock" hidden></div>
 <main id="main"></main>
 <nav id="nav"></nav>
 <div class="sheet" id="sheet"><div id="sheetBody"></div></div>
 
 <script>
 'use strict';
-const BUILD='2026-11-22d';
+const BUILD='2026-11-23a';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -75,41 +107,76 @@ const SEED={meta:{items:0,settings:0,trips:0},tomb:{},receipts:[],
   items:[],baselines:{},baseAt:'NOW',events:[],trips:[],orders:[],seq:1};
 /*SEED_END*/
 
-/* ---------- state ---------- */
-let st=load();
-function fix(o){o.rc=o.rc||{};o.receipts=o.receipts||[];o.meta=o.meta||{items:0,settings:0,trips:0};o.tomb=o.tomb||{};
+/* ---------- state: several people (profiles) on one device ---------- */
+const hex=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PKEY='tablets.profiles.v2';
+const stateKey=id=>'tablets.p.'+id;
+const SOS_MODE=!!window.__SOS||location.hash==='#sos';
+const EMPTY=(()=>{const e=JSON.parse(JSON.stringify(SEED));Object.assign(e,{items:[],baselines:{},events:[],trips:[],orders:[],receipts:[],tomb:{},meta:{items:0,settings:0,trips:0,sos:0},baseAt:'NOW'});delete e.profileName;return e})();
+let PR=(()=>{try{return JSON.parse(localStorage.getItem(PKEY))}catch(e){return null}})();
+const states={};
+function psave(){try{localStorage.setItem(PKEY,JSON.stringify(PR))}catch(e){}}
+function profile(id){return PR.list.find(p=>p.id===id)}
+function activeP(){return PR.active?profile(PR.active):null}
+function persistState(S,id){try{localStorage.setItem(stateKey(id),JSON.stringify(S))}catch(e){if(!window.__DEMO)banner('Could not save: '+e,true)}}
+if(!PR||!PR.list){
+  PR={list:[],active:null,device:null,token:null,lock:false,sosPin:false,showOthers:true};
+  let legacy=null,old={};
+  try{legacy=localStorage.getItem('tablets.v1');old=JSON.parse(localStorage.getItem('tablets.sync.v1'))||{}}catch(e){}
+  if(legacy||SEED.items.length){
+    const id=hex(4);
+    PR.list.push({id,name:SEED.profileName||'Me',own:true,space:null,v:0,seed:SEED.items.length>0});
+    PR.active=id;
+    if(legacy){try{localStorage.setItem(stateKey(id),legacy)}catch(e){}}
+  }
+  psave();
+}
+function fix(o){
+  o.rc=o.rc||{};o.receipts=o.receipts||[];o.meta=o.meta||{};for(const k of ['items','settings','trips','sos'])o.meta[k]=o.meta[k]||0;o.tomb=o.tomb||{};
   if(o.baseAt==='NOW'){const d=new Date(),p=n=>String(n).padStart(2,'0');o.baseAt=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T00:00:00'}
-  o.settings=o.settings||{};if(o.settings.buyLow===undefined)o.settings.buyLow=o.settings['diabeto'+'neLow']||45;if(!Array.isArray(o.settings.pharmacies))o.settings.pharmacies=[{name:'Day Lewis Chemist Andover',sender:'Day-Lewis',use:true}];
+  o.settings=o.settings||{};if(o.settings.buyLow===undefined)o.settings.buyLow=o.settings['diabeto'+'neLow']||45;
+  if(!Array.isArray(o.settings.pharmacies))o.settings.pharmacies=[];
+  o.sos=o.sos||{};const d={name:'',dob:'',allergies:'',conditions:'',warnings:'',diet:'',contacts:[],gp:{name:'',surgery:'',address:'',phone:''},blood:'',nhs:'',address:'',donor:'',advance:'',notes:'',key:[],updated:'',
+    show:{dob:true,meds:true,allergies:true,conditions:true,warnings:true,diet:true,contacts:true,gp:true,pharmacy:true,blood:true,donor:true,advance:true,nhs:false,address:false}};
+  for(const k of Object.keys(d))if(o.sos[k]===undefined)o.sos[k]=d[k];
+  o.sos.show=Object.assign({},d.show,o.sos.show||{});
   return o}
 const isOpen=o=>['requested','approved','part'].includes(o.status);
-function load(){try{const r=localStorage.getItem(KEY);if(r)return fix(JSON.parse(r))}catch(e){}return fix(JSON.parse(JSON.stringify(SEED)))}
-/* every change goes through save(): it stamps what changed (so devices can merge) and asks for a sync */
-let SNAP=null,dirty=false;
-function snapNow(){
+const SNAPW=new WeakMap();
+function snapNow(S){
   const o={};
-  o.items=JSON.stringify([st.items,st.baselines,st.baseAt]);o.settings=JSON.stringify(st.settings);o.trips=JSON.stringify(st.trips);
-  o.orders={};for(const x of st.orders){const {u,...r}=x;o.orders[x.id]=JSON.stringify(r)}
-  o.ids=new Set([...st.events.map(e=>e.id),...st.receipts.map(r=>r.id)]);
+  o.items=JSON.stringify([S.items,S.baselines,S.baseAt]);o.settings=JSON.stringify(S.settings);o.trips=JSON.stringify(S.trips);o.sos=JSON.stringify(S.sos);
+  o.orders={};for(const x of S.orders){const {u,...r}=x;o.orders[x.id]=JSON.stringify(r)}
+  o.ids=new Set([...S.events.map(e=>e.id),...S.receipts.map(r=>r.id)]);
   return o;
 }
-function stamp(){
-  const cur=snapNow(),now=Date.now();
-  if(SNAP){
-    for(const s of ['items','settings','trips'])if(cur[s]!==SNAP[s])st.meta[s]=now;
-    for(const x of st.orders)if(SNAP.orders[x.id]!==cur.orders[x.id])x.u=now;
-    for(const id of SNAP.ids)if(!cur.ids.has(id))st.tomb[id]=now;
+function snapReset(S){SNAPW.set(S,snapNow(S))}
+function stamp(S){
+  const cur=snapNow(S),prev=SNAPW.get(S),now=Date.now();
+  if(prev){
+    for(const s of ['items','settings','trips','sos'])if(cur[s]!==prev[s])S.meta[s]=now;
+    for(const x of S.orders)if(prev.orders[x.id]!==cur.orders[x.id])x.u=now;
+    for(const id of prev.ids)if(!cur.ids.has(id))S.tomb[id]=now;
   }
-  SNAP=cur;
+  SNAPW.set(S,cur);
 }
+function loadState(id){
+  if(states[id])return states[id];
+  let s=null;
+  try{const r=localStorage.getItem(stateKey(id));if(r)s=JSON.parse(r)}catch(e){}
+  if(!s){const p=profile(id);s=JSON.parse(JSON.stringify((p&&p.seed&&!p.space&&SEED.items.length)?SEED:EMPTY))}
+  states[id]=fix(s);snapReset(states[id]);
+  return states[id];
+}
+let st=PR.active?loadState(PR.active):fix(JSON.parse(JSON.stringify(EMPTY)));
 function save(){
-  stamp();dirty=true;
-  try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){if(!window.__DEMO)banner('Could not save: '+e,true)}
+  stamp(st);
+  const p=activeP();if(p){p.dirty=true;persistState(st,p.id);psave()}
   if(typeof syncSoon==='function')syncSoon();
 }
 const uid=()=>Date.now()*1000+Math.floor(Math.random()*1000);
-SNAP=snapNow();
 function banner(msg,err){const b=document.getElementById('banner');b.textContent=msg;b.className='show'+(err?' err':'');clearTimeout(banner.t);banner.t=setTimeout(()=>b.className='',err?6000:3500)}
-
 /* ---------- date helpers ---------- */
 const pad=n=>String(n).padStart(2,'0');
 const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
@@ -136,7 +203,7 @@ function isMissed(it,ds,slot){return st.events.some(e=>e.type==='missed'&&(e.ite
 
 /* simulate one item. Returns stock at `now` (per place) and the moment it runs out. */
 function sim(it,now){
-  const t0=new Date(st.baseAt);
+  const t0=new Date(it.from&&it.from>st.baseAt?it.from:st.baseAt);
   const pools={uk:st.baselines[it.id]||0,fv:0};
   const pts=[];
   for(const e of st.events){
@@ -145,7 +212,7 @@ function sim(it,now){
     else if(e.type==='delivery'||e.type==='extra'||e.type==='move')pts.push({t:new Date(e.at||(e.date+'T12:00:00')),e});
   }
   for(const p of pts){} // (sorted below with doses)
-  let snap=null,runOut=null,out=false;
+  let snap=null,runOut=null,short=false,shortNow=false;
   const take=(loc,amt)=>{ // returns true if fully covered
     const other=loc==='uk'?'fv':'uk';
     let need=amt;
@@ -165,21 +232,22 @@ function sim(it,now){
     }
     els.sort((a,b)=>a.t-b.t);
     for(const el of els){
-      if(!snap&&el.t>now)snap={uk:pools.uk,fv:pools.fv};
+      if(!snap&&el.t>now){snap={uk:pools.uk,fv:pools.fv};shortNow=short}
       if(el.kind==='pt'){
         const e=el.e;
-        if(e.type==='recount'){pools[e.loc||'uk']=e.qty}
-        else if(e.type==='delivery'){pools[e.loc||'uk']+=e.qty}
+        if(e.type==='recount'){pools[e.loc||'uk']=e.qty;if(pools.uk+pools.fv>1e-9)short=false}
+        else if(e.type==='delivery'){pools[e.loc||'uk']+=e.qty;if(pools.uk+pools.fv>1e-9)short=false}
         else if(e.type==='extra'){take(inFV(day,'am')?'fv':'uk',e.qty)}
         else if(e.type==='move'){const from=e.from||'uk',to=from==='uk'?'fv':'uk';const q=Math.min(e.qty,pools[from]);pools[from]-=q;pools[to]+=q}
       }else{
         if(isPaused(it,ds)||isMissed(it,ds,el.slot))continue;
         const ok=take(inFV(day,el.slot)?'fv':'uk',el.amt);
-        if(!ok){runOut=el.t;out=el.t<=now;break}
+        if(!ok){if(el.t<=now){short=true;continue}runOut=el.t;break}
       }
     }
   }
-  if(!snap)snap={uk:pools.uk,fv:pools.fv};
+  if(!snap){snap={uk:pools.uk,fv:pools.fv};shortNow=short}
+  const out=shortNow;
   const total=snap.uk+snap.fv;
   const perDay=(it.am||0)+(it.pm||0);
   return {uk:snap.uk,fv:snap.fv,total,runOut,out,perDay,daysLeft:runOut?Math.floor((runOut-now)/DAY):null};
@@ -254,23 +322,13 @@ function qtyTxt(it,q){
   const u=it.unit==='ml'?' ml':'';
   return (Math.round(q*10)/10)+u;
 }
-function render(keepScroll){
-  const now=new Date();
-  const {A,R}=computeAlerts(now);
-  subLine();
-  const nBad=A.filter(a=>a.lvl==='bad').length;
-  const tabs=[['stock','▤','Stock'],['alerts','⚠','Alerts'+(nBad?'<span class="dot">'+nBad+'</span>':'')],['recv','⬇','Receive'],['log','✎','Log'],['orders','✚','Orders'],['set','⚙','Settings']];
-  $('nav').innerHTML=tabs.map(t=>'<button class="'+(tab===t[0]?'on':'')+'" onclick="go(\''+t[0]+'\')"><span class="ic">'+t[1]+'</span>'+t[2]+'</button>').join('');
-  $('main').innerHTML=({stock:vStock,alerts:vAlerts,log:vLog,orders:vOrders,recv:vRecv,set:vSet})[tab](A,R,now);
-  if(tab==='log')logType();
-  if(keepScroll!==true)window.scrollTo(0,0);
-}
+
 function go(t){tab=t;render()}
 function vStock(A,R,now){
   const items=[...st.items].sort((a,b)=>(R[a.id].daysLeft??9999)-(R[b.id].daysLeft??9999));
   const T=thr();
   let h='';
-  if(!st.items.length)return '<div class="card"><h2 style="margin-top:0">Welcome</h2><p>No tablets yet. Pick one:</p><button class="btn" onclick="go(\'set\')">Join the shared list with a 4-digit code</button><button class="btn sec" onclick="go(\'set\')">Import a CSV list (Settings)</button><p class="mute">Settings has both. The first person to set up uses Import CSV or Start sharing.</p></div>';
+  if(!st.items.length)return '<div class="card"><h2 style="margin-top:0">No tablets yet</h2><p>Add your tablets one by one, or import a CSV list.</p><button class="btn" onclick="editItem(null)">＋ Add a tablet</button><button class="btn sec" onclick="go(\'set\')">Import a CSV (Settings)</button></div>';
   if(A.some(a=>a.lvl==='bad'))h+='<div class="alert bad"><b>'+A.filter(a=>a.lvl==='bad').length+' thing(s) need you</b>See the Alerts tab.</div>';
   for(const it of items){
     const r=R[it.id];
@@ -284,12 +342,9 @@ function vStock(A,R,now){
      +'<div class="row"><span class="big">'+qtyTxt(it,r.total)+'</span><span class="mute">'+(r.runOut?'runs out '+niceS(r.runOut):'')+'</span></div>'
      +'<div class="mute">'+(it.src==='pa'&&lo?'order by '+niceS(lo)+' · ':'')+(r.fv>0.001?'UK '+qtyTxt(it,r.uk)+' · 24B '+qtyTxt(it,r.fv):'')+'</div></div>';
   }
-  return h;
+  return h+'<button class="btn sec" onclick="editItem(null)">＋ Add a tablet</button>';
 }
-function vAlerts(A){
-  if(!A.length)return '<div class="card">All good. Nothing needs doing.</div>';
-  return A.map(a=>'<div class="alert '+a.lvl+'"><b>'+a.t+'</b>'+a.m+(a.diab?'<div style="margin-top:8px">'+diabLinks(a.diab)+'</div>':'')+'</div>').join('');
-}
+
 function diabLinks(name){
   const q=encodeURIComponent((name||'')+' tablets');
   return '<a class="lnk" href="https://www.google.com/search?tbm=shop&q='+q+'" target="_blank">Compare prices</a> · <a class="lnk" href="https://www.amazon.co.uk/s?k='+q+'" target="_blank">Amazon</a> · <a class="lnk" href="https://www.hollandandbarrett.com/search/?query='+q+'" target="_blank">Holland &amp; Barrett</a>';
@@ -375,7 +430,7 @@ function addTrip(){const d=ymd(addD(new Date(),30));st.trips.push({from:d,to:ymd
 function vSet(){
   const s=st.settings;
   const f=(k,l)=>'<label>'+l+'</label><input type="number" value="'+s[k]+'" onchange="upSet(\''+k+'\',+this.value)">';
-  return vShare()+vPhoneOnly()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
+  return vProfile()+vSecurity()+(typeof sosCard==='function'?sosCard():'')+vPharm()+vPhoneOnly()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
    +'<div class="card"><h2 style="margin-top:0">Dose times</h2><div class="grid2"><div><label>Morning</label><input type="time" value="'+s.amTime+'" onchange="upSetS(\'amTime\',this.value)"></div><div><label>Evening</label><input type="time" value="'+s.pmTime+'" onchange="upSetS(\'pmTime\',this.value)"></div></div></div>'
    +'<div class="card"><h2 style="margin-top:0">Import / export tablets (CSV)</h2><div class="mute">Columns: name, unit, morning, evening, box_size, source (prescription / supplement-uk / supplement-spain), stock_now, stock_24b, order_qty, next_issue, days_per_box, note. Empty cells leave things unchanged. Names are matched to your existing tablets; new names are added.</div>'
    +'<label>Choose a CSV file</label><input type="file" accept=".csv,text/csv,text/plain" onchange="csvFile(this)">'
@@ -401,15 +456,65 @@ function openItem(id){
    +'<div class="card"><div class="big">'+qtyTxt(it,r.total)+'</div><div class="mute">Morning '+(it.unit==='box'?'1 type':qtyTxt(it,it.am))+' · Evening '+(it.unit==='box'?'2 type':qtyTxt(it,it.pm))+' · pack '+it.pack+'</div>'
    +'<div class="mute">'+(r.runOut?'Runs out '+nice(r.runOut)+' ('+r.daysLeft+' days)':'No run-out in the next 2 years')+(lo&&it.src==='pa'?' · order by '+nice(lo):'')+'</div></div>'
    +'<label>Recount: I actually have</label><input type="number" step="any" id="rc" inputmode="decimal"><button class="btn" onclick="quickRecount(\''+id+'\')">Save recount (UK)</button>'
-   +'<div class="grid2"><div><label>Morning dose</label><input type="number" step="any" id="ea" value="'+(it.unit==='box'?'':it.am)+'" '+(it.unit==='box'?'disabled':'')+'></div><div><label>Evening dose</label><input type="number" step="any" id="ep" value="'+(it.unit==='box'?'':it.pm)+'" '+(it.unit==='box'?'disabled':'')+'></div></div>'
-   +'<label>Box size (what one tap adds in Receive)</label><input type="number" step="any" id="ek" value="'+it.pack+'">'
-   +'<button class="btn sec" onclick="saveDose(\''+id+'\')">Save doses and box size</button>'
+   +'<button class="btn sec" onclick="editItem(\''+id+'\')">Edit this tablet (name, doses, box size…)</button>'
    +(it.src==='diab'?'<p>'+diabLinks(it.name.replace(/ \(.*/,''))+'</p>':'');
   $('sheetBody').innerHTML=h;$('sheet').className='sheet show';
 }
 function closeSheet(){$('sheet').className='sheet'}
 function quickRecount(id){const q=parseFloat($('rc').value);if(!(q>=0))return banner('Enter a number',true);st.events.push({id:uid(),type:'recount',item:id,loc:'uk',qty:q,at:lts(new Date())});save();closeSheet();banner('Recount saved');render()}
-function saveDose(id){const it=st.items.find(i=>i.id===id);if(it.unit!=='box'){it.am=parseFloat($('ea').value)||0;it.pm=parseFloat($('ep').value)||0}const k=parseFloat($('ek').value);if(k>0)it.pack=k;save();closeSheet();banner('Saved: doses apply to all dates since the last count');render()}
+function saveDoseOld(id){const it=st.items.find(i=>i.id===id);if(it.unit!=='box'){it.am=parseFloat($('ea').value)||0;it.pm=parseFloat($('ep').value)||0}const k=parseFloat($('ek').value);if(k>0)it.pack=k;save();closeSheet();banner('Saved: doses apply to all dates since the last count');render()}
+
+/* ---------- add / edit a tablet ---------- */
+let EF=null;
+function efRead(){
+  if(!EF)return;const g=id=>{const e=document.getElementById(id);return e?e.value:''};
+  EF.name=g('ef_name');EF.am=g('ef_am');EF.pm=g('ef_pm');EF.pack=g('ef_pack');EF.issue=g('ef_issue');EF.next=g('ef_next');EF.why=g('ef_why');EF.start=g('ef_start');EF.days=g('ef_days');
+}
+function editItem(id){
+  const it=id?st.items.find(i=>i.id===id):null;
+  EF=it?{id,name:it.name,unit:it.unit,src:it.src,am:it.unit==='box'?'':it.am,pm:it.unit==='box'?'':it.pm,pack:it.pack,issue:it.issue||'',next:it.next||'',why:it.why||'',start:'',days:it.unit==='box'?Math.round(1/((it.am||0)+(it.pm||0))):30}
+     :{id:null,name:'',unit:'tablet',src:'pa',am:1,pm:0,pack:28,issue:'',next:'',why:'',start:'',days:30};
+  efDraw();
+}
+function efSet(k,v){efRead();EF[k]=v;efDraw()}
+function efDraw(){
+  const E=EF,seg=(k,opts)=>'<div class="seg">'+opts.map(o=>'<button class="'+(E[k]===o[0]?'on':'')+'" onclick="efSet(\''+k+'\',\''+o[0]+'\')">'+o[1]+'</button>').join('')+'</div>';
+  const inp=(id,l,v,ph,type)=>'<label>'+l+'</label><input id="'+id+'" type="'+(type||'text')+'" '+(type==='number'?'step="any" inputmode="decimal" ':'')+'value="'+esc(v)+'" placeholder="'+(ph||'')+'">';
+  let h='<div class="row"><h2 style="margin:0">'+(E.id?'Edit tablet':'Add a tablet')+'</h2><button class="btn sm sec" onclick="closeSheet()">Close</button></div>'
+   +inp('ef_name','Name and strength',E.name,'tablet name and strength')
+   +'<label>Type</label>'+seg('unit',[['tablet','Tablet'],['capsule','Capsule'],['ml','Liquid (ml)'],['box','Boxes']])
+   +(E.unit==='box'?inp('ef_days','Days one box lasts',E.days,'30','number'):'<div class="grid2"><div>'+inp('ef_am','Morning dose (how many)',E.am,'0','number')+'</div><div>'+inp('ef_pm','Evening dose (how many)',E.pm,'0','number')+'</div></div>')
+   +inp('ef_pack',E.unit==='box'?'One box (leave 1)':'Box or bottle size (what + 1 box adds)',E.pack,'28','number')
+   +'<label>Where does it come from?</label>'+seg('src',[['pa','Prescription'],['diab','Bought in the UK'],['fv','Bought abroad']])
+   +(E.src==='pa'?'<div class="grid2"><div>'+inp('ef_issue','Usual amount ordered',E.issue,'e.g. 84','number')+'</div><div>'+inp('ef_next','Next issue date',E.next,'','date')+'</div></div>':'')
+   +inp('ef_why','Note (what it is for)',E.why,'optional')
+   +(E.id?'':inp('ef_start','How many do you have now?',E.start,'e.g. 56','number'))
+   +'<button class="btn" onclick="efSave()">Save</button>'+(E.id?'<button class="btn sec" onclick="efDelete()">Delete this tablet</button>':'');
+  document.getElementById('sheetBody').innerHTML=h;document.getElementById('sheet').className='sheet show';
+}
+function efSave(){
+  efRead();const E=EF;const name=(E.name||'').trim();
+  if(!name)return banner('Type the tablet name',true);
+  const num=x=>{const v=parseFloat(x);return isNaN(v)?0:v};
+  let am=num(E.am),pm=num(E.pm);
+  if(E.unit==='box'){const d=num(E.days)||30;am=pm=1/(2*d)}
+  else if(!am&&!pm)return banner('Enter how many you take in the morning or evening',true);
+  const pack=num(E.pack)||1;
+  let it=E.id?st.items.find(i=>i.id===E.id):null;
+  if(!it){
+    let id=slug(name),n=2;while(st.items.some(i=>i.id===id))id=slug(name)+(n++);
+    it={id,from:lts(new Date())};st.items.push(it);st.baselines[id]=0;
+    if(num(E.start)>0)st.events.push({id:uid(),type:'recount',item:id,loc:'uk',qty:num(E.start),at:lts(new Date())});
+  }
+  Object.assign(it,{name,unit:E.unit,am,pm,pack,src:E.src,issue:num(E.issue),next:E.next||'',why:E.why||''});
+  save();closeSheet();banner('Saved: '+name);render();
+}
+function efDelete(){
+  if(!confirm('Delete this tablet and its history from this list?'))return;
+  const id=EF.id;st.items=st.items.filter(i=>i.id!==id);delete st.baselines[id];
+  st.events=st.events.filter(e=>e.item!==id);st.orders=st.orders.filter(o=>o.item!==id);
+  save();closeSheet();banner('Deleted');render();
+}
 
 /* ---------- BULK RECEIPT: tap per box, back/forward like photos ---------- */
 let rcIdx=0;
@@ -417,8 +522,16 @@ const openFor=id=>st.orders.filter(o=>o.item===id&&isOpen(o)).sort((a,b)=>a.date
 function recvList(){const w=st.items.filter(i=>openFor(i.id)),r=st.items.filter(i=>!openFor(i.id));return [...w,...r]}
 const U=it=>it.unit==='box'?'box':it.unit==='ml'?'ml':it.unit;
 function recvItem(id){const L=recvList();rcIdx=Math.max(0,L.findIndex(i=>i.id===id));go('recv')}
-function rcAdd(id,n){const it=st.items.find(i=>i.id===id);const cur=st.rc[id]||0;st.rc[id]=Math.max(0,Math.round((cur+n)*1000)/1000);save();render(true)}
-function rcSet(id,v){const q=parseFloat(v);st.rc[id]=q>0?q:0;save();render(true)}
+function rcPersist(){const p=activeP();if(p)persistState(st,p.id)}
+function rcAdd(id,n){const cur=st.rc[id]||0;st.rc[id]=Math.max(0,Math.round((cur+n)*1000)/1000);rcPersist();render(true)}
+let holdT=null,holdI=null,holdN=0;
+function rcBump(id,n){const cur=st.rc[id]||0;st.rc[id]=Math.max(0,Math.round((cur+n)*1000)/1000);const e=document.getElementById('stv');if(e)e.textContent=(Math.round(st.rc[id]*10)/10)}
+function rcHold(ev,id,d){
+  ev.preventDefault();rcStop(true);holdN=0;rcBump(id,d);
+  holdT=setTimeout(()=>{holdI=setInterval(()=>{holdN++;rcBump(id,d*(holdN>12?5:1))},holdN>12?60:110)},420);
+}
+function rcStop(quiet){clearTimeout(holdT);clearInterval(holdI);holdT=holdI=null;if(!quiet){rcPersist();render(true)}}
+function rcSet(id,v){const q=parseFloat(v);st.rc[id]=q>0?q:0;rcPersist();render(true)}
 function rcGo(d){const n=recvList().length+1;rcIdx=(rcIdx+d+n)%n;render(true)}
 function vRecv(){
   const L=recvList();if(rcIdx>L.length)rcIdx=0;
@@ -445,9 +558,11 @@ function vRecv(){
   return dots(rcIdx)
    +'<div style="text-align:center"><div class="big" style="font-size:24px">'+it.name+'</div><div class="mute">one box = '+qtyTxt(it,box)+'</div></div>'
    +status
-   +'<div style="text-align:center;margin:6px 0"><div class="mute">Received now</div><div style="font-size:46px;font-weight:800;line-height:1.1">'+(Math.round(got*10)/10)+(it.unit==='ml'?' ml':'')+'</div><div class="mute">'+(box>0?(Math.round(got/box*100)/100)+' boxes':'')+'</div></div>'
-   +'<button class="btn" style="font-size:26px;padding:22px" onclick="rcAdd(\''+it.id+'\','+box+')">+ 1 box</button>'
-   +'<div class="grid2" style="margin-top:10px"><button class="btn sec" onclick="rcAdd(\''+it.id+'\','+(-box)+')">− 1 box</button><button class="btn sec" onclick="rcAdd(\''+it.id+'\','+(box/2)+')">+ ½ box</button></div>'
+   +'<div class="mute" style="text-align:center;margin-top:6px">Received now (tap − or + for one at a time, hold to go faster)</div>'
+   +'<div class="stepper"><button class="stp" aria-label="one less" onpointerdown="rcHold(event,\''+it.id+'\',-1)" onpointerup="rcStop()" onpointerleave="rcStop()" onpointercancel="rcStop()">−</button><div class="stv" id="stv">'+(Math.round(got*10)/10)+'</div><button class="stp" aria-label="one more" onpointerdown="rcHold(event,\''+it.id+'\',1)" onpointerup="rcStop()" onpointerleave="rcStop()" onpointercancel="rcStop()">+</button></div>'
+   +'<div class="mute" style="text-align:center">'+(it.unit==='ml'?'ml':it.unit==='box'?'boxes':'')+' '+(box>0?'· '+(Math.round(got/box*100)/100)+' boxes':'')+'</div>'
+   +'<div class="grid2" style="margin-top:10px"><button class="btn" onclick="rcAdd(\''+it.id+'\','+box+')">+ 1 box ('+box+')</button><button class="btn sec" onclick="rcAdd(\''+it.id+'\','+(box/2)+')">+ ½ box</button></div>'
+   +'<button class="btn sec" onclick="rcAdd(\''+it.id+'\','+(-box)+')">− 1 box</button>'
    +'<label>Or type the exact number</label><input type="number" step="any" inputmode="decimal" value="'+(got||'')+'" onchange="rcSet(\''+it.id+'\',this.value)" placeholder="e.g. 15">'
    +navb+'<div style="height:70px"></div>';
 }
@@ -537,16 +652,10 @@ function exportCSV(){
   try{navigator.clipboard.writeText(ta.value);banner('CSV copied to clipboard')}catch(e){banner('Select all and copy')}
 }
 
-/* ---------- SHARING + SYNC (Synology service; works offline from the last saved copy) ---------- */
+/* ---------- PEOPLE, PINs AND SYNC (Synology; works offline from the last saved copy) ---------- */
 const API_DEFAULT='https://myev.cloudgough.synology.me:8443';
 const API=(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&new URLSearchParams(location.search).get('api'))||API_DEFAULT;
-const SKEY='tablets.sync.v1';
-let cfg=(()=>{try{return JSON.parse(localStorage.getItem(SKEY))||{}}catch(e){return {}}})();
-if(cfg.space&&!(()=>{try{return localStorage.getItem(KEY)}catch(e){return 1}})())cfg.v=0; /* local copy is gone: pull everything again */
-const hex=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(b=>b.toString(16).padStart(2,'0')).join('');
-function cfgSave(){try{localStorage.setItem(SKEY,JSON.stringify(cfg))}catch(e){}}
-function ensureIds(){if(!cfg.device){cfg.device=hex(16);cfg.token=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');cfgSave()}}
-let syncState=cfg.space?'pending':'off',syncAt=cfg.lastOk||0,syncing=false,syncTimer=null;
+function ensureIds(){if(!PR.device){PR.device=hex(16);PR.token=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');psave()}}
 async function api(path,body,ms){
   const c=new AbortController(),t=setTimeout(()=>c.abort(),ms||9000);
   try{
@@ -556,14 +665,14 @@ async function api(path,body,ms){
     return j;
   }finally{clearTimeout(t)}
 }
-const docNow=()=>({items:st.items,baselines:st.baselines,baseAt:st.baseAt,settings:st.settings,trips:st.trips,events:st.events,orders:st.orders,receipts:st.receipts,tomb:st.tomb,meta:st.meta});
-/* merge a remote document into the local state (same result on every device) */
-function mergeDoc(R){
+const docNow=S=>({items:S.items,baselines:S.baselines,baseAt:S.baseAt,settings:S.settings,trips:S.trips,events:S.events,orders:S.orders,receipts:S.receipts,tomb:S.tomb,meta:S.meta,sos:S.sos});
+/* merge a remote document into a state (same result on every device); returns true if anything changed */
+function mergeDoc(L,R){
   if(!R||typeof R!=='object')return false;
-  const before=JSON.stringify(docNow());
-  const L=st,RM=R.meta||{};
+  const before=JSON.stringify(docNow(L));
+  const RM=R.meta||{};
   const pick=(sec,fs)=>{if((RM[sec]||0)>(L.meta[sec]||0)){fs.forEach(f=>{if(R[f]!==undefined)L[f]=R[f]});L.meta[sec]=RM[sec]}};
-  pick('items',['items','baselines','baseAt']);pick('settings',['settings']);pick('trips',['trips']);
+  pick('items',['items','baselines','baseAt']);pick('settings',['settings']);pick('trips',['trips']);pick('sos',['sos']);
   for(const [k,v] of Object.entries(R.tomb||{}))L.tomb[k]=Math.max(L.tomb[k]||0,v);
   const union=(a,b)=>{const m=new Map();for(const x of [...(a||[]),...(b||[])])if(!m.has(x.id))m.set(x.id,x);return [...m.values()].filter(x=>!L.tomb[x.id])};
   L.events=union(L.events,R.events);L.receipts=union(L.receipts,R.receipts);
@@ -571,114 +680,398 @@ function mergeDoc(R){
   for(const x of [...(L.orders||[]),...(R.orders||[])]){const o=om.get(x.id);if(!o||(x.u||0)>(o.u||0))om.set(x.id,x)}
   L.orders=[...om.values()];
   fix(L);
-  return JSON.stringify(docNow())!==before;
+  return JSON.stringify(docNow(L))!==before;
 }
-function applyRemoteStored(){SNAP=snapNow();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
-function subLine(){
-  const s=document.getElementById('sub');if(!s)return;
-  const sy=cfg.space?(syncState==='ok'&&syncAt?'synced '+new Date(syncAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):syncState==='pending'?'syncing…':'saved data'):'';
-  s.textContent='Today '+nice(new Date())+' · counted '+nice(new Date(st.baseAt))+(sy?' · '+sy:'')+' · build '+BUILD;
-}
-function setSync(s){if(syncState!==s){syncState=s;paintSync()}}
-function paintSync(){
-  const bar=document.getElementById('syncbar');if(!bar)return;
-  const msg={offline:'No internet connection. Showing the last saved data.',server:'Synology not reachable. Showing the last saved data.',removed:'This device was removed from sharing. Join again with a new code.'}[syncState];
-  bar.textContent=msg||'';bar.hidden=!msg;subLine();
-  const t=document.getElementById('syncnote');
-  if(t)t.textContent=cfg.space?(syncState==='ok'&&syncAt?'synced '+new Date(syncAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):syncState==='pending'?'syncing…':'using saved data'):'not shared';
-}
-function syncSoon(){if(!cfg.space)return;clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,1500)}
-async function syncNow(){
-  if(!cfg.space||syncing)return;
-  if(navigator.onLine===false){setSync('offline');return}
-  syncing=true;
+let syncTimer=null;
+function syncSoon(){clearTimeout(syncTimer);syncTimer=setTimeout(syncAll,1500)}
+async function syncAll(){for(const p of PR.list)await syncProfile(p);paintSync()}
+function typing(){const a=document.activeElement;return a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)}
+async function syncProfile(p){
+  if(!p.space||p.busy)return;
+  if(navigator.onLine===false){p.state='offline';return}
+  p.busy=true;let changed=false;
   try{
+    const S=loadState(p.id);
     let guard=0;
     while(guard++<5){
-      const wantPush=dirty||cfg.v===undefined||cfg.v===0;
-      const body={device:cfg.device,token:cfg.token,space:cfg.space,base:cfg.v||0};
-      if(wantPush)body.doc=docNow();
+      const wantPush=p.dirty||!p.v;
+      const body={device:PR.device,token:PR.token,space:p.space,base:p.v||0};
+      if(wantPush)body.doc=docNow(S);
       const r=await api('/v1/tablets/sync',body);
-      if(r.same){break}
+      if(r.same)break;
       if(r.conflict||(!wantPush&&r.doc)){
-        const changed=mergeDoc(r.doc);cfg.v=r.v;cfgSave();
-        if(changed){applyRemoteStored();render(true)}
-        if(r.conflict){dirty=true;continue}
-        dirty=false;break;
+        if(mergeDoc(S,r.doc)){changed=true;snapReset(S);persistState(S,p.id)}
+        p.v=r.v;
+        if(r.conflict){p.dirty=true;continue}
+        p.dirty=false;break;
       }
-      if(r.ok){cfg.v=r.v;dirty=false;cfgSave();break}
-      if(r.doc===null&&!wantPush){break}
+      if(r.ok){p.v=r.v;p.dirty=false;break}
+      if(r.doc===null&&!wantPush)break;
     }
-    cfg.lastOk=Date.now();syncAt=cfg.lastOk;cfgSave();setSync('ok');paintSync();
+    p.lastOk=Date.now();p.state='ok';
   }catch(e){
-    if(e.http===403||e.code==='not_a_member'){cfg={device:cfg.device,token:cfg.token};cfgSave();setSync('removed')}
-    else setSync(navigator.onLine===false?'offline':'server');
-  }finally{syncing=false}
-}
-async function startSharing(){
-  ensureIds();
-  try{
-    const r=await api('/v1/create',{device:cfg.device,token:cfg.token,cap:5,name:'Tablets',app:'tab'});
-    cfg.space=r.space;cfg.v=0;cfgSave();
-    const n=Date.now();st.meta.items=st.meta.settings=st.meta.trips=n;dirty=true;
-    try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}
-    syncState='pending';banner('Sharing started');await syncNow();
-    showCode(r.invite,r.inviteSeconds);render(true);
-  }catch(e){banner(e.code==='already_sharing'?'This device is already in a group':'Could not start sharing: '+(e.code||e.message),true)}
-}
-async function joinSharing(){
-  const code=(document.getElementById('jc').value||'').trim();
-  if(!/^\d{4}$/.test(code))return banner('Enter the 4 digits',true);
-  ensureIds();
-  try{
-    const r=await api('/v1/join',{device:cfg.device,token:cfg.token,code,app:'tab'});
-    cfg.space=r.space;cfg.v=0;cfgSave();syncState='pending';banner('Joined. Getting the tablet list…');await syncNow();render();
-  }catch(e){banner(({bad_code:'That code is wrong or has expired',too_many_tries:'Too many tries. Wait an hour.',group_full:'That group is full',wrong_app:'That code is for another app',already_sharing:'Already in a group'})[e.code]||('Could not join: '+(e.code||'no connection')),true)}
-}
-async function newCode(){
-  try{const r=await api('/v1/invite',{device:cfg.device,token:cfg.token,space:cfg.space});showCode(r.invite,r.inviteSeconds)}
-  catch(e){banner(e.code==='group_full'?'The group is full':'Could not get a code: '+(e.code||'no connection'),true)}
-}
-async function leaveSharing(){
-  if(!confirm('Stop sharing on this device? Your data stays here.'))return;
-  try{await api('/v1/leave',{device:cfg.device,token:cfg.token,space:cfg.space})}catch(e){}
-  cfg={device:cfg.device,token:cfg.token};cfgSave();syncState='off';banner('Stopped sharing on this device');render(true);
-}
-function showCode(code,secs){
-  document.getElementById('sheetBody').innerHTML='<div class="row"><h2 style="margin:0">Join code</h2><button class="btn sm sec" onclick="closeSheet()">Close</button></div><div style="text-align:center;margin:18px 0"><div style="font-size:64px;font-weight:800;letter-spacing:.15em">'+code+'</div><div class="mute">Works once, for '+Math.round((secs||600)/60)+' minutes. On the other phone: Settings → Join with a code.</div></div><button class="btn sec" onclick="newCode()">Make a different code</button>';
-  document.getElementById('sheet').className='sheet show';
-}
-const IS_ANDROID=!!window.AndroidApp,IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
-function vShare(){
-  const shared=!!cfg.space;
-  let h='<div class="card"><h2 style="margin-top:0">Sharing</h2>';
-  if(shared){
-    h+='<div class="mute">This device is shared with the others (Synology). Status: <b id="syncnote"></b>.</div><button class="btn" onclick="newCode()">New join code (for another phone or laptop)</button><button class="btn sec" onclick="syncNow();banner(\'Syncing…\')">Sync now</button><button class="btn sec" onclick="leaveSharing()">Stop sharing on this device</button>';
-  }else{
-    h+='<div class="mute">First device: start sharing. Other phones, the iPhone and the laptop: join with a 4-digit code from the first device.</div><button class="btn" onclick="startSharing()">Start sharing (first device)</button><label>Join with a code</label><input id="jc" inputmode="numeric" maxlength="4" placeholder="4 digits"><button class="btn sec" onclick="joinSharing()">Join</button>';
+    if(e.http===403||e.code==='not_a_member')p.state='removed';
+    else p.state=navigator.onLine===false?'offline':'server';
+  }finally{
+    p.busy=false;psave();paintSync();
+    if(changed&&!typing()&&!document.getElementById('sheet').classList.contains('show'))render(true);
   }
-  return h+'</div>';
 }
-function vPhoneOnly(){
-  const off=(on,label,note)=>'<div style="opacity:'+(on?1:.45)+';margin:10px 0"><label style="display:flex;gap:8px;align-items:center;margin:0"><input type="checkbox" disabled '+(on?'':'')+' style="width:auto"> '+label+'</label><div class="mute">'+note+'</div></div>';
-  let ph=st.settings.pharmacies.map((p,i)=>'<div class="card" style="margin:8px 0"><div class="name">'+p.name+'</div><div class="mute">Texts from "'+p.sender+'"</div><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" style="width:auto" '+(p.use?'checked':'')+' onchange="upPharm('+i+',this.checked)"> Use this pharmacy (untick to ignore it)</label></div>').join('');
-  return '<div class="card"><h2 style="margin-top:0">Pharmacy</h2>'+ph+'</div>'
-   +'<div class="card"><h2 style="margin-top:0">Android phone only</h2>'
-   +off(IS_ANDROID,'Read "ready to collect" texts from the pharmacy',IS_ANDROID?'Coming in the next update.':'Not available here: only the Android app can read texts.')
-   +'<div style="opacity:'+(IS_ANDROID?1:.45)+'"><button class="btn sec" '+(IS_ANDROID?'':'disabled')+' onclick="if(window.AndroidApp)AndroidApp.pinShortcut()">Add Tablets icon to home screen</button></div>'
-   +(IS_IOS?'<div class="mute" style="margin-top:8px">On this iPhone: tap the Share button in Safari, then <b>Add to Home Screen</b>.</div>':'')
+function syncText(){
+  const p=activeP();if(!p||!p.space)return '';
+  return p.state==='ok'&&p.lastOk?'synced '+new Date(p.lastOk).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):p.state==='removed'?'removed':p.busy||!p.state?'syncing…':'saved data';
+}
+function subLine(){
+  const s=document.getElementById('sub');if(!s)return;
+  const sy=syncText();
+  s.textContent='Today '+nice(new Date())+' · counted '+nice(new Date(st.baseAt))+(sy?' · '+sy:'')+' · build '+BUILD;
+}
+function paintSync(){
+  const bar=document.getElementById('syncbar');
+  if(bar){
+    const ps=PR.list.filter(p=>p.space);
+    const bad=ps.map(p=>p.state).filter(s=>s&&s!=='ok');
+    const msg=bad.includes('offline')?'No internet connection. Showing the last saved data.':bad.includes('server')?'Synology not reachable. Showing the last saved data.':bad.includes('removed')?'This device was removed from a shared list. Open it again with the PIN.':'';
+    bar.textContent=msg;bar.hidden=!msg;
+  }
+  subLine();
+}
+/* ----- PINs ----- */
+const okPin=p=>/^\d{6,10}$/.test(p||'');
+async function pinHash(pin,salt){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pin));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function setLocalPin(p,pin){p.salt=hex(8);p.ph=await pinHash(pin,p.salt)}
+const PINERR={pin_in_use:'That PIN is already used by someone else. Choose a different one.',bad_pin:'That PIN is wrong.',too_many_tries:'Too many wrong tries. Wait an hour.',group_full:'That list already has the most devices allowed.',bad_code:'That PIN is wrong.',full:'The service is full.'};
+async function makeShared(p,pin){
+  ensureIds();
+  const r=await api('/v1/tablets/create',{device:PR.device,token:PR.token,name:p.name,pin});
+  p.space=r.space;p.v=0;p.dirty=true;p.state='pending';
+  await setLocalPin(p,pin);
+  const S=loadState(p.id);const n=Date.now();S.meta.items=S.meta.settings=S.meta.trips=S.meta.sos=n;persistState(S,p.id);psave();
+  await syncProfile(p);
+}
+async function welcomeCreate(){
+  const name=($('wn').value||'').trim(),pin=($('wp').value||'').trim();
+  if(!name)return banner('Type your name',true);
+  if(pin&&!okPin(pin))return banner('The PIN must be 6 to 10 digits',true);
+  const id=hex(4),p={id,name,own:PR.list.length===0};
+  try{
+    PR.list.push(p);PR.active=id;psave();st=loadState(id);
+    if(pin)await makeShared(p,pin);
+    banner(pin?'Created and backed up. Remember your PIN.':'Created on this device only. Add a PIN in Settings to back it up.');tab='stock';render();
+  }catch(e){
+    PR.list=PR.list.filter(x=>x.id!==id);PR.active=PR.list[0]?PR.list[0].id:null;psave();st=PR.active?loadState(PR.active):fix(JSON.parse(JSON.stringify(EMPTY)));
+    banner(PINERR[e.code]||('Could not create: '+(e.code||'no connection')),true);render();
+  }
+}
+async function setupPin(){
+  const p=activeP(),pin=($('np').value||'').trim();
+  if(!okPin(pin))return banner('The PIN must be 6 to 10 digits',true);
+  try{await makeShared(p,pin);banner('Backed up. Give this PIN only to people who may see this list.');render()}
+  catch(e){banner(PINERR[e.code]||('Could not back up: '+(e.code||'no connection')),true)}
+}
+async function openByPin(){
+  const pin=($('op').value||'').trim();
+  if(!okPin(pin))return banner('Type the 6 to 10 digit PIN',true);
+  ensureIds();
+  try{
+    const r=await api('/v1/tablets/open',{device:PR.device,token:PR.token,pin});
+    if(PR.list.some(p=>p.space===r.space))return banner('That list is already on this device',true);
+    const id=hex(4),p={id,name:r.name||'Person',own:PR.list.length===0,space:r.space,v:0,opened:true};
+    PR.list.push(p);PR.active=id;await setLocalPin(p,pin);psave();st=loadState(id);
+    banner('Opening '+p.name+'…');tab='stock';await syncProfile(p);render();
+  }catch(e){banner(PINERR[e.code]||('Could not open: '+(e.code||'no connection')),true)}
+}
+async function changePin(){
+  const p=activeP(),pin=($('cp').value||'').trim();
+  if(!okPin(pin))return banner('The PIN must be 6 to 10 digits',true);
+  try{await api('/v1/tablets/setpin',{device:PR.device,token:PR.token,space:p.space,pin});await setLocalPin(p,pin);psave();banner('PIN changed. People with the old PIN can no longer open it on a new device.');render()}
+  catch(e){banner(PINERR[e.code]||('Could not change: '+(e.code||'no connection')),true)}
+}
+async function showDevices(){
+  const p=activeP();
+  try{
+    const r=await api('/v1/tablets/devices',{device:PR.device,token:PR.token,space:p.space});
+    const ago=t=>t?new Date(t*1000).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'never';
+    document.getElementById('sheetBody').innerHTML='<div class="row"><h2 style="margin:0">Devices on '+esc(p.name)+'</h2><button class="btn sm sec" onclick="closeSheet()">Close</button></div>'
+      +r.devices.map((d,i)=>'<div class="card"><div class="row"><span class="name">Device '+(i+1)+(d.me?' (this one)':'')+'</span>'+(d.me?'':'<button class="btn sm sec" onclick="removeDevice(\''+d.id+'\')">Remove</button>')+'</div><div class="mute">Joined '+ago(d.joined)+' · last used '+ago(d.seen)+'</div></div>').join('')
+      +'<p class="mute">Removing a device stops it seeing this list. If a phone is lost, remove it here and change the PIN.</p>';
+    document.getElementById('sheet').className='sheet show';
+  }catch(e){banner('Could not get the device list: '+(e.code||'no connection'),true)}
+}
+async function removeDevice(t){
+  const p=activeP();
+  try{await api('/v1/tablets/remove',{device:PR.device,token:PR.token,space:p.space,target:t});banner('Device removed');showDevices()}
+  catch(e){banner('Could not remove: '+(e.code||'no connection'),true)}
+}
+async function leaveProfile(id){
+  const p=profile(id);if(!p)return;
+  if(!confirm('Remove '+p.name+' from this device? '+(p.space?'It stays safe on the Synology; open it again with the PIN.':'This list is only on this device and will be deleted.')))return;
+  if(p.space){try{await api('/v1/tablets/leave',{device:PR.device,token:PR.token,space:p.space})}catch(e){}}
+  try{localStorage.removeItem(stateKey(id))}catch(e){}
+  delete states[id];PR.list=PR.list.filter(x=>x.id!==id);
+  if(PR.active===id){PR.active=PR.list[0]?PR.list[0].id:null;st=PR.active?loadState(PR.active):fix(JSON.parse(JSON.stringify(EMPTY)))}
+  psave();banner('Removed from this device');tab='stock';render();
+}
+function useProfile(id){
+  if(id===PR.active)return;
+  PR.active=id;psave();st=loadState(id);tab='stock';rcIdx=0;render();
+}
+function renameProfile(v){const p=activeP();v=(v||'').trim();if(!p||!v)return;p.name=v;psave();banner('Name saved');render(true)}
+/* ----- this-device options ----- */
+function setOpt(k,v){PR[k]=v;psave();banner('Saved');render(true)}
+async function setLock(on){
+  const own=PR.list.find(p=>p.own&&p.ph)||PR.list.find(p=>p.ph);
+  if(on&&!own){banner('Back up a list with a PIN first (Settings), then you can turn this on',true);render(true);return}
+  setOpt('lock',on);
+}
+function needLock(){return !!PR.lock&&!SOS_MODE&&!!PR.list.find(p=>p.ph)&&!sessionStorage.getItem('tablets.unlocked')}
+function showLock(){
+  const L=document.getElementById('lock');L.hidden=false;
+  L.innerHTML='<div class="lockbox"><h2>Tablets</h2><p class="mute">Type your PIN</p><input id="lp" type="password" inputmode="numeric" maxlength="10" autocomplete="off"><button class="btn" onclick="tryUnlock()">Open</button></div>';
+  setTimeout(()=>{const i=document.getElementById('lp');if(i)i.focus()},100);
+}
+async function tryUnlock(){
+  const pin=(document.getElementById('lp').value||'').trim();
+  if(await checkAnyPin(pin)){try{sessionStorage.setItem('tablets.unlocked','1')}catch(e){}document.getElementById('lock').hidden=true;return}
+  banner('Wrong PIN',true);
+}
+async function checkAnyPin(pin){for(const p of PR.list.filter(x=>x.ph)){if(await pinHash(pin,p.salt)===p.ph)return true}return false}
+window.addEventListener('online',()=>syncAll());
+window.addEventListener('offline',()=>{PR.list.forEach(p=>{if(p.space)p.state='offline'});paintSync()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncAll()});
+setInterval(()=>{if(!document.hidden)syncAll()},60000);
+setTimeout(()=>{paintSync();syncAll()},400);
+
+/* ---------- people: header chips, welcome, alerts for everyone, settings cards ---------- */
+function chips(){
+  const c=document.getElementById('chips');if(!c)return;
+  c.innerHTML=PR.list.map(p=>'<button class="chip'+(p.id===PR.active?' on':'')+'" onclick="useProfile(\''+p.id+'\')">'+esc(p.name)+'</button>').join('')+'<button class="chip" onclick="go(\'set\');setTimeout(()=>{const e=document.getElementById(\'op\');if(e){e.scrollIntoView();e.focus()}},60)" aria-label="Open another list">＋</button>';
+}
+function vWelcome(){
+  return '<div class="card"><h2 style="margin-top:0">Welcome</h2><p>Tablets counts down your tablets by itself and tells you when to order. Start your own list, or open a list someone shared with you.</p>'
+   +'<label>Your name</label><input id="wn" placeholder="e.g. Ian" autocomplete="off">'
+   +'<label>PIN (6 to 10 digits, optional)</label><input id="wp" type="password" inputmode="numeric" maxlength="10" placeholder="Backs your list up and opens it on a new phone" autocomplete="off">'
+   +'<button class="btn" onclick="welcomeCreate()">Start my list</button></div>'
+   +'<div class="card"><h2 style="margin-top:0">Open a list with a PIN</h2><p class="mute">If someone gave you their PIN, type it to see their tablets here. You can also type your own PIN to open your list on a new phone.</p>'
+   +'<input id="op" type="password" inputmode="numeric" maxlength="10" placeholder="PIN" autocomplete="off"><button class="btn sec" onclick="openByPin()">Open</button></div>';
+}
+function allAlerts(now,mine){
+  const multi=PR.list.length>1,me=activeP();
+  let out=mine.map(a=>({...a,who:multi&&me?me.name:''}));
+  if(PR.showOthers!==false){
+    for(const p of PR.list){
+      if(p.id===PR.active)continue;
+      const keep=st;st=loadState(p.id);
+      try{out=out.concat(computeAlerts(now).A.map(a=>({...a,who:p.name})))}finally{st=keep}
+    }
+  }
+  out.sort((a,b)=>a.sort-b.sort);
+  return out;
+}
+function vAlerts(A){
+  if(!A.length)return '<div class="card">All good. Nothing needs doing.</div>';
+  return A.map(a=>'<div class="alert '+a.lvl+'"><b>'+(a.who?'<span class="pill p-acc">'+esc(a.who)+'</span> ':'')+a.t+'</b>'+a.m+(a.diab?'<div style="margin-top:8px">'+diabLinks(a.diab)+'</div>':'')+'</div>').join('');
+}
+function render(keepScroll){
+  const now=new Date();
+  if(SOS_MODE){renderSos();return}
+  if(!PR.list.length){chips();document.getElementById('nav').innerHTML='';$('main').innerHTML=vWelcome();subLine();return}
+  const {A,R}=computeAlerts(now);
+  const ALL=allAlerts(now,A);
+  subLine();chips();
+  const nBad=ALL.filter(a=>a.lvl==='bad').length;
+  const tabs=[['stock','▤','Stock'],['alerts','⚠','Alerts'+(nBad?'<span class="dot">'+nBad+'</span>':'')],['recv','⬇','Receive'],['log','✎','Log'],['orders','✚','Orders'],['set','⚙','Settings']];
+  $('nav').innerHTML=tabs.map(t=>'<button class="'+(tab===t[0]?'on':'')+'" onclick="go(\''+t[0]+'\')"><span class="ic">'+t[1]+'</span>'+t[2]+'</button>').join('');
+  $('main').innerHTML=({stock:vStock,alerts:()=>vAlerts(ALL),log:vLog,orders:vOrders,recv:vRecv,set:vSet})[tab](A,R,now);
+  if(tab==='log')logType();
+  if(keepScroll!==true)window.scrollTo(0,0);
+}
+function vProfile(){
+  const p=activeP();if(!p)return '';
+  const others=PR.list.filter(x=>x.id!==p.id);
+  let h='<div class="card"><h2 style="margin-top:0">This list: '+esc(p.name)+'</h2>'
+   +'<label>Name</label><input value="'+esc(p.name)+'" onchange="renameProfile(this.value)">';
+  if(p.space){
+    h+='<div class="mute" style="margin-top:8px">Backed up on the Synology ('+esc(syncText()||'not synced yet')+'). Anyone who has this list\'s PIN can open it on their own phone. Give the PIN only to people who may see it, for example your wife or husband.</div>'
+     +'<label>Change this list\'s PIN (6 to 10 digits)</label><input id="cp" type="password" inputmode="numeric" maxlength="10" autocomplete="off"><button class="btn sec" onclick="changePin()">Change PIN</button>'
+     +'<button class="btn sec" onclick="showDevices()">Devices that can see this list</button>';
+  }else{
+    h+='<div class="mute" style="margin-top:8px">This list is only on this phone. Add a PIN to back it up and to open it on another phone or the web.</div>'
+     +'<label>Choose a PIN (6 to 10 digits)</label><input id="np" type="password" inputmode="numeric" maxlength="10" autocomplete="off"><button class="btn" onclick="setupPin()">Back up with this PIN</button>';
+  }
+  h+='<button class="btn sec" onclick="leaveProfile(\''+p.id+'\')">Remove this list from this device</button></div>';
+  h+='<div class="card"><h2 style="margin-top:0">Open another list</h2><div class="mute">Type the PIN of a list someone shared with you (or your own PIN on a new phone).</div><input id="op" type="password" inputmode="numeric" maxlength="10" placeholder="PIN" autocomplete="off"><button class="btn sec" onclick="openByPin()">Open</button></div>';
+  return h;
+}
+function vSecurity(){
+  const chk=(on,fn,label,note)=>'<label style="display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-weight:500"><input type="checkbox" style="width:auto;margin-top:4px" '+(on?'checked':'')+' onchange="'+fn+'(this.checked)"><span>'+label+(note?'<span class="mute" style="display:block">'+note+'</span>':'')+'</span></label>';
+  return '<div class="card"><h2 style="margin-top:0">On this device</h2>'
+   +chk(PR.showOthers!==false,"setOpt.bind(null,'showOthers')",'Show alerts from the other lists on this phone','On by default, so you and your wife see each other\'s alerts.')
+   +chk(!!PR.lock,'setLock','Ask for my PIN when the app opens','Off by default. A new phone always needs the PIN once.')
+   +chk(!!PR.sosPin,"setOpt.bind(null,'sosPin')",'Tablets SOS asks for my PIN','Off by default so emergency crews can read it.')
    +'</div>';
 }
-function upPharm(i,v){st.settings.pharmacies[i].use=v;save();banner(v?'Pharmacy in use':'Pharmacy ignored')}
-window.addEventListener('online',()=>syncNow());
-window.addEventListener('offline',()=>{if(cfg.space)setSync('offline')});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
-setInterval(()=>{if(cfg.space&&!document.hidden)syncNow()},60000);
-setTimeout(()=>{paintSync();if(cfg.space)syncNow()},400);
+function vPharm(){
+  const ph=st.settings.pharmacies;
+  let h='<div class="card"><h2 style="margin-top:0">Pharmacy</h2><div class="mute">Used for collection reminders and the SOS screen. "Text sender" is how the pharmacy appears when it texts you (the contact name or sender label on your phone).</div>';
+  h+=ph.map((p,i)=>'<div class="card" style="margin:10px 0"><label style="margin-top:0">Pharmacy name</label><input value="'+esc(p.name)+'" onchange="upPh('+i+',\'name\',this.value)">'
+    +'<div class="grid2"><div><label>Town</label><input value="'+esc(p.town||'')+'" onchange="upPh('+i+',\'town\',this.value)"></div><div><label>Phone</label><input value="'+esc(p.phone||'')+'" inputmode="tel" onchange="upPh('+i+',\'phone\',this.value)"></div></div>'
+    +'<label>Text sender (as on your phone)</label><input value="'+esc(p.sender||'')+'" onchange="upPh('+i+',\'sender\',this.value)">'
+    +'<label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" style="width:auto" '+(p.use?'checked':'')+' onchange="upPh('+i+',\'use\',this.checked)"> Use this pharmacy (untick to ignore it)</label>'
+    +'<button class="btn sm sec" style="margin-top:8px" onclick="delPh('+i+')">Remove</button></div>').join('');
+  return h+'<button class="btn sec" onclick="addPh()">Add a pharmacy</button></div>';
+}
+function upPh(i,k,v){st.settings.pharmacies[i][k]=v;save();banner('Pharmacy saved');if(k==='use')render(true)}
+function addPh(){st.settings.pharmacies.push({name:'',town:'',phone:'',sender:'',use:true});save();banner('Pharmacy added: fill it in');render(true)}
+function delPh(i){st.settings.pharmacies.splice(i,1);save();banner('Pharmacy removed');render(true)}
+function vPhoneOnly(){
+  const off=(on,label,note)=>'<div style="opacity:'+(on?1:.45)+';margin:10px 0"><label style="display:flex;gap:8px;align-items:center;margin:0"><input type="checkbox" disabled style="width:auto"> '+label+'</label><div class="mute">'+note+'</div></div>';
+  return '<div class="card"><h2 style="margin-top:0">Android phone only</h2>'
+   +off(IS_ANDROID,'Read "ready to collect" texts from the pharmacy',IS_ANDROID?'Coming in the next update.':'Not available here: only the Android app can read texts.')
+   +'<div style="opacity:'+(IS_ANDROID?1:.45)+'"><button class="btn sec" '+(IS_ANDROID?'':'disabled')+' onclick="if(window.AndroidApp)AndroidApp.pinShortcut()">Add Tablets icon to home screen</button>'
+   +'<button class="btn sec" '+(IS_ANDROID?'':'disabled')+' onclick="if(window.AndroidApp)AndroidApp.pinSos()">Add Tablets SOS icon to home screen</button></div>'
+   +(IS_IOS?'<div class="mute" style="margin-top:8px">On this iPhone: tap the Share button in Safari, then <b>Add to Home Screen</b>. For the emergency screen open the "Tablets SOS" page (Settings → SOS) and add that to the Home Screen too.</div>':'')
+   +'</div>';
+}
+const IS_ANDROID=!!window.AndroidApp,IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
+/* ---------- TABLETS SOS: emergency information screen + set-up wizard ---------- */
+function doseTxt(it){
+  const u=it.unit==='ml'?' ml':'';
+  if(it.unit==='box')return 'daily supplement';
+  const p=[];if(it.am)p.push(it.am+u+' morning');if(it.pm)p.push(it.pm+u+' evening');
+  return p.join(', ')||'as needed';
+}
+function ageOf(dob){if(!dob)return '';const d=pd(dob),n=new Date();let a=n.getFullYear()-d.getFullYear();if(n<new Date(n.getFullYear(),d.getMonth(),d.getDate()))a--;return a>=0&&a<130?a:''}
+function nl(s){return esc(s).replace(/\n/g,'<br>')}
+function sosHtml(S,p){
+  const o=S.sos,sh=o.show||{};
+  const name=o.name||p.name;
+  const row=(label,val,cls)=>val?'<div class="sosrow '+(cls||'')+'"><div class="soslab">'+label+'</div><div class="sosval">'+nl(val)+'</div></div>':'';
+  let h='<div class="sosbar">EMERGENCY INFORMATION</div><div class="sospad"><div class="sosname">'+esc(name)+'</div>';
+  if(sh.dob&&o.dob)h+='<div class="sosage">Born '+esc(nice(pd(o.dob)))+(ageOf(o.dob)!==''?' · age '+ageOf(o.dob):'')+'</div>';
+  if(sh.allergies)h+=row('ALLERGIES',o.allergies,'red');
+  if(sh.warnings)h+=row('IMPORTANT',o.warnings,'red');
+  if(sh.conditions)h+=row('LONG-TERM CONDITIONS',o.conditions);
+  if(sh.diet)h+=row('DIET',o.diet);
+  if(sh.contacts){
+    const cs=(o.contacts||[]).filter(c=>c.name||c.phone);
+    if(cs.length)h+='<div class="soslab" style="margin-top:14px">EMERGENCY CONTACTS</div>'+cs.map(c=>'<a class="soscall" href="tel:'+esc(String(c.phone||'').replace(/[^+\d]/g,''))+'"><span>'+esc(c.name||'')+(c.rel?' <small>('+esc(c.rel)+')</small>':'')+'</span><b>'+esc(c.phone||'')+'</b></a>').join('');
+  }
+  if(sh.meds){
+    const key=new Set(o.key||[]);
+    const items=[...S.items].sort((a,b)=>(key.has(b.id)?1:0)-(key.has(a.id)?1:0));
+    if(items.length)h+='<div class="soslab" style="margin-top:14px">MEDICINES</div><div class="sosmeds">'+items.map(it=>'<div class="sosmed'+(key.has(it.id)?' key':'')+'"><b>'+(key.has(it.id)?'★ ':'')+esc(it.name)+'</b><span>'+esc(doseTxt(it))+(it.why?' · '+esc(it.why):'')+'</span></div>').join('')+'</div><div class="sosnote">From the daily schedule: not confirmed as taken.</div>';
+  }
+  if(sh.blood)h+=row('BLOOD TYPE',o.blood);
+  if(sh.donor)h+=row('ORGAN DONOR',o.donor);
+  if(sh.advance)h+=row('ADVANCE DECISIONS',o.advance);
+  if(sh.nhs)h+=row('NHS NUMBER',o.nhs);
+  if(sh.address)h+=row('HOME ADDRESS',o.address);
+  if(sh.gp){const g=o.gp||{};const gt=[g.name,g.surgery,g.address,g.phone].filter(Boolean).join('\n');h+=row('DOCTOR / SURGERY',gt)}
+  if(sh.pharmacy){const ph=(S.settings.pharmacies||[]).filter(x=>x.use&&x.name);if(ph.length)h+=row('PHARMACY',ph.map(x=>[x.name,x.town,x.phone].filter(Boolean).join(', ')).join('\n'))}
+  h+=row('OTHER',o.notes);
+  h+='<div class="sosnote" style="margin-top:16px">Written by the owner'+(o.updated?', last updated '+esc(nice(pd(o.updated))):'')+'. It may be out of date.</div>';
+  return h+'</div>';
+}
+function sosOwner(){return PR.list.find(p=>p.own)||PR.list[0]}
+async function renderSos(){
+  document.body.classList.add('sosmode');
+  const hd=document.querySelector('header');if(hd)hd.hidden=true;$('nav').innerHTML='';
+  const p=sosOwner();
+  if(!p){$('main').innerHTML='<div class="sosbar">EMERGENCY INFORMATION</div><div class="sospad"><p>No information has been set up on this phone yet.</p><p><a class="soscall" href="index.html"><span>Open Tablets</span></a></p></div>';return}
+  let ok=!PR.sosPin;try{if(sessionStorage.getItem('tablets.sosok'))ok=true}catch(e){}
+  if(!ok){
+    $('main').innerHTML='<div class="sosbar">EMERGENCY INFORMATION</div><div class="sospad"><p>This screen is locked by its owner. Type the PIN.</p><input id="sp" type="password" inputmode="numeric" maxlength="10" autocomplete="off"><button class="btn" onclick="sosUnlock()">Show</button></div>';return;
+  }
+  $('main').innerHTML=sosHtml(loadState(p.id),p)+'<div class="sospad"><a class="soslink" href="index.html">Open the Tablets app</a></div>';
+}
+async function sosUnlock(){
+  const pin=(document.getElementById('sp').value||'').trim();
+  if(await checkAnyPin(pin)){try{sessionStorage.setItem('tablets.sosok','1')}catch(e){}renderSos()}else banner('Wrong PIN',true);
+}
+function sosPlain(S,p){
+  const o=S.sos,sh=o.show||{};const L=[];
+  L.push((o.name||p.name)+(sh.dob&&o.dob?' (born '+o.dob+')':''));
+  if(sh.allergies&&o.allergies)L.push('ALLERGIES: '+o.allergies.replace(/\n/g,'; '));
+  if(sh.warnings&&o.warnings)L.push('IMPORTANT: '+o.warnings.replace(/\n/g,'; '));
+  if(sh.conditions&&o.conditions)L.push('CONDITIONS: '+o.conditions.replace(/\n/g,'; '));
+  if(sh.meds&&S.items.length)L.push('MEDICINES: '+S.items.map(i=>i.name.replace(/ \(.*/,'')+' ('+doseTxt(i)+')').join('; '));
+  if(sh.contacts){const cs=(o.contacts||[]).filter(c=>c.name||c.phone);if(cs.length)L.push('CONTACTS: '+cs.map(c=>c.name+(c.rel?' ('+c.rel+')':'')+' '+c.phone).join('; '))}
+  if(sh.blood&&o.blood)L.push('BLOOD TYPE: '+o.blood);
+  if(sh.gp){const g=o.gp||{};const gt=[g.name,g.surgery,g.phone].filter(Boolean).join(', ');if(gt)L.push('DOCTOR: '+gt)}
+  return L.join('\n');
+}
+function sosCard(){
+  const p=activeP();if(!p)return '';
+  return '<div class="card"><h2 style="margin-top:0">Tablets SOS (emergency screen)</h2><div class="mute">A separate icon that shows the key medical information of the owner of this phone, with no PIN unless you turn that on above. Everything is optional and you choose what is shown. Defaults: medicines, allergies, conditions and emergency contacts are shown; NHS number and home address are hidden.</div>'
+   +'<button class="btn" onclick="swStart()">Set up what SOS shows</button><button class="btn sec" onclick="sosPreview()">Preview the SOS screen</button>'
+   +'<button class="btn sec" onclick="sosCopy()">Copy text for the phone\'s lock-screen Emergency Information</button>'
+   +'<div class="mute" style="margin-top:8px">Only the phone\'s own lock-screen information can be read when the phone is locked. On Android: Settings → Safety &amp; emergency → Medical information. On iPhone: Health app → Medical ID. Paste the copied text there.</div></div>';
+}
+function sosPreview(){
+  const p=activeP(),h=sosHtml(st,p);
+  document.getElementById('sheetBody').innerHTML='<div class="row"><h2 style="margin:0">SOS preview</h2><button class="btn sm sec" onclick="closeSheet()">Close</button></div><div class="sospreview">'+h+'</div>';
+  document.getElementById('sheet').className='sheet show';
+}
+function sosCopy(){
+  const txt=sosPlain(st,activeP());
+  document.getElementById('sheetBody').innerHTML='<div class="row"><h2 style="margin:0">For the lock screen</h2><button class="btn sm sec" onclick="closeSheet()">Close</button></div><p class="mute">Copy this and paste it into your phone\'s own emergency information.</p><textarea id="sosc" rows="12">'+esc(txt)+'</textarea><button class="btn" onclick="const t=document.getElementById(\'sosc\');t.select();try{navigator.clipboard.writeText(t.value);banner(\'Copied\')}catch(e){banner(\'Select all and copy\')}">Copy</button>';
+  document.getElementById('sheet').className='sheet show';
+}
+/* ---- wizard ---- */
+let SW={step:0};
+function sosTouch(){st.sos.updated=ymd(new Date())}
+function sosSet(k,v){st.sos[k]=v;sosTouch();save()}
+function sosGp(k,v){st.sos.gp[k]=v;sosTouch();save()}
+function sosShow(k,on){st.sos.show[k]=on;sosTouch();save()}
+function sosContact(i,k,v){while(st.sos.contacts.length<=i)st.sos.contacts.push({name:'',rel:'',phone:''});st.sos.contacts[i][k]=v;sosTouch();save()}
+function sosKey(id,on){const k=new Set(st.sos.key||[]);on?k.add(id):k.delete(id);st.sos.key=[...k];sosTouch();save()}
+function swStart(){SW.step=0;swDraw()}
+function swGo(d){SW.step=Math.max(0,Math.min(SW_STEPS.length-1,SW.step+d));swDraw()}
+const SW_STEPS=['intro','who','allergies','conditions','warnings','diet','contacts','doctor','more','key','done'];
+function swDraw(){
+  const o=st.sos,sh=o.show,step=SW_STEPS[SW.step];
+  const tog=(k,label)=>'<label class="swtog"><input type="checkbox" style="width:auto" '+(sh[k]?'checked':'')+' onchange="sosShow(\''+k+'\',this.checked)"> '+(label||'Show this on the SOS screen')+'</label>';
+  const ta=(k,ph)=>'<textarea rows="4" placeholder="'+ph+'" onchange="sosSet(\''+k+'\',this.value)">'+esc(o[k])+'</textarea>';
+  const why=t=>'<p class="mute">'+t+'</p>';
+  let body='';
+  if(step==='intro')body='<h3>Tablets SOS</h3>'+why('If an ambulance crew or a doctor picks up your phone, this screen can tell them what they most need to know. Answer as much or as little as you like. You can skip any question, change it later, and choose what is shown.')+why('Only put in what you are comfortable with anyone holding your phone seeing.');
+  if(step==='who')body='<h3>Who you are</h3>'+why('Your name, so crews know who the information belongs to. A date of birth helps them find your records.')
+    +'<label>Full name</label><input value="'+esc(o.name||activeP().name)+'" onchange="sosSet(\'name\',this.value)"><label>Date of birth</label><input type="date" value="'+esc(o.dob)+'" onchange="sosSet(\'dob\',this.value)">'+tog('dob','Show date of birth');
+  if(step==='allergies')body='<h3>Allergies</h3>'+why('Reactions to medicines, food, latex or stings. Crews check this before they give you anything. Write what you react to and what happens.')+ta('allergies','e.g. Penicillin: rash and swelling')+tog('allergies');
+  if(step==='conditions')body='<h3>Long-term conditions</h3>'+why('Illnesses you live with change how you are treated: diabetes, heart conditions, asthma, epilepsy, rheumatoid arthritis, coeliac disease and so on. Say the type if it matters (for example type 2 diabetes).')+ta('conditions','one per line')+tog('conditions');
+  if(step==='warnings')body='<h3>Important warnings</h3>'+why('Anything that changes emergency care: blood thinners, insulin, a pacemaker or stents, a steroid card, implants, a medical device.')+ta('warnings','e.g. Has heart stents')+tog('warnings');
+  if(step==='diet')body='<h3>Diet</h3>'+why('Intolerances or needs that matter in hospital, such as coeliac disease or a nut allergy.')+ta('diet','optional')+tog('diet');
+  if(step==='contacts'){
+    const cs=o.contacts||[];
+    body='<h3>Emergency contacts</h3>'+why('Who should crews call? Put the person most likely to answer first. Their number becomes a tap-to-call button.')
+      +[0,1,2].map(i=>{const c=cs[i]||{};return '<div class="card" style="margin:8px 0"><label style="margin-top:0">Name</label><input value="'+esc(c.name||'')+'" onchange="sosContact('+i+',\'name\',this.value)"><div class="grid2"><div><label>Relationship</label><input value="'+esc(c.rel||'')+'" onchange="sosContact('+i+',\'rel\',this.value)"></div><div><label>Phone</label><input value="'+esc(c.phone||'')+'" inputmode="tel" onchange="sosContact('+i+',\'phone\',this.value)"></div></div></div>'}).join('')+tog('contacts');
+  }
+  if(step==='doctor'){
+    const g=o.gp||{};
+    body='<h3>Doctor and surgery</h3>'+why('So the hospital can contact your GP for your records. Your pharmacy comes from Settings → Pharmacy.')
+      +'<label>Doctor\'s name</label><input value="'+esc(g.name)+'" onchange="sosGp(\'name\',this.value)"><label>Surgery name</label><input value="'+esc(g.surgery)+'" onchange="sosGp(\'surgery\',this.value)"><label>Surgery address</label><input value="'+esc(g.address)+'" onchange="sosGp(\'address\',this.value)"><label>Surgery phone</label><input value="'+esc(g.phone)+'" inputmode="tel" onchange="sosGp(\'phone\',this.value)">'+tog('gp','Show doctor on the SOS screen')+tog('pharmacy','Show my pharmacy');
+  }
+  if(step==='more')body='<h3>More, all optional</h3>'
+    +'<label>Blood type</label>'+why('Only if you are certain, for example from a donor card or blood test. Crews always test it themselves, so a wrong entry is worse than none.')+'<input value="'+esc(o.blood)+'" placeholder="e.g. O positive" onchange="sosSet(\'blood\',this.value)">'+tog('blood')
+    +'<label>Organ donor</label><input value="'+esc(o.donor)+'" placeholder="e.g. Yes" onchange="sosSet(\'donor\',this.value)">'+tog('donor')
+    +'<label>Advance decisions (for example, do not resuscitate)</label>'+why('Say if you have one and where the paperwork is.')+'<input value="'+esc(o.advance)+'" onchange="sosSet(\'advance\',this.value)">'+tog('advance')
+    +'<label>NHS number</label>'+why('Helps hospitals find your records. Off by default because anyone holding the phone could read it.')+'<input value="'+esc(o.nhs)+'" inputmode="numeric" onchange="sosSet(\'nhs\',this.value)">'+tog('nhs')
+    +'<label>Home address</label>'+why('Off by default. Turn it on only if you want it visible.')+'<input value="'+esc(o.address)+'" onchange="sosSet(\'address\',this.value)">'+tog('address')
+    +'<label>Anything else</label><textarea rows="3" onchange="sosSet(\'notes\',this.value)">'+esc(o.notes)+'</textarea>';
+  if(step==='key')body='<h3>Medicines</h3>'+why('Your tablets come from this app and are all shown. Tick the most important ones (insulin, blood thinners, heart tablets) to list them first with a star.')+tog('meds','Show my medicines')
+    +(st.items.length?st.items.map(it=>'<label class="swtog"><input type="checkbox" style="width:auto" '+((o.key||[]).includes(it.id)?'checked':'')+' onchange="sosKey(\''+it.id+'\',this.checked)"> '+esc(it.name)+'</label>').join(''):'<p class="mute">No tablets in the list yet.</p>');
+  if(step==='done')body='<h3>All set</h3>'+why('This is saved. Check it with “Preview the SOS screen” in Settings, add the Tablets SOS icon to your home screen, and keep it up to date.')+'<button class="btn" onclick="closeSheet();sosPreview()">Preview now</button>';
+  const last=SW.step===SW_STEPS.length-1;
+  document.getElementById('sheetBody').innerHTML='<div class="row"><span class="mute">Step '+(SW.step+1)+' of '+SW_STEPS.length+'</span><button class="btn sm sec" onclick="closeSheet();render(true)">Close</button></div>'+body
+    +'<div class="grid2" style="margin-top:14px"><button class="btn sec" '+(SW.step?'':'disabled')+' onclick="swGo(-1)">◀ Back</button><button class="btn" onclick="'+(last?'closeSheet();render(true)':'swGo(1)')+'">'+(last?'Finish':(['intro','who'].includes(step)?'Next ▶':'Next / skip ▶'))+'</button></div>';
+  document.getElementById('sheet').className='sheet show';
+}
 
 /* test hook for automated checks */
-window.__tablets={mergeDoc,docNow,syncNow,get cfg(){return cfg},sim,computeAlerts,get st(){return st},set st(v){st=v},thr,SEED,ymd,pd};
+window.__tablets={mergeDoc,docNow,syncAll,get PR(){return PR},get st(){return st},set st(v){st=v},sim,computeAlerts,thr,SEED,EMPTY,ymd,pd,loadState,fix};
 render();
+if(needLock())showLock();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('sheet').classList.contains('show'))render()});
 
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
