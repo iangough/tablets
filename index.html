@@ -96,7 +96,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>
 'use strict';
-const BUILD='2026-11-23b';
+const BUILD='2026-11-23c';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -740,7 +740,7 @@ function paintSync(){
   subLine();
 }
 /* ----- PINs ----- */
-const okPin=p=>/^\d{6,10}$/.test(p||'');
+const okPin=p=>/^\d{4}$/.test(p||'');
 async function pinHash(pin,salt){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pin));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function setLocalPin(p,pin){p.salt=hex(8);p.ph=await pinHash(pin,p.salt)}
 const PINERR={pin_in_use:'That PIN is already used by someone else. Choose a different one.',bad_pin:'That PIN is wrong.',too_many_tries:'Too many wrong tries. Wait an hour.',group_full:'That list already has the most devices allowed.',bad_code:'That PIN is wrong.',full:'The service is full.'};
@@ -755,7 +755,7 @@ async function makeShared(p,pin){
 async function welcomeCreate(){
   const name=($('wn').value||'').trim(),pin=($('wp').value||'').trim();
   if(!name)return banner('Type your name',true);
-  if(pin&&!okPin(pin))return banner('The PIN must be 6 to 10 digits',true);
+  if(pin&&!okPin(pin))return banner('The PIN must be 4 digits',true);
   const id=hex(4),p={id,name,own:PR.list.length===0};
   try{
     PR.list.push(p);PR.active=id;psave();st=loadState(id);
@@ -768,13 +768,13 @@ async function welcomeCreate(){
 }
 async function setupPin(){
   const p=activeP(),pin=($('np').value||'').trim();
-  if(!okPin(pin))return banner('The PIN must be 6 to 10 digits',true);
+  if(!okPin(pin))return banner('The PIN must be 4 digits',true);
   try{await makeShared(p,pin);banner('Backed up. Give this PIN only to people who may see this list.');render()}
   catch(e){banner(PINERR[e.code]||('Could not back up: '+(e.code||'no connection')),true)}
 }
 async function openByPin(){
   const pin=($('op').value||'').trim();
-  if(!okPin(pin))return banner('Type the 6 to 10 digit PIN',true);
+  if(!okPin(pin))return banner('Type the 4-digit PIN',true);
   ensureIds();
   try{
     const r=await api('/v1/tablets/open',{device:PR.device,token:PR.token,pin});
@@ -786,7 +786,7 @@ async function openByPin(){
 }
 async function changePin(){
   const p=activeP(),pin=($('cp').value||'').trim();
-  if(!okPin(pin))return banner('The PIN must be 6 to 10 digits',true);
+  if(!okPin(pin))return banner('The PIN must be 4 digits',true);
   try{await api('/v1/tablets/setpin',{device:PR.device,token:PR.token,space:p.space,pin});await setLocalPin(p,pin);psave();banner('PIN changed. People with the old PIN can no longer open it on a new device.');render()}
   catch(e){banner(PINERR[e.code]||('Could not change: '+(e.code||'no connection')),true)}
 }
@@ -830,7 +830,7 @@ async function setLock(on){
 function needLock(){return !!PR.lock&&!SOS_MODE&&!!PR.list.find(p=>p.ph)&&!sessionStorage.getItem('tablets.unlocked')}
 function showLock(){
   const L=document.getElementById('lock');L.hidden=false;
-  L.innerHTML='<div class="lockbox"><h2>Tablets</h2><p class="mute">Type your PIN</p><input id="lp" type="password" inputmode="numeric" maxlength="10" autocomplete="off"><button class="btn" onclick="tryUnlock()">Open</button></div>';
+  L.innerHTML='<div class="lockbox"><h2>Tablets</h2><p class="mute">Type your PIN</p><input id="lp" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><button class="btn" onclick="tryUnlock()">Open</button></div>';
   setTimeout(()=>{const i=document.getElementById('lp');if(i)i.focus()},100);
 }
 async function tryUnlock(){
@@ -854,10 +854,10 @@ function chips(){
 function vWelcome(){
   return '<div class="card"><h2 style="margin-top:0">Welcome</h2><p>Tablets counts down your tablets by itself and tells you when to order. Start your own list, or open a list someone shared with you.</p>'
    +'<label>Your name</label><input id="wn" placeholder="e.g. Ian" autocomplete="off">'
-   +'<label>PIN (6 to 10 digits, optional)</label><input id="wp" type="password" inputmode="numeric" maxlength="10" placeholder="Backs your list up and opens it on a new phone" autocomplete="off">'
+   +'<label>PIN (4 digits, optional)</label><input id="wp" type="password" inputmode="numeric" maxlength="4" placeholder="Backs your list up and opens it on a new phone" autocomplete="off">'
    +'<button class="btn" onclick="welcomeCreate()">Start my list</button></div>'
    +'<div class="card"><h2 style="margin-top:0">Open a list with a PIN</h2><p class="mute">If someone gave you their PIN, type it to see their tablets here. You can also type your own PIN to open your list on a new phone.</p>'
-   +'<input id="op" type="password" inputmode="numeric" maxlength="10" placeholder="PIN" autocomplete="off"><button class="btn sec" onclick="openByPin()">Open</button></div>';
+   +'<input id="op" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off"><button class="btn sec" onclick="openByPin()">Open</button></div>';
 }
 function allAlerts(now,mine){
   const multi=PR.list.length>1,me=activeP();
@@ -898,14 +898,14 @@ function vProfile(){
    +'<label>Name</label><input value="'+esc(p.name)+'" onchange="renameProfile(this.value)">';
   if(p.space){
     h+='<div class="mute" style="margin-top:8px">Backed up on the Synology ('+esc(syncText()||'not synced yet')+'). Anyone who has this list\'s PIN can open it on their own phone. Give the PIN only to people who may see it, for example your wife or husband.</div>'
-     +'<label>Change this list\'s PIN (6 to 10 digits)</label><input id="cp" type="password" inputmode="numeric" maxlength="10" autocomplete="off"><button class="btn sec" onclick="changePin()">Change PIN</button>'
+     +'<label>Change this list\'s PIN (4 digits)</label><input id="cp" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><button class="btn sec" onclick="changePin()">Change PIN</button>'
      +'<button class="btn sec" onclick="showDevices()">Devices that can see this list</button>';
   }else{
     h+='<div class="mute" style="margin-top:8px">This list is only on this phone. Add a PIN to back it up and to open it on another phone or the web.</div>'
-     +'<label>Choose a PIN (6 to 10 digits)</label><input id="np" type="password" inputmode="numeric" maxlength="10" autocomplete="off"><button class="btn" onclick="setupPin()">Back up with this PIN</button>';
+     +'<label>Choose a PIN (4 digits)</label><input id="np" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><button class="btn" onclick="setupPin()">Back up with this PIN</button>';
   }
   h+='<button class="btn sec" onclick="leaveProfile(\''+p.id+'\')">Remove this list from this device</button></div>';
-  h+='<div class="card"><h2 style="margin-top:0">Open another list</h2><div class="mute">Type the PIN of a list someone shared with you (or your own PIN on a new phone).</div><input id="op" type="password" inputmode="numeric" maxlength="10" placeholder="PIN" autocomplete="off"><button class="btn sec" onclick="openByPin()">Open</button></div>';
+  h+='<div class="card"><h2 style="margin-top:0">Open another list</h2><div class="mute">Type the PIN of a list someone shared with you (or your own PIN on a new phone).</div><input id="op" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off"><button class="btn sec" onclick="openByPin()">Open</button></div>';
   return h;
 }
 function vSecurity(){
@@ -1050,7 +1050,7 @@ async function renderSos(){
   if(!p){$('main').innerHTML='<div class="sosbar">EMERGENCY INFORMATION</div><div class="sospad"><p>No information has been set up on this phone yet.</p><p><a class="soscall" href="index.html"><span>Open Tablets</span></a></p></div>';return}
   let ok=!PR.sosPin;try{if(sessionStorage.getItem('tablets.sosok'))ok=true}catch(e){}
   if(!ok){
-    $('main').innerHTML='<div class="sosbar">EMERGENCY INFORMATION</div><div class="sospad"><p>This screen is locked by its owner. Type the PIN.</p><input id="sp" type="password" inputmode="numeric" maxlength="10" autocomplete="off"><button class="btn" onclick="sosUnlock()">Show</button></div>';return;
+    $('main').innerHTML='<div class="sosbar">EMERGENCY INFORMATION</div><div class="sospad"><p>This screen is locked by its owner. Type the PIN.</p><input id="sp" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><button class="btn" onclick="sosUnlock()">Show</button></div>';return;
   }
   $('main').innerHTML=sosHtml(loadState(p.id),p)+'<div class="sospad"><a class="soslink" href="index.html">Open the Tablets app</a></div>';
 }
