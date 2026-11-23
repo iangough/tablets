@@ -96,12 +96,12 @@ a.lnk{color:var(--acc);font-weight:600}
 <header><h1 style="display:flex;align-items:center;gap:8px"><svg width="26" height="26" viewBox="0 0 80 80" aria-hidden="true"><g transform="rotate(-35 40 40)"><rect x="4" y="22" width="72" height="36" rx="18" fill="#e4573d"/><path d="M40 22h18a18 18 0 0 1 0 36H40z" fill="#2a6fdb"/></g><circle cx="40" cy="40" r="14" fill="#fff"/><path d="M32 40l6 6 10-12" fill="none" stroke="#1f9d55" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>Tablets</h1><div class="sub" id="sub"></div><div id="chips"></div><div id="syncbar" hidden></div></header><div id="lock" hidden></div>
 <main id="main"></main>
 <nav id="nav"></nav>
-<div id="wait" hidden><canvas id="wcv" width="200" height="150" style="width:240px;height:180px"></canvas><div id="wtxt"></div><div id="wsec"></div></div>
+<div id="wait" hidden><canvas id="wcv" width="800" height="600" style="width:240px;height:180px"></canvas><div id="wtxt"></div><div id="wsec"></div></div>
 <div class="sheet" id="sheet"><div id="sheetBody"></div></div>
 
 <script>window.__SOS=1;
 'use strict';
-const BUILD='2026-11-23j',APP_VER='1.8.0',APP_DATE='23 November 2026';
+const BUILD='2026-11-23k',APP_VER='1.8.1',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -283,12 +283,12 @@ function wCap(x,px,py,rot,w,h,c1,c2){x.save();x.translate(px,py);x.rotate(rot);x
 function wTab(x,px,py,rot,r,c){x.save();x.translate(px,py);x.rotate(rot);x.fillStyle=c;x.beginPath();x.arc(0,0,r,0,7);x.fill();x.strokeStyle='rgba(255,255,255,.7)';x.lineWidth=2;x.beginPath();x.moveTo(-r*.6,0);x.lineTo(r*.6,0);x.stroke();x.restore()}
 function waitFrame(t){
   if(!WAIT.on)return;
-  const cv=$('wcv'),c=cv.getContext('2d'),B='#2a6fdb',R='#e4573d',A='#d98a00',G='#1f9d55';c.clearRect(0,0,200,150);
+  const cv=$('wcv'),c=cv.getContext('2d'),B='#2a6fdb',R='#e4573d',A='#d98a00',G='#1f9d55';c.setTransform(4,0,0,4,0,0);c.imageSmoothingEnabled=true;c.clearRect(0,0,200,150);
   if(WAIT.kind===0){for(const p of WAIT.P){p.y+=p.v;p.r+=p.vr;if(p.y>165){p.y=-15;p.x=10+Math.random()*180}const sx=p.x+Math.sin(t/500+p.s)*6;if(p.k===0)wCap(c,sx,p.y,p.r,26,12,B,R);else if(p.k===1)wTab(c,sx,p.y,p.r,8,A);else wCap(c,sx,p.y,p.r,22,10,G,'#9fe1cb')}}
   else if(WAIT.kind===1){const cols=[[B,R],[A,'#fac775'],[G,'#9fe1cb']];for(let i=0;i<3;i++){const p=((t/1500)+i/3)%1,x=38+124*(.5-.5*Math.cos(2*Math.PI*p)),q=(p*2)%1,y=104-78*Math.sin(Math.PI*q);wCap(c,x,y,p*14,24,11,cols[i][0],cols[i][1])}c.fillStyle='#8a96a3';for(const hx of [38,162]){c.save();c.translate(hx,122);wRR(c,36,14,7);c.fill();c.restore()}}
   else{const T=t/700,n=Math.floor(T)%8,f=T%1;c.fillStyle='#8a96a333';c.save();c.translate(100,56);wRR(c,176,84,12);c.fill();c.restore();
     for(let i=0;i<8;i++){const cx=34+(i%4)*44,cy=36+Math.floor(i/4)*40;c.fillStyle='#8a96a355';c.beginPath();c.arc(cx,cy,13,0,7);c.fill();if(i<n){c.fillStyle='#fff';c.beginPath();c.arc(cx,cy,9,0,7);c.fill()}else if(i===n){c.globalAlpha=1-f;wTab(c,cx,cy-f*34,f*3,12*(1-f*.4),B)}else wTab(c,cx,cy,0,11,B);c.globalAlpha=1}
-    const pct=Math.round(((n+f)/8)*100);c.fillStyle='#8a96a355';c.fillRect(20,116,160,8);c.fillStyle=G;c.fillRect(20,116,160*pct/100,8)}
+    for(let d=0;d<3;d++){const ph=(t/450)-d*.6,k=Math.max(0,Math.sin(ph));c.globalAlpha=.35+.65*k;c.fillStyle=G;c.beginPath();c.arc(80+d*20,128,5+2*k,0,7);c.fill()}c.globalAlpha=1}
   const el=Math.round((Date.now()-WAIT.t0)/1000);$('wsec').textContent='Waiting '+el+' seconds'+(el>15?'. Taking longer than usual: the connection may be slow. Still trying...':'.');
   WAIT.raf=requestAnimationFrame(waitFrame);
 }
