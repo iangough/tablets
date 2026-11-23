@@ -72,6 +72,8 @@ main{padding:0 16px}
 nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:10}
 nav button{flex:1;border:0;background:none;color:var(--mute);padding:10px 2px 12px;font:600 12px system-ui}
 nav button.on{color:var(--acc)}
+nav button{min-width:0;overflow:hidden;white-space:nowrap;position:relative}
+@media (max-width:440px){nav button{font-size:10.5px;padding:9px 0 11px}nav .ic{font-size:19px}}
 nav .ic{display:block;font-size:20px}
 nav .dot{position:absolute;background:var(--bad);color:#fff;border-radius:99px;font-size:10px;padding:0 5px;margin-left:4px}
 label{display:block;margin:10px 0 4px;font-weight:600;font-size:14px}
@@ -99,7 +101,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>
 'use strict';
-const BUILD='2026-11-23i',APP_VER='1.7.0',APP_DATE='23 November 2026';
+const BUILD='2026-11-23j',APP_VER='1.8.0',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -295,6 +297,49 @@ function waitOn(text){
   WAIT.on=true;WAIT.t0=Date.now();$('wtxt').textContent=text||'Please wait';$('wait').hidden=false;cancelAnimationFrame(WAIT.raf);WAIT.raf=requestAnimationFrame(waitFrame);
 }
 function waitOff(){WAIT.on=false;cancelAnimationFrame(WAIT.raf);$('wait').hidden=true}
+
+/* ---- stock check: count what you really have, quickly, now and then ---- */
+let SC=null;
+const stockEvery=()=>{const v=(st.settings||{}).stockEvery;return v===undefined?3:v};
+function stockDueDate(){const last=(st.settings||{}).lastStockCheck;if(!last)return null;const d=pd(last);d.setMonth(d.getMonth()+stockEvery());return d}
+function stockDue(){if(!stockEvery())return false;const d=stockDueDate();return !d||d<=new Date()}
+function scLoc(){const today=ymd(new Date());return (st.trips||[]).some(x=>x.from<=today&&today<=x.to)?'fv':'uk'}
+function scStart(){
+  const now=new Date(),loc=scLoc();SC={loc,rows:{}};
+  for(const it of st.items){const r=sim(it,now);const exp=Math.max(0,Math.round(((loc==='fv'?r.fv:r.uk)||0)*10)/10);SC.rows[it.id]={exp,cnt:exp,ok:false}}
+}
+function scBump(id,d){const x=SC.rows[id];x.cnt=Math.max(0,Math.round((x.cnt+d)*10)/10);x.ok=true;render(true)}
+function scOk(id){SC.rows[id].ok=true;render(true)}
+function scAll(){for(const k in SC.rows)SC.rows[k].ok=true;render(true)}
+function scSave(){
+  const at=lts(new Date()),diffs=[];
+  for(const it of st.items){const x=SC.rows[it.id];if(!x||!x.ok)continue;
+    if(Math.abs(x.cnt-x.exp)>0.001){st.events.push({id:uid(),type:'recount',item:it.id,loc:SC.loc,qty:x.cnt,at});diffs.push(it.name.replace(/ \(.*/,'')+' '+(x.cnt>x.exp?'+':'')+(Math.round((x.cnt-x.exp)*10)/10))}}
+  st.settings.lastStockCheck=ymd(new Date());save();
+  const n=Object.values(SC.rows).filter(x=>x.ok).length;SC=null;
+  banner(diffs.length?('Stock check saved. Different: '+diffs.join(', ')):'Stock check saved: '+n+' checked, all as expected');render();
+}
+function vCheck(){
+  if(!SC)scStart();
+  const last=(st.settings||{}).lastStockCheck,dd=stockDueDate();
+  let h='<div class="card"><h2 style="margin-top:0">Stock check</h2><div class="mute">Count what you have '+(SC.loc==='fv'?'at 24B':'at home (UK)')+'. Tap ✓ if it matches, or use − and + to correct it. '
+   +(last?'Last check: '+niceS(pd(last))+'.':'Never checked yet.')+(stockEvery()?' Next one due: '+(dd?niceS(dd):'now')+'.':' Reminders are off (Settings).')+'</div>'
+   +'<button class="btn sec" onclick="scAll()">Everything matches</button></div>';
+  const items=[...st.items].sort((a,b)=>(SC.rows[a.id].ok-SC.rows[b.id].ok)||a.name.localeCompare(b.name));
+  for(const it of items){const x=SC.rows[it.id],diff=Math.round((x.cnt-x.exp)*10)/10;
+    h+='<div class="card" style="'+(x.ok?'border-color:var(--ok)':'')+'"><div class="row"><span class="name">'+esc(it.name)+'</span>'+(x.ok?'<span class="pill p-ok">'+(diff?((diff>0?'+':'')+diff):'✓ matches')+'</span>':'')+'</div>'
+     +(whyShow(it)?'<div class="mute" style="font-size:13px">'+esc(whyShow(it))+'</div>':'')
+     +'<div class="mute" style="margin-top:4px">Should have <b>'+qtyTxt(it,x.exp)+'</b></div>'
+     +'<div style="display:flex;align-items:center;gap:10px;margin-top:8px">'
+     +'<button class="btn sec" style="width:56px;margin:0;font-size:22px" onclick="scBump(\''+it.id+'\',-1)">−</button>'
+     +'<div style="flex:1;text-align:center;font-size:22px;font-weight:700">'+qtyTxt(it,x.cnt)+'</div>'
+     +'<button class="btn sec" style="width:56px;margin:0;font-size:22px" onclick="scBump(\''+it.id+'\',1)">+</button>'
+     +'<button class="btn" style="width:70px;margin:0;background:var(--ok)" onclick="scOk(\''+it.id+'\')">✓</button></div></div>';
+  }
+  const done=Object.values(SC.rows).filter(x=>x.ok).length;
+  return h+'<div class="card"><div class="mute">'+done+' of '+st.items.length+' checked. Only checked tablets are saved.</div><button class="btn" onclick="scSave()">Save stock check</button></div>';
+}
+function setStockEvery(v){st.settings.stockEvery=parseInt(v)||0;save();banner('Saved');render(true)}
 const skipped=it=>!!(it.skipUntil&&it.skipUntil>ymd(new Date()));
 const SKIP_DAYS=[7,14,30,60,90];
 const ao=()=>Object.assign({show:true,calCollect:true,calNext:true},(st.settings&&st.settings.afterOrder)||{});
@@ -484,6 +529,7 @@ function vSet(){
   const s=st.settings;
   const f=(k,l)=>'<label>'+l+'</label><input type="number" value="'+s[k]+'" onchange="upSet(\''+k+'\',+this.value)">';
   return vProfile()+vSecurity()+(typeof sosCard==='function'?sosCard():'')+vPharm()+vPhoneOnly()+'<div class="card"><h2 style="margin-top:0">For my doctor</h2><div class="mute">One list of your tablets, doses and what each is for.</div><button class="btn" onclick="showDoctor()">Show list for my doctor</button></div>'
+   +'<div class="card"><h2 style="margin-top:0">Stock check</h2><div class="mute">A quick count now and then, in case tablets were lost or the numbers drifted.</div><label>Remind me to do a stock check</label><select onchange="setStockEvery(this.value)">'+[[0,'Never'],[1,'Every month'],[3,'Every 3 months'],[6,'Every 6 months'],[12,'Every year']].map(o=>'<option value="'+o[0]+'"'+(stockEvery()===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select><button class="btn sec" onclick="go(\'check\')">Do a stock check now</button></div>'
    +'<div class="card"><h2 style="margin-top:0">After I order</h2><div class="mute">What happens when an order has been sent (from the laptop or here).</div>'
    +[['show','Show a summary: what I ordered, when to collect, when to come back'],['calCollect','Put the collection reminder in my calendar (Android)'],['calNext','Put the next order reminder in my calendar (Android)']].map(x=>'<label style="display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-weight:500"><input type="checkbox" style="width:auto;margin-top:4px" '+(ao()[x[0]]?'checked':'')+' onchange="setAfter(\''+x[0]+'\',this.checked)"><span>'+x[1]+'</span></label>').join('')+'</div>'+vAbout()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
    +'<div class="card"><h2 style="margin-top:0">Dose times</h2><div class="grid2"><div><label>Morning</label><input type="time" value="'+s.amTime+'" onchange="upSetS(\'amTime\',this.value)"></div><div><label>Evening</label><input type="time" value="'+s.pmTime+'" onchange="upSetS(\'pmTime\',this.value)"></div></div></div>'
@@ -918,9 +964,10 @@ function vWelcome(){
    +'<div class="card"><h2 style="margin-top:0">Open a list with a PIN</h2><p class="mute">If someone gave you their PIN, type it to see their tablets here. You can also type your own PIN to open your list on a new phone.</p>'
    +'<input id="op" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off"><button class="btn sec" onclick="openByPin()">Open</button></div>';
 }
+function stockAlert(){return stockDue()?[{lvl:'warn',t:'Stock check due',m:'Count your tablets in the Check tab, so the numbers stay right.',sort:900}]:[]}
 function allAlerts(now,mine){
   const multi=PR.list.length>1,me=activeP();
-  let out=mine.map(a=>({...a,who:multi&&me?me.name:''}));
+  let out=mine.concat(stockAlert()).map(a=>({...a,who:multi&&me?me.name:''}));
   if(PR.showOthers!==false){
     for(const p of PR.list){
       if(p.id===PR.active)continue;
@@ -944,9 +991,9 @@ function render(keepScroll){
   const ALL=allAlerts(now,A);
   subLine();chips();
   const nBad=ALL.filter(a=>a.lvl==='bad').length;
-  const tabs=[['stock','▤','Stock'],['alerts','⚠','Alerts'+(nBad?'<span class="dot">'+nBad+'</span>':'')],['recv','⬇','Receive'],['log','✎','Log'],['orders','✚','Orders'],['set','⚙','Settings']];
+  const tabs=[['stock','▤','Stock'],['alerts','⚠','Alerts'+(nBad?'<span class="dot">'+nBad+'</span>':'')],['recv','⬇','Receive'],['log','✎','Log'],['orders','✚','Orders'],['check','✓','Check'+(stockDue()?'<span class="dot">!</span>':'')],['set','⚙','Settings']];
   $('nav').innerHTML=tabs.map(t=>'<button class="'+(tab===t[0]?'on':'')+'" onclick="go(\''+t[0]+'\')"><span class="ic">'+t[1]+'</span>'+t[2]+'</button>').join('');
-  $('main').innerHTML=({stock:vStock,alerts:()=>vAlerts(ALL),log:vLog,orders:vOrders,recv:vRecv,set:vSet})[tab](A,R,now);
+  $('main').innerHTML=({stock:vStock,alerts:()=>vAlerts(ALL),log:vLog,orders:vOrders,recv:vRecv,check:vCheck,set:vSet})[tab](A,R,now);
   if(tab==='log')logType();
   if(keepScroll!==true)window.scrollTo(0,0);
 }
