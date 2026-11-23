@@ -101,7 +101,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>
 'use strict';
-const BUILD='2026-11-23k',APP_VER='1.8.1',APP_DATE='23 November 2026';
+const BUILD='2026-11-23l',APP_VER='1.8.2',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -964,10 +964,13 @@ function vWelcome(){
    +'<div class="card"><h2 style="margin-top:0">Open a list with a PIN</h2><p class="mute">If someone gave you their PIN, type it to see their tablets here. You can also type your own PIN to open your list on a new phone.</p>'
    +'<input id="op" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off"><button class="btn sec" onclick="openByPin()">Open</button></div>';
 }
+function rejectAlerts(){const lim=ymd(addD(new Date(),-45));const out=[];for(const o of st.orders){if(o.status!=='rejected'||o.ack||(o.date||'')<lim)continue;const it=st.items.find(i=>i.id===o.item);if(!it)continue;
+  out.push({lvl:'bad',t:'Rejected by your GP: '+it.name.replace(/ \(.*/,''),m:'In the order of '+niceS(pd(o.date))+'. Patient Access gives no reason. '+(it.next&&it.next>o.date?'It was probably asked for too early: the next issue date is '+niceS(pd(it.next))+'. ':'')+'If you need it now, contact the surgery.',item:it.id,sort:-50,ack:o.id})}return out}
+function ackOrder(id){const o=st.orders.find(x=>x.id===id);if(o){o.ack=Date.now();save();banner('OK, noted');render(true)}}
 function stockAlert(){return stockDue()?[{lvl:'warn',t:'Stock check due',m:'Count your tablets in the Check tab, so the numbers stay right.',sort:900}]:[]}
 function allAlerts(now,mine){
   const multi=PR.list.length>1,me=activeP();
-  let out=mine.concat(stockAlert()).map(a=>({...a,who:multi&&me?me.name:''}));
+  let out=mine.concat(rejectAlerts(),stockAlert()).map(a=>({...a,who:multi&&me?me.name:''}));
   if(PR.showOthers!==false){
     for(const p of PR.list){
       if(p.id===PR.active)continue;
@@ -981,7 +984,7 @@ function allAlerts(now,mine){
 function vAlerts(A){
   const rd=(PR.ready||[]).map((r,i)=>'<div class="alert"><b>Pharmacy text received</b>'+esc(r.sender)+' texted on '+esc(niceS(new Date(r.t)))+'. '+(r.named&&r.named.length?'Ready: '+esc(r.named.join(', '))+'. ':'')+'<div style="margin-top:8px"><button class="btn sm sec" onclick="PR.ready.splice('+i+',1);psave();render(true)">Dismiss</button></div></div>').join('');
   if(!A.length)return rd+'<div class="card">All good. Nothing needs doing.</div>';
-  return rd+A.map(a=>'<div class="alert '+a.lvl+'"><b>'+(a.who?'<span class="pill p-acc">'+esc(a.who)+'</span> ':'')+a.t+'</b>'+a.m+(a.diab?'<div style="margin-top:8px">'+diabLinks(a.diab)+'</div>':'')+'</div>').join('');
+  return rd+A.map(a=>'<div class="alert '+a.lvl+'"><b>'+(a.who?'<span class="pill p-acc">'+esc(a.who)+'</span> ':'')+a.t+'</b>'+a.m+(a.diab?'<div style="margin-top:8px">'+diabLinks(a.diab)+'</div>':'')+(a.ack&&!a.who?'<div style="margin-top:8px"><button class="btn sm sec" onclick="ackOrder(''+a.ack+'')">OK, got it</button></div>':'')+'</div>').join('');
 }
 function render(keepScroll){
   const now=new Date();
