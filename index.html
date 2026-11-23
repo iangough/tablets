@@ -101,7 +101,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>
 'use strict';
-const BUILD='2026-11-23l',APP_VER='1.8.2',APP_DATE='23 November 2026';
+const BUILD='2026-11-23m',APP_VER='1.8.3',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -403,7 +403,7 @@ function computeAlerts(now){
   }
   for(const o of st.orders){
     const it=st.items.find(i=>i.id===o.item);if(!it)continue;
-    if(o.status==='rejected')A.push({lvl:'bad',t:'Order rejected: '+it.name,m:'Your GP rejected the request made on '+niceS(pd(o.date))+'. Check with the surgery.',item:o.item,sort:-500});
+    /* rejected orders: see rejectAlerts() (can be dismissed) */
     if(o.status==='part'){const owed=o.qty-(o.recv||0);A.push({lvl:'warn',t:'Still owed: '+it.name,m:'Day Lewis gave '+qtyTxt(it,o.recv||0)+' of '+qtyTxt(it,o.qty)+'. '+qtyTxt(it,owed)+' still owed from the order of '+niceS(pd(o.date))+'.',item:o.item,sort:40});continue}
     if(o.status==='ready'){A.push({lvl:'warn',t:'Ready to collect: '+it.name,m:'The pharmacy says it is ready ('+(o.readyAt?niceS(new Date(o.readyAt)):'today')+'). Collect it, then tap Receive.',item:o.item,sort:30});continue}
     if(o.status==='approved'||o.status==='requested')A.push({lvl:'info',t:(o.status==='approved'?'Approved: ':'Requested: ')+it.name,m:'Expected about '+niceS(pd(o.expected))+' (collect at Day Lewis, Andover).',item:o.item,sort:50});
@@ -984,7 +984,7 @@ function allAlerts(now,mine){
 function vAlerts(A){
   const rd=(PR.ready||[]).map((r,i)=>'<div class="alert"><b>Pharmacy text received</b>'+esc(r.sender)+' texted on '+esc(niceS(new Date(r.t)))+'. '+(r.named&&r.named.length?'Ready: '+esc(r.named.join(', '))+'. ':'')+'<div style="margin-top:8px"><button class="btn sm sec" onclick="PR.ready.splice('+i+',1);psave();render(true)">Dismiss</button></div></div>').join('');
   if(!A.length)return rd+'<div class="card">All good. Nothing needs doing.</div>';
-  return rd+A.map(a=>'<div class="alert '+a.lvl+'"><b>'+(a.who?'<span class="pill p-acc">'+esc(a.who)+'</span> ':'')+a.t+'</b>'+a.m+(a.diab?'<div style="margin-top:8px">'+diabLinks(a.diab)+'</div>':'')+(a.ack&&!a.who?'<div style="margin-top:8px"><button class="btn sm sec" onclick="ackOrder(''+a.ack+'')">OK, got it</button></div>':'')+'</div>').join('');
+  return rd+A.map(a=>'<div class="alert '+a.lvl+'"><b>'+(a.who?'<span class="pill p-acc">'+esc(a.who)+'</span> ':'')+a.t+'</b>'+a.m+(a.diab?'<div style="margin-top:8px">'+diabLinks(a.diab)+'</div>':'')+(a.ack&&!a.who?'<div style="margin-top:8px"><button class="btn sm sec" onclick="ackOrder(\''+a.ack+'\')">OK, got it</button></div>':'')+'</div>').join('');
 }
 function render(keepScroll){
   const now=new Date();
