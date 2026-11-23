@@ -1,5 +1,5 @@
 // Tablets service worker: the app opens with no internet. Page = stale-while-revalidate (new version shows on the next open).
-const CACHE='tablets-2026-11-23d';
+const CACHE='tablets-2026-11-23e';
 const SHELL=['./','index.html','sos.html','manifest.webmanifest','manifest-sos.webmanifest','icon-192.png','icon-512.png','icon-180.png','icon-sos-192.png','icon-sos-512.png','icon-sos-180.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
