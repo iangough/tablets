@@ -96,7 +96,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>
 'use strict';
-const BUILD='2026-11-23a';
+const BUILD='2026-11-23b';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -121,7 +121,7 @@ function profile(id){return PR.list.find(p=>p.id===id)}
 function activeP(){return PR.active?profile(PR.active):null}
 function persistState(S,id){try{localStorage.setItem(stateKey(id),JSON.stringify(S))}catch(e){if(!window.__DEMO)banner('Could not save: '+e,true)}}
 if(!PR||!PR.list){
-  PR={list:[],active:null,device:null,token:null,lock:false,sosPin:false,showOthers:true};
+  PR={list:[],active:null,device:null,token:null,lock:false,sosPin:false,showOthers:true,sms:false,cal:null,calDone:{}};
   let legacy=null,old={};
   try{legacy=localStorage.getItem('tablets.v1');old=JSON.parse(localStorage.getItem('tablets.sync.v1'))||{}}catch(e){}
   if(legacy||SEED.items.length){
@@ -132,6 +132,8 @@ if(!PR||!PR.list){
   }
   psave();
 }
+if(!PR.calDone)PR.calDone={};
+if(!PR.cal)PR.cal={on:false,account:(SEED.calDefault||{}).account||'',invite:(SEED.calDefault||{}).invite||''};
 function fix(o){
   o.rc=o.rc||{};o.receipts=o.receipts||[];o.meta=o.meta||{};for(const k of ['items','settings','trips','sos'])o.meta[k]=o.meta[k]||0;o.tomb=o.tomb||{};
   if(o.baseAt==='NOW'){const d=new Date(),p=n=>String(n).padStart(2,'0');o.baseAt=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T00:00:00'}
@@ -142,7 +144,7 @@ function fix(o){
   for(const k of Object.keys(d))if(o.sos[k]===undefined)o.sos[k]=d[k];
   o.sos.show=Object.assign({},d.show,o.sos.show||{});
   return o}
-const isOpen=o=>['requested','approved','part'].includes(o.status);
+const isOpen=o=>['requested','approved','part','ready'].includes(o.status);
 const SNAPW=new WeakMap();
 function snapNow(S){
   const o={};
@@ -267,7 +269,7 @@ function computeAlerts(now){
         const open=st.orders.find(o=>o.item===it.id&&isOpen(o));
         if(open)continue;
         const late=it.next&&it.next>ymd(addD(r.runOut||now,-S.lead));
-        A.push({lvl:'bad',t:'Order '+it.name+' now',m:msg+(late&&it.next>ymd(now)?' Patient Access will not issue before '+niceS(pd(it.next))+', which is too late: ask the surgery to release it early.':''),item:it.id,sort:r.daysLeft??-1});
+        A.push({lvl:'bad',t:'Order '+it.name+' now',m:msg+(late&&it.next>ymd(now)?' Patient Access will not issue before '+niceS(pd(it.next))+', which is too late: ask the surgery to release it early.':''),item:it.id,sort:r.daysLeft??-1,cal:{kind:'order',name:it.name.replace(/ \(.*/,''),id:it.id}});
       }else if(r.runOut&&it.next&&it.next>ymd(addD(r.runOut,-S.lead))){
         A.push({lvl:'warn',t:it.name+': issue date is after you run out',m:'Runs out '+niceS(r.runOut)+' but the next issue is '+niceS(pd(it.next))+'. You may need the surgery to release it early.',item:it.id,sort:r.daysLeft+500});
       }
@@ -283,7 +285,7 @@ function computeAlerts(now){
         if(!lastT)A.push({lvl:'bad',t:'No trip to 24B before '+it.name+' runs out',m:'Runs out '+niceS(r.runOut)+'. Plan a trip, or ask someone to buy it at Mercadona.',item:it.id,sort:r.daysLeft});
         else{
           const dd=Math.round((lastT.toD-sod(now))/DAY);
-          if(dd<=4)A.push({lvl:'bad',t:'Buy '+it.name+' at Mercadona before you leave 24B',m:'You leave '+niceS(lastT.toD)+' and run out '+niceS(r.runOut)+'. This is your last chance before it runs out.',item:it.id,sort:dd-100});
+          if(dd<=4)A.push({lvl:'bad',t:'Buy '+it.name+' at Mercadona before you leave 24B',m:'You leave '+niceS(lastT.toD)+' and run out '+niceS(r.runOut)+'. This is your last chance before it runs out.',item:it.id,sort:dd-100,cal:{kind:'buy',name:it.name,day:ymd(addD(lastT.toD,-3)),key:'buy:'+it.id+':'+lastT.to}});
           else if(before.length===1&&dd<=30)A.push({lvl:'info',t:it.name+': buy on your trip ending '+niceS(lastT.toD),m:'Last trip before it runs out ('+niceS(r.runOut)+'). You will be reminded 3 to 4 days before you leave.',item:it.id,sort:dd});
         }
       }
@@ -302,12 +304,13 @@ function computeAlerts(now){
       const r=sim(it,to);
       if(r.out||(r.runOut&&Math.floor((r.runOut-to)/DAY)<=S.lead+S.margin))bad.push(it.name.replace(/ \(.*/,''));
     }
-    if(bad.length)A.push({lvl:days<=5?'bad':'warn',t:'Before you leave for 24B ('+niceS(from)+')',m:'These would be low or empty when you get back on '+niceS(to)+': '+bad.join(', ')+'. Order and collect them at Day Lewis before you go.',sort:days-1000});
+    if(bad.length)A.push({lvl:days<=5?'bad':'warn',t:'Before you leave for 24B ('+niceS(from)+')',m:'These would be low or empty when you get back on '+niceS(to)+': '+bad.join(', ')+'. Order and collect them at Day Lewis before you go.',sort:days-1000,cal:{kind:'trip',day:ymd(addD(from,-3)),key:'trip:'+t.from+':'+bad.join(',').length,names:bad}});
   }
   for(const o of st.orders){
     const it=st.items.find(i=>i.id===o.item);if(!it)continue;
     if(o.status==='rejected')A.push({lvl:'bad',t:'Order rejected: '+it.name,m:'Your GP rejected the request made on '+niceS(pd(o.date))+'. Check with the surgery.',item:o.item,sort:-500});
     if(o.status==='part'){const owed=o.qty-(o.recv||0);A.push({lvl:'warn',t:'Still owed: '+it.name,m:'Day Lewis gave '+qtyTxt(it,o.recv||0)+' of '+qtyTxt(it,o.qty)+'. '+qtyTxt(it,owed)+' still owed from the order of '+niceS(pd(o.date))+'.',item:o.item,sort:40});continue}
+    if(o.status==='ready'){A.push({lvl:'warn',t:'Ready to collect: '+it.name,m:'The pharmacy says it is ready ('+(o.readyAt?niceS(new Date(o.readyAt)):'today')+'). Collect it, then tap Receive.',item:o.item,sort:30});continue}
     if(o.status==='approved'||o.status==='requested')A.push({lvl:'info',t:(o.status==='approved'?'Approved: ':'Requested: ')+it.name,m:'Expected about '+niceS(pd(o.expected))+' (collect at Day Lewis, Andover).',item:o.item,sort:50});
   }
   A.sort((a,b)=>a.sort-b.sort);
@@ -410,12 +413,12 @@ function vOrders(A,R,now){
   h+=need.length?need.map(i=>'<div class="card"><div class="row"><span class="name">'+i.name+'</span><span class="mute">'+R[i.id].daysLeft+' days</span></div><div class="mute">Issue '+i.issue+' · allowed from '+(i.next?niceS(pd(i.next)):'now')+'</div><button class="btn sm" style="margin-top:8px" onclick="markOrdered(\''+i.id+'\')">I ordered it</button></div>').join(''):'<div class="card mute">Nothing due yet.</div>';
   const open=st.orders.filter(o=>o.status!=='collected'&&o.status!=='cancelled');
   h+='<h2>Open orders</h2>';
-  h+=open.length?open.map(o=>{const it=st.items.find(i=>i.id===o.item);return '<div class="card"><div class="row"><span class="name">'+it.name+'</span><span class="pill p-'+(o.status==='rejected'?'bad':'warn')+'">'+o.status+'</span></div><div class="mute">Ordered '+niceS(pd(o.date))+' · expected '+niceS(pd(o.expected))+' · ordered '+qtyTxt(it,o.qty)+(o.recv?' · received '+qtyTxt(it,o.recv)+' · OWED '+qtyTxt(it,Math.max(0,o.qty-o.recv)):'')+'</div><div class="grid2" style="margin-top:8px"><button class="btn sm sec" onclick="setOrder('+o.id+',\'approved\')">Approved</button><button class="btn sm sec" onclick="setOrder('+o.id+',\'rejected\')">Rejected</button><button class="btn sm" onclick="recvItem(\''+o.item+'\')">Receive</button><button class="btn sm sec" onclick="setOrder('+o.id+',\'cancelled\')">Cancel</button></div></div>'}).join(''):'<div class="card mute">No open orders.</div>';
+  h+=open.length?open.map(o=>{const it=st.items.find(i=>i.id===o.item);return '<div class="card"><div class="row"><span class="name">'+it.name+'</span><span class="pill p-'+(o.status==='rejected'?'bad':'warn')+'">'+o.status+'</span></div><div class="mute">Ordered '+niceS(pd(o.date))+' · expected '+niceS(pd(o.expected))+' · ordered '+qtyTxt(it,o.qty)+(o.recv?' · received '+qtyTxt(it,o.recv)+' · OWED '+qtyTxt(it,Math.max(0,o.qty-o.recv)):'')+'</div><div class="grid2" style="margin-top:8px"><button class="btn sm sec" onclick="setOrder('+o.id+',\'approved\')">Approved</button><button class="btn sm sec" onclick="setOrder('+o.id+',\'rejected\')">Rejected</button><button class="btn sm sec" onclick="setOrder('+o.id+',\'ready\')">Ready to collect</button><button class="btn sm" onclick="recvItem(\''+o.item+'\')">Receive</button><button class="btn sm sec" onclick="setOrder('+o.id+',\'cancelled\')">Cancel</button></div></div>'}).join(''):'<div class="card mute">No open orders.</div>';
   return h;
 }
 function markOrdered(id){const it=st.items.find(i=>i.id===id);const d=new Date();st.orders.push({id:uid(),item:id,date:ymd(d),expected:ymd(addD(d,st.settings.lead)),qty:it.issue,status:'requested'});save();banner('Order noted: '+it.name);render()}
 function setOrder(id,s){
-  const o=st.orders.find(x=>x.id===id);if(!o)return;o.status=s;
+  const o=st.orders.find(x=>x.id===id);if(!o)return;o.status=s;if(s==='ready')o.readyAt=Date.now();
   if(s==='cancelled'&&o.recv>0)o.status='part';
   banner('Order '+s);
   save();render();
@@ -840,7 +843,8 @@ window.addEventListener('online',()=>syncAll());
 window.addEventListener('offline',()=>{PR.list.forEach(p=>{if(p.space)p.state='offline'});paintSync()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncAll()});
 setInterval(()=>{if(!document.hidden)syncAll()},60000);
-setTimeout(()=>{paintSync();syncAll()},400);
+setTimeout(()=>{paintSync();syncAll();pushSenders();pollSms();calSync()},600);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){pollSms();calSync()}});
 
 /* ---------- people: header chips, welcome, alerts for everyone, settings cards ---------- */
 function chips(){
@@ -869,8 +873,9 @@ function allAlerts(now,mine){
   return out;
 }
 function vAlerts(A){
-  if(!A.length)return '<div class="card">All good. Nothing needs doing.</div>';
-  return A.map(a=>'<div class="alert '+a.lvl+'"><b>'+(a.who?'<span class="pill p-acc">'+esc(a.who)+'</span> ':'')+a.t+'</b>'+a.m+(a.diab?'<div style="margin-top:8px">'+diabLinks(a.diab)+'</div>':'')+'</div>').join('');
+  const rd=(PR.ready||[]).map((r,i)=>'<div class="alert"><b>Pharmacy text received</b>'+esc(r.sender)+' texted on '+esc(niceS(new Date(r.t)))+'. '+(r.named&&r.named.length?'Ready: '+esc(r.named.join(', '))+'. ':'')+'<div style="margin-top:8px"><button class="btn sm sec" onclick="PR.ready.splice('+i+',1);psave();render(true)">Dismiss</button></div></div>').join('');
+  if(!A.length)return rd+'<div class="card">All good. Nothing needs doing.</div>';
+  return rd+A.map(a=>'<div class="alert '+a.lvl+'"><b>'+(a.who?'<span class="pill p-acc">'+esc(a.who)+'</span> ':'')+a.t+'</b>'+a.m+(a.diab?'<div style="margin-top:8px">'+diabLinks(a.diab)+'</div>':'')+'</div>').join('');
 }
 function render(keepScroll){
   const now=new Date();
@@ -921,17 +926,81 @@ function vPharm(){
     +'<button class="btn sm sec" style="margin-top:8px" onclick="delPh('+i+')">Remove</button></div>').join('');
   return h+'<button class="btn sec" onclick="addPh()">Add a pharmacy</button></div>';
 }
-function upPh(i,k,v){st.settings.pharmacies[i][k]=v;save();banner('Pharmacy saved');if(k==='use')render(true)}
+function upPh(i,k,v){st.settings.pharmacies[i][k]=v;save();pushSenders();banner('Pharmacy saved');if(k==='use')render(true)}
 function addPh(){st.settings.pharmacies.push({name:'',town:'',phone:'',sender:'',use:true});save();banner('Pharmacy added: fill it in');render(true)}
 function delPh(i){st.settings.pharmacies.splice(i,1);save();banner('Pharmacy removed');render(true)}
+function permState(){try{return window.AndroidApp&&AndroidApp.perms?JSON.parse(AndroidApp.perms()):{}}catch(e){return {}}}
+function pharmSenders(){const s=[];for(const p of PR.list){const S=loadState(p.id);for(const ph of S.settings.pharmacies||[])if(ph.use&&ph.sender&&!s.includes(ph.sender))s.push(ph.sender)}return s}
+function pushSenders(){if(window.AndroidApp&&AndroidApp.setSmsSenders)AndroidApp.setSmsSenders(JSON.stringify(PR.sms?pharmSenders():[]))}
+function setSms(on){
+  PR.sms=on;psave();
+  if(on&&window.AndroidApp)AndroidApp.enableSms();
+  pushSenders();banner(on?'Watching texts from your pharmacy. Allow SMS and notifications if the phone asks.':'No longer reading texts');render(true);
+}
+function setCal(on){
+  PR.cal.on=on;psave();
+  if(on&&window.AndroidApp)AndroidApp.enableCalendar();
+  banner(on?'Calendar entries on. Allow calendar access if the phone asks.':'Calendar entries off');render(true);setTimeout(calSync,1500);
+}
+function setCalField(k,v){PR.cal[k]=(v||'').trim();psave();banner('Saved')}
 function vPhoneOnly(){
-  const off=(on,label,note)=>'<div style="opacity:'+(on?1:.45)+';margin:10px 0"><label style="display:flex;gap:8px;align-items:center;margin:0"><input type="checkbox" disabled style="width:auto"> '+label+'</label><div class="mute">'+note+'</div></div>';
+  const ps=permState(),A=IS_ANDROID;
+  const grey=A?'':'opacity:.45;';
+  const chk=(on,fn,label,note,dis)=>'<label style="display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-weight:500;'+grey+'"><input type="checkbox" style="width:auto;margin-top:4px" '+(on?'checked':'')+' '+(dis?'disabled':'')+' onchange="'+fn+'(this.checked)"><span>'+label+'<span class="mute" style="display:block">'+note+'</span></span></label>';
   return '<div class="card"><h2 style="margin-top:0">Android phone only</h2>'
-   +off(IS_ANDROID,'Read "ready to collect" texts from the pharmacy',IS_ANDROID?'Coming in the next update.':'Not available here: only the Android app can read texts.')
-   +'<div style="opacity:'+(IS_ANDROID?1:.45)+'"><button class="btn sec" '+(IS_ANDROID?'':'disabled')+' onclick="if(window.AndroidApp)AndroidApp.pinShortcut()">Add Tablets icon to home screen</button>'
-   +'<button class="btn sec" '+(IS_ANDROID?'':'disabled')+' onclick="if(window.AndroidApp)AndroidApp.pinSos()">Add Tablets SOS icon to home screen</button></div>'
-   +(IS_IOS?'<div class="mute" style="margin-top:8px">On this iPhone: tap the Share button in Safari, then <b>Add to Home Screen</b>. For the emergency screen open the "Tablets SOS" page (Settings → SOS) and add that to the Home Screen too.</div>':'')
+   +chk(!!PR.sms,'setSms','Read "ready to collect" texts from the pharmacy',A?'Only texts from the sender names in Pharmacy above. The message text is never kept. '+(PR.sms?(ps.sms?'SMS allowed.':'Waiting for SMS permission: tap again or allow it in Android settings.'):''):'Not available here: only the Android app can read texts.',!A)
+   +chk(!!PR.cal.on,'setCal','Put orders and collections in my calendar',A?'Short timed entries (order 15 min, collect 30 min) with a reminder, placed in the first free weekday slot. '+(PR.cal.on?(ps.cal?'Calendar allowed.':'Waiting for calendar permission.'):''):'Not available here: only the Android app can write to the calendar.',!A)
+   +(A?'<label>Calendar account to use</label><input value="'+esc(PR.cal.account)+'" placeholder="e.g. you@gmail.com" onchange="setCalField(\'account\',this.value)"><label>Also invite (email, optional)</label><input value="'+esc(PR.cal.invite)+'" placeholder="e.g. wife or husband" onchange="setCalField(\'invite\',this.value)">':'')
+   +'<div style="'+grey+'margin-top:12px"><button class="btn sec" '+(A?'':'disabled')+' onclick="if(window.AndroidApp)AndroidApp.pinShortcut()">Add Tablets icon to home screen</button>'
+   +'<button class="btn sec" '+(A?'':'disabled')+' onclick="if(window.AndroidApp)AndroidApp.pinSos()">Add Tablets SOS icon to home screen</button></div>'
+   +(IS_IOS?'<div class="mute" style="margin-top:8px">On this iPhone: tap the Share button in Safari, then <b>Add to Home Screen</b>. For the emergency screen open the "Tablets SOS" page and add that to the Home Screen too.</div>':'')
    +'</div>';
+}
+/* ---- texts from the pharmacy -> orders become "ready"; calendar entries ---- */
+function pollSms(){
+  if(!window.AndroidApp||!AndroidApp.takeSmsEvents)return;
+  let ev=[];try{ev=JSON.parse(AndroidApp.takeSmsEvents()||'[]')}catch(e){}
+  if(!ev.length)return;
+  for(const e of ev){
+    let named=[],pharm='';
+    for(const p of PR.list){
+      const S=loadState(p.id);let ch=false;
+      for(const o of S.orders)if(['requested','approved','part'].includes(o.status)){o.status='ready';o.readyAt=e.t;ch=true;const it=S.items.find(i=>i.id===o.item);if(it)named.push(it.name.replace(/ \(.*/,''))}
+      const ph=(S.settings.pharmacies||[]).find(x=>x.use&&x.name);if(ph&&!pharm)pharm=[ph.name,ph.town].filter(Boolean).join(', ');
+      if(ch){stamp(S);p.dirty=true;persistState(S,p.id)}
+    }
+    PR.ready=(PR.ready||[]).concat([{t:e.t,sender:e.sender,pharm,named}]).slice(-5);
+    calAdd('ready:'+e.t,'Collect tablets: '+(pharm||e.sender),ymd(new Date()),'ready',30,pharm,named.length?('Ready: '+named.join(', ')):'The pharmacy sent a ready text.');
+  }
+  psave();syncSoon();render(true);
+}
+function calDone(k){return !!PR.calDone[k]}
+function calAdd(key,title,day,time,dur,loc,desc){
+  if(!window.AndroidApp||!PR.cal.on||calDone(key))return;
+  if(!(permState().cal)){return}
+  let hm=time;
+  if(time==='ready'||time==='slot'){const s=AndroidApp.findSlot(day,dur,7);if(s){day=s.slice(0,10);hm=s.slice(11)}else hm='09:00'}
+  const r=AndroidApp.addEvent(title,day,hm,dur,loc||'',desc||'',PR.cal.invite||'',PR.cal.account||'');
+  if(String(r).startsWith('ok')){PR.calDone[key]=Date.now();psave()}
+  else if(!calAdd.warned){calAdd.warned=1;banner('Calendar: '+r,true)}
+}
+function calSync(){
+  if(!window.AndroidApp||!PR.cal||!PR.cal.on||!permState().cal)return;
+  const now=new Date(),today=ymd(now),multi=PR.list.length>1;
+  for(const k of Object.keys(PR.calDone))if(Date.now()-PR.calDone[k]>60*864e5)delete PR.calDone[k];
+  for(const p of PR.list){
+    const keep=st;st=loadState(p.id);
+    try{
+      const A=computeAlerts(now).A.filter(a=>a.cal),who=multi?' ('+p.name+')':'';
+      const ph=(st.settings.pharmacies||[]).find(x=>x.use&&x.name),loc=ph?[ph.name,ph.town].filter(Boolean).join(', '):'';
+      const ord=A.filter(a=>a.cal.kind==='order');
+      if(ord.length){const ids=ord.map(a=>a.cal.id).sort().join(',');calAdd('ord:'+p.id+':'+today+':'+ids,'Order tablets (Patient Access): '+ord.map(a=>a.cal.name).join(', ')+who,today,'slot',15,'','Request these repeats in Patient Access.')}
+      for(const a of A){
+        if(a.cal.kind==='trip')calAdd('trip:'+p.id+':'+a.cal.key,'Collect tablets before the trip'+who,a.cal.day<today?today:a.cal.day,'slot',30,loc,'Low or empty when you are back: '+a.cal.names.join(', '));
+        if(a.cal.kind==='buy')calAdd('buy:'+p.id+':'+a.cal.key,'Buy '+a.cal.name+' before you leave'+who,a.cal.day<today?today:a.cal.day,'10:00',15,'','Last chance to buy it before it runs out.');
+      }
+    }finally{st=keep}
+  }
 }
 const IS_ANDROID=!!window.AndroidApp,IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
 /* ---------- TABLETS SOS: emergency information screen + set-up wizard ---------- */
