@@ -99,7 +99,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>window.__SOS=1;
 'use strict';
-const BUILD='2026-11-23g',APP_VER='1.6.1',APP_DATE='23 November 2026';
+const BUILD='2026-11-23h',APP_VER='1.6.2',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -263,7 +263,8 @@ function lastOrderDate(it,r){return r.runOut?addD(r.runOut,-thr()):null}
 /* ---------- alerts ---------- */
 const WHY_HINTS=[[['atorva'+'statin','simva'+'statin','rosuva'+'statin'],'Lowers cholesterol'],[['bisop'+'rolol'],'Slows the heart and lowers blood pressure (beta blocker)'],[['lisin'+'opril','rami'+'pril'],'Lowers blood pressure and protects the heart and kidneys'],[['metf'+'ormin'],'Type 2 diabetes: lowers blood sugar'],[['dapagl'+'iflozin'],'Type 2 diabetes, also protects the heart and kidneys'],[['linag'+'liptin','traj'+'enta','sitag'+'liptin'],'Type 2 diabetes: lowers blood sugar'],[['asp'+'irin'],'Low dose: helps prevent heart attack and stroke'],[['lansop'+'razole','omepr'+'azole'],'Reduces stomach acid and protects the stomach'],[['dulox'+'etine'],'Low mood, anxiety and nerve pain'],[['traz'+'odone'],'Helps sleep; also low mood and anxiety'],[['se'+'nna','lact'+'ulose'],'Constipation'],[['co-co'+'damol','parac'+'etamol','cod'+'eine'],'Pain relief'],[['alpro'+'stadil'],'Erectile dysfunction (injection)'],[['neb'+'ido','testos'+'terone'],'Testosterone replacement'],[['diab'+'etone'],'Food supplement to support blood sugar balance'],[['dor'+'mir'],'Sleep supplement'],[['amlod'+'ipine'],'Lowers blood pressure'],[['levoth'+'yroxine'],'Underactive thyroid'],[['clopi'+'dogrel'],'Blood thinner: prevents clots'],[['ticag'+'relor'],'Blood thinner: prevents clots (stent)']];
 const whyHint=n=>{const s=(n||'').toLowerCase();for(const [names,txt] of WHY_HINTS)if(names.some(x=>s.includes(x)))return txt;return ''};
-const whyShow=it=>it.why||(whyHint(it.name)?'Usually: '+whyHint(it.name):'');
+const whyShow=it=>PR.showWhy===false?'':(it.why||(whyHint(it.name)?'Usually: '+whyHint(it.name):''));
+const whyShort=it=>PR.showWhy===false?'':(it.why||whyHint(it.name)||'');
 function whySuggest(){const n=($('ef_name')||{}).value||'';const h=whyHint(n);if(!h)return banner('No suggestion for that name. Type your own.',true);$('ef_why').value=h;banner('Suggestion filled in. Change it if it is not right.')}
 function showDoctor(){
   const lines=st.items.map(it=>{const am=it.unit==='box'?'':qtyTxt(it,it.am),pm=it.unit==='box'?'':qtyTxt(it,it.pm);return it.name+(am||pm?' — morning '+(am||'none')+', evening '+(pm||'none'):'')+' — '+(it.why||whyHint(it.name)||'(purpose not filled in)')});
@@ -315,7 +316,7 @@ function computeAlerts(now){
         const open=st.orders.find(o=>o.item===it.id&&isOpen(o));
         if(open)continue;
         const late=it.next&&it.next>ymd(addD(r.runOut||now,-S.lead));
-        A.push({lvl:'bad',t:'Order '+it.name+' now',m:msg+(late&&it.next>ymd(now)?' Patient Access will not issue before '+niceS(pd(it.next))+', which is too late: ask the surgery to release it early.':''),item:it.id,sort:r.daysLeft??-1,cal:{kind:'order',name:it.name.replace(/ \(.*/,''),id:it.id}});
+        A.push({lvl:'bad',t:'Order '+it.name+(whyShort(it)?' ('+whyShort(it)+')':'')+' now',m:msg+(late&&it.next>ymd(now)?' Patient Access will not issue before '+niceS(pd(it.next))+', which is too late: ask the surgery to release it early.':''),item:it.id,sort:r.daysLeft??-1,cal:{kind:'order',name:it.name.replace(/ \(.*/,''),id:it.id}});
       }else if(r.runOut&&it.next&&it.next>ymd(addD(r.runOut,-S.lead))){
         A.push({lvl:'warn',t:it.name+': issue date is after you run out',m:'Runs out '+niceS(r.runOut)+' but the next issue is '+niceS(pd(it.next))+'. You may need the surgery to release it early.',item:it.id,sort:r.daysLeft+500});
       }
@@ -962,6 +963,7 @@ function vSecurity(){
   const chk=(on,fn,label,note)=>'<label style="display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-weight:500"><input type="checkbox" style="width:auto;margin-top:4px" '+(on?'checked':'')+' onchange="'+fn+'(this.checked)"><span>'+label+(note?'<span class="mute" style="display:block">'+note+'</span>':'')+'</span></label>';
   return '<div class="card"><h2 style="margin-top:0">On this device</h2>'
    +chk(PR.showOthers!==false,"setOpt.bind(null,'showOthers')",'Show alerts from the other lists on this phone','On by default, so you and your wife see each other\'s alerts.')
+   +chk(PR.showWhy!==false,"setOpt.bind(null,'showWhy')",'Show what each tablet is for','On by default. Helps a family member who orders for you: "the heart tablets" is easier to match than a drug name.')
    +chk(!!PR.lock,'setLock','Ask for my PIN when the app opens','Off by default. A new phone always needs the PIN once.')
    +chk(!!PR.sosPin,"setOpt.bind(null,'sosPin')",'Tablets SOS asks for my PIN','Off by default so emergency crews can read it.')
    +'</div>';
