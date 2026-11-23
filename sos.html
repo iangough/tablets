@@ -99,7 +99,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>window.__SOS=1;
 'use strict';
-const BUILD='2026-11-23h',APP_VER='1.6.2',APP_DATE='23 November 2026';
+const BUILD='2026-11-23i',APP_VER='1.7.0',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -297,6 +297,9 @@ function waitOn(text){
 function waitOff(){WAIT.on=false;cancelAnimationFrame(WAIT.raf);$('wait').hidden=true}
 const skipped=it=>!!(it.skipUntil&&it.skipUntil>ymd(new Date()));
 const SKIP_DAYS=[7,14,30,60,90];
+const ao=()=>Object.assign({show:true,calCollect:true,calNext:true},(st.settings&&st.settings.afterOrder)||{});
+function setAfter(k,v){st.settings.afterOrder=Object.assign({},ao(),{[k]:v});save();banner('Saved');render(true)}
+function toggleAsk(id){const it=st.items.find(i=>i.id===id);if(!it)return;if(it.onlyAsk)delete it.onlyAsk;else it.onlyAsk=true;save();closeSheet();banner(it.onlyAsk?'Only when you ask: no automatic reminders for this one':'Automatic reminders are back on');render()}
 function skipItem(id){
   const it=st.items.find(i=>i.id===id);if(!it)return;
   const n=parseInt(($('skd')||{}).value)||30;it.skipUntil=ymd(addD(new Date(),n));
@@ -310,7 +313,7 @@ function computeAlerts(now){
     const r=R[it.id];
     if(it.src==='pa'){
       const sk=skipped(it)&&!(r.out||(r.daysLeft!==null&&r.daysLeft<=10));
-      if(sk){}
+      if(sk||it.onlyAsk){}
       else if(r.out||(r.daysLeft!==null&&r.daysLeft<=T)){
         let msg=r.out?'You have run out.':'About '+r.daysLeft+' days left (runs out '+niceS(r.runOut)+').';
         const open=st.orders.find(o=>o.item===it.id&&isOpen(o));
@@ -390,7 +393,7 @@ function vStock(A,R,now){
     h+='<div class="card" onclick="openItem(\''+it.id+'\')"><div class="row"><span class="name">'+it.name+'</span><span class="pill p-'+cls+'">'+(r.out?'OUT':dl===null?'plenty':dl+' days')+'</span></div>'
      +'<div class="bar"><i style="width:'+pct+'%;background:'+col+'"></i></div>'+(whyShow(it)?'<div class="mute" style="font-size:13px;margin:-2px 0 4px">'+esc(whyShow(it))+'</div>':'')
      +'<div class="row"><span class="big">'+qtyTxt(it,r.total)+'</span><span class="mute">'+(r.runOut?'runs out '+niceS(r.runOut):'')+'</span></div>'
-     +'<div class="mute">'+(skipped(it)?'skipped until '+niceS(pd(it.skipUntil))+' · ':'')+(it.src==='pa'&&lo?'order by '+niceS(lo)+' · ':'')+(r.fv>0.001?'UK '+qtyTxt(it,r.uk)+' · 24B '+qtyTxt(it,r.fv):'')+'</div></div>';
+     +'<div class="mute">'+(it.onlyAsk?'only when I ask · ':'')+(skipped(it)?'skipped until '+niceS(pd(it.skipUntil))+' · ':'')+(it.src==='pa'&&lo?'order by '+niceS(lo)+' · ':'')+(r.fv>0.001?'UK '+qtyTxt(it,r.uk)+' · 24B '+qtyTxt(it,r.fv):'')+'</div></div>';
   }
   return h+'<button class="btn sec" onclick="editItem(null)">＋ Add a tablet</button>';
 }
@@ -480,7 +483,9 @@ function addTrip(){const d=ymd(addD(new Date(),30));st.trips.push({from:d,to:ymd
 function vSet(){
   const s=st.settings;
   const f=(k,l)=>'<label>'+l+'</label><input type="number" value="'+s[k]+'" onchange="upSet(\''+k+'\',+this.value)">';
-  return vProfile()+vSecurity()+(typeof sosCard==='function'?sosCard():'')+vPharm()+vPhoneOnly()+'<div class="card"><h2 style="margin-top:0">For my doctor</h2><div class="mute">One list of your tablets, doses and what each is for.</div><button class="btn" onclick="showDoctor()">Show list for my doctor</button></div>'+vAbout()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
+  return vProfile()+vSecurity()+(typeof sosCard==='function'?sosCard():'')+vPharm()+vPhoneOnly()+'<div class="card"><h2 style="margin-top:0">For my doctor</h2><div class="mute">One list of your tablets, doses and what each is for.</div><button class="btn" onclick="showDoctor()">Show list for my doctor</button></div>'
+   +'<div class="card"><h2 style="margin-top:0">After I order</h2><div class="mute">What happens when an order has been sent (from the laptop or here).</div>'
+   +[['show','Show a summary: what I ordered, when to collect, when to come back'],['calCollect','Put the collection reminder in my calendar (Android)'],['calNext','Put the next order reminder in my calendar (Android)']].map(x=>'<label style="display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-weight:500"><input type="checkbox" style="width:auto;margin-top:4px" '+(ao()[x[0]]?'checked':'')+' onchange="setAfter(\''+x[0]+'\',this.checked)"><span>'+x[1]+'</span></label>').join('')+'</div>'+vAbout()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
    +'<div class="card"><h2 style="margin-top:0">Dose times</h2><div class="grid2"><div><label>Morning</label><input type="time" value="'+s.amTime+'" onchange="upSetS(\'amTime\',this.value)"></div><div><label>Evening</label><input type="time" value="'+s.pmTime+'" onchange="upSetS(\'pmTime\',this.value)"></div></div></div>'
    +'<div class="card"><h2 style="margin-top:0">Import / export tablets (CSV)</h2><div class="mute">Columns: name, unit, morning, evening, box_size, source (prescription / supplement-uk / supplement-spain), stock_now, stock_24b, order_qty, next_issue, days_per_box, note. Empty cells leave things unchanged. Names are matched to your existing tablets; new names are added.</div>'
    +'<label>Choose a CSV file</label><input type="file" accept=".csv,text/csv,text/plain" onchange="csvFile(this)">'
@@ -506,8 +511,11 @@ function openItem(id){
    +'<div class="card"><div class="big">'+qtyTxt(it,r.total)+'</div><div class="mute">Morning '+(it.unit==='box'?'1 type':qtyTxt(it,it.am))+' · Evening '+(it.unit==='box'?'2 type':qtyTxt(it,it.pm))+' · pack '+it.pack+'</div>'
    +'<div class="mute">'+(r.runOut?'Runs out '+nice(r.runOut)+' ('+r.daysLeft+' days)':'No run-out in the next 2 years')+(lo&&it.src==='pa'?' · order by '+nice(lo):'')+'</div></div>'
    +'<label>Recount: I actually have</label><input type="number" step="any" id="rc" inputmode="decimal"><button class="btn" onclick="quickRecount(\''+id+'\')">Save recount (UK)</button>'
-   +(it.src==='pa'?'<div class="card"><b>Not reordering this time?</b><div class="mute">'+(skipped(it)?'Skipped until '+niceS(pd(it.skipUntil))+'. It comes back by itself, or if it gets very low.':'Pick how long to stay quiet about it.')+'</div>'
-     +(skipped(it)?'<button class="btn sec" onclick="unskipItem(\''+id+'\')">Stop skipping</button>':'<label>Skip ordering for</label><select id="skd">'+SKIP_DAYS.map(d=>'<option value="'+d+'"'+(d===30?' selected':'')+'>'+d+' days</option>').join('')+'</select><button class="btn" onclick="skipItem(\''+id+'\')">Skip ordering</button>')+'</div>':'')
+   +(it.src==='pa'?(()=>{const flagged=r.out||(r.daysLeft!==null&&r.daysLeft<=thr());let h2='<div class="card"><b>Order reminders</b>';
+      if(skipped(it))h2+='<div class="mute">Skipped until '+niceS(pd(it.skipUntil))+'. It comes back by itself, or if it gets very low.</div><button class="btn sec" onclick="unskipItem(\''+id+'\')">Stop skipping</button>';
+      else if(flagged&&!it.onlyAsk)h2+='<div class="mute">This one needs ordering. Not yet?</div><label>Skip ordering for</label><select id="skd">'+SKIP_DAYS.map(d=>'<option value="'+d+'"'+(d===30?' selected':'')+'>'+d+' days</option>').join('')+'</select><button class="btn" onclick="skipItem(\''+id+'\')">Skip ordering</button>';
+      else if(!it.onlyAsk)h2+='<div class="mute">Nothing to do yet. It will appear when it needs ordering.</div>';
+      h2+='<button class="btn sec" onclick="toggleAsk(\''+id+'\')">'+(it.onlyAsk?'Remind me automatically again':'Only when I ask (no automatic reminders)')+'</button></div>';return h2})():'')
    +'<button class="btn sec" onclick="editItem(\''+id+'\')">Edit this tablet (name, doses, box size…)</button>'
    +(it.src==='diab'?'<p>'+diabLinks(it.name.replace(/ \(.*/,''))+'</p>':'');
   $('sheetBody').innerHTML=h;$('sheet').className='sheet show';
@@ -1055,6 +1063,13 @@ function calSync(){
       const ph=(st.settings.pharmacies||[]).find(x=>x.use&&x.name),loc=ph?[ph.name,ph.town].filter(Boolean).join(', '):'';
       const ord=A.filter(a=>a.cal.kind==='order');
       if(ord.length){const ids=ord.map(a=>a.cal.id).sort().join(',');calAdd('ord:'+p.id+':'+today+':'+ids,'Order tablets (Patient Access): '+ord.map(a=>a.cal.name).join(', ')+who,today,'slot',15,'','Request these repeats in Patient Access.')}
+      const seen={};
+      for(const o of st.orders){
+        if(!o.batch||seen[o.batch]||!['requested','approved','part','ready'].includes(o.status))continue;seen[o.batch]=1;
+        const grp=st.orders.filter(x=>x.batch===o.batch),names=grp.map(x=>{const i=st.items.find(y=>y.id===x.item);return i?i.name.replace(/ \(.*/,''):''}).filter(Boolean).join(', ');
+        if(o.collectBy&&(ao().calCollect||o.calNow))calAdd('collect:'+o.batch,'Collect tablets: '+(loc||'pharmacy')+who,o.collectBy<today?today:o.collectBy,'slot',30,loc,'Ordered '+o.date+': '+names);
+        if(o.nextOn&&(ao().calNext||o.calNow))calAdd('nextord:'+o.batch,'Order tablets (Patient Access)'+who,o.nextOn<today?today:o.nextOn,'slot',15,'','Next tablets due: '+(o.nextNames||''));
+      }
       for(const a of A){
         if(a.cal.kind==='trip')calAdd('trip:'+p.id+':'+a.cal.key,'Collect tablets before the trip'+who,a.cal.day<today?today:a.cal.day,'slot',30,loc,'Low or empty when you are back: '+a.cal.names.join(', '));
         if(a.cal.kind==='buy')calAdd('buy:'+p.id+':'+a.cal.key,'Buy '+a.cal.name+' before you leave'+who,a.cal.day<today?today:a.cal.day,'10:00',15,'','Last chance to buy it before it runs out.');
