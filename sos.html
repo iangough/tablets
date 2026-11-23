@@ -101,7 +101,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>window.__SOS=1;
 'use strict';
-const BUILD='2026-11-23m',APP_VER='1.8.3',APP_DATE='23 November 2026';
+const BUILD='2026-11-23n',APP_VER='1.8.4',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -340,6 +340,36 @@ function vCheck(){
   return h+'<div class="card"><div class="mute">'+done+' of '+st.items.length+' checked. Only checked tablets are saved.</div><button class="btn" onclick="scSave()">Save stock check</button></div>';
 }
 function setStockEvery(v){st.settings.stockEvery=parseInt(v)||0;save();banner('Saved');render(true)}
+
+/* ---- "Did you know?" one tip a day at the top of the Stock tab ---- */
+const TIPS=[
+ ['do nothing every day','It counts your tablets down by itself, morning and evening. Only tell it about exceptions.'],
+ ['see what to order at a glance','Green, amber and red bars, most urgent at the top, each with an "order by" date.'],
+ ['order your repeat prescription in three clicks','On the laptop, open Order Tablets: tick, Review order, Send. You see the basket before anything is sent.'],
+ ['know straight away if the surgery said no','Rejections show as a red alert here and on the laptop, with the likely reason.'],
+ ['avoid rejections before they happen','A "Too early?" warning shows on any tablet the surgery is not due to issue yet.'],
+ ['skip a reminder when you do not need it yet','Open a tablet that needs ordering and pick 7 to 90 days. It comes back by itself.'],
+ ['keep "as needed" medicines quiet','Open the tablet and choose "Only when I ask". It is never flagged on its own.'],
+ ['get told when it is ready to collect','Switch on pharmacy texts in Settings and the app marks the order ready when the text arrives.'],
+ ['get calendar reminders automatically','Settings, After I order: the collection day and next order day go into your calendar.'],
+ ['fix a missed or extra dose in one tap','Use the Log tab and every count and date corrects itself.'],
+ ['check a pharmacy bag in seconds','The Receive tab has big + and − buttons and remembers anything still owed.'],
+ ['do a quick stock check','The Check tab lists every tablet with what you should have. Tap the tick, or correct it.'],
+ ['travel without running out','Add a trip in Settings and it warns what to collect before you go.'],
+ ['let family order for you','"Show what each tablet is for" makes "the heart tablets" easy to match to the right box.'],
+ ['hand your doctor one tidy list','Settings, For my doctor: every tablet, dose and purpose, ready to copy.'],
+ ['have emergency information ready','Tablets SOS shows medicines, allergies and contacts for paramedics. Add its icon in Settings.'],
+ ['share your list with a 4-digit PIN','Give your partner your PIN and you both see the same list and alerts.'],
+ ['use it anywhere','Android, iPhone or any computer through the web link, even with no internet.'],
+ ['bring your list in from a spreadsheet','Settings: import or export a CSV file.']];
+function tipIndex(){const d=new Date(),start=new Date(d.getFullYear(),0,0),day=Math.floor((d-start)/864e5);return ((day+(PR.tipOff||0))%TIPS.length+TIPS.length)%TIPS.length}
+function tipNext(){PR.tipOff=(PR.tipOff||0)+1;psave();render(true)}
+function tipHide(){PR.tipHidden=ymd(new Date());psave();render(true)}
+function tipCard(){
+  if(PR.tips===false||PR.tipHidden===ymd(new Date()))return '';
+  const [a,b]=TIPS[tipIndex()];
+  return '<div class="card" style="border-color:var(--acc);display:flex;gap:12px;align-items:flex-start"><div style="flex:none;width:34px;height:34px;border-radius:17px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">?</div><div style="flex:1"><div class="mute" style="font-size:12px;font-weight:700;letter-spacing:.04em">DID YOU KNOW?</div><b>You can '+esc(a)+'.</b><div class="mute" style="margin-top:2px">'+esc(b)+'</div><div style="margin-top:8px;display:flex;gap:8px"><button class="btn sm sec" style="width:auto;margin:0" onclick="tipNext()">Next tip</button><button class="btn sm sec" style="width:auto;margin:0" onclick="tipHide()">Hide for today</button></div></div></div>';
+}
 const skipped=it=>!!(it.skipUntil&&it.skipUntil>ymd(new Date()));
 const SKIP_DAYS=[7,14,30,60,90];
 const ao=()=>Object.assign({show:true,calCollect:true,calNext:true},(st.settings&&st.settings.afterOrder)||{});
@@ -425,7 +455,7 @@ function go(t){tab=t;render()}
 function vStock(A,R,now){
   const items=[...st.items].sort((a,b)=>(R[a.id].daysLeft??9999)-(R[b.id].daysLeft??9999));
   const T=thr();
-  let h='';
+  let h=tipCard();
   if(!st.items.length)return '<div class="card"><h2 style="margin-top:0">No tablets yet</h2><p>Add your tablets one by one, or import a CSV list.</p><button class="btn" onclick="editItem(null)">＋ Add a tablet</button><button class="btn sec" onclick="go(\'set\')">Import a CSV (Settings)</button></div>';
   if(A.some(a=>a.lvl==='bad'))h+='<div class="alert bad"><b>'+A.filter(a=>a.lvl==='bad').length+' thing(s) need you</b>See the Alerts tab.</div>';
   for(const it of items){
@@ -1022,6 +1052,7 @@ function vSecurity(){
   return '<div class="card"><h2 style="margin-top:0">On this device</h2>'
    +chk(PR.showOthers!==false,"setOpt.bind(null,'showOthers')",'Show alerts from the other lists on this phone','On by default, so you and your wife see each other\'s alerts.')
    +chk(PR.showWhy!==false,"setOpt.bind(null,'showWhy')",'Show what each tablet is for','On by default. Helps a family member who orders for you: "the heart tablets" is easier to match than a drug name.')
+   +chk(PR.tips!==false,"setOpt.bind(null,'tips')",'Show a "Did you know?" tip each day','A small card at the top of the Stock tab. "Hide for today" or switch it off here.')
    +chk(!!PR.lock,'setLock','Ask for my PIN when the app opens','Off by default. A new phone always needs the PIN once.')
    +chk(!!PR.sosPin,"setOpt.bind(null,'sosPin')",'Tablets SOS asks for my PIN','Off by default so emergency crews can read it.')
    +'</div>';
