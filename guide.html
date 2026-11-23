@@ -1,0 +1,1499 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="icon-192.png">
+<title>Tablets Example Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+/* Layout: sticky tab bar, one reading column, the live app in a phone-sized frame. Palette: clinical teal on cool neutrals, amber for "needs doing". */
+:root{--bg:#f3f6f7;--card:#ffffff;--ink:#14232b;--mute:#58707c;--line:#d8e2e6;--acc:#0d7c8f;--accbg:#dff1f4;--warn:#b4690e;--warnbg:#fdf0d8;--ok:#1b7f4b;--okbg:#e2f4ea;--bad:#b83a3a;--badbg:#fbe5e5;--font:'Inter',system-ui,sans-serif;--head:'Space Grotesk','Inter',system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1519;--card:#162026;--ink:#e6eef1;--mute:#93a9b3;--line:#27363e;--acc:#4cc2d6;--accbg:#12323a;--warn:#f0b35a;--warnbg:#3a2c12;--ok:#52c98a;--okbg:#14301f;--bad:#ff8a8a;--badbg:#3b1b1b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1519;--card:#162026;--ink:#e6eef1;--mute:#93a9b3;--line:#27363e;--acc:#4cc2d6;--accbg:#12323a;--warn:#f0b35a;--warnbg:#3a2c12;--ok:#52c98a;--okbg:#14301f;--bad:#ff8a8a;--badbg:#3b1b1b;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px}
+.wrap{max-width:780px;margin:0 auto;min-width:0}
+header{padding:22px 0 10px}
+h1{font:700 30px/1.15 var(--head);margin:0 0 6px;text-wrap:balance}
+.lead{color:var(--mute);margin:0;max-width:60ch}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);display:flex;gap:6px;padding:10px 0;z-index:5;overflow-x:auto}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.tabs button{font:600 14px var(--font);padding:9px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+.tabs button:focus-visible,.copy:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+section{padding-top:8px}
+h2{font:650 21px var(--head);margin:26px 0 8px}
+h3{font:650 16px var(--head);margin:18px 0 4px}
+p,li{max-width:66ch}
+ul,ol{padding-left:22px}
+li{margin:4px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
+.note{border-left:4px solid var(--warn);background:var(--warnbg);padding:10px 14px;border-radius:8px;margin:14px 0}
+.good{border-left-color:var(--ok);background:var(--okbg)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:650;color:var(--mute);font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums}
+code{font:13px ui-monospace,Consolas,monospace;background:var(--accbg);padding:1px 6px;border-radius:5px;word-break:break-all}
+.pill{display:inline-block;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:650}
+.p-ok{background:var(--okbg);color:var(--ok)}.p-warn{background:var(--warnbg);color:var(--warn)}.p-acc{background:var(--accbg);color:var(--acc)}
+.frame{width:100%;max-width:400px;height:780px;border:1px solid var(--line);border-radius:22px;background:var(--card);margin:12px auto;display:block}
+.copy{font:600 13px var(--font);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+[hidden]{display:none!important}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:12px 0}.tip{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}.tip b{display:block;font-family:var(--head);font-size:16px;margin-bottom:3px}.tip span{color:var(--mute);font-size:14.5px;line-height:1.45}.tip .tn{flex:none;width:30px;height:30px;border-radius:15px;background:var(--accbg);color:var(--acc);font:700 14px var(--font);display:flex;align-items:center;justify-content:center}
+
+</style>
+</head><body>
+
+<div class="wrap">
+<header>
+  <h1>Tablets</h1>
+  <p class="lead">Counts down your tablets by itself, flags what to order, and checks every delivery against what the pharmacy gave you. Example version with made-up tablets.</p>
+</header>
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-t="did">Did you know?</button>
+  <button role="tab" aria-selected="false" data-t="how">How to use it</button>
+  <button role="tab" aria-selected="false" data-t="sum">Summary</button>
+  <button role="tab" aria-selected="false" data-t="try">Try the app</button>
+</div>
+
+<section id="did">
+  <h2>Did you know you can…</h2>
+  <div class="tips"><div class="tip"><span class="tn">1</span><div><b>Do nothing every day</b><span>It counts your tablets down by itself, morning and evening. You only tell it about exceptions.</span></div></div><div class="tip"><span class="tn">2</span><div><b>See what to order at a glance</b><span>Green, amber and red bars, most urgent at the top, with an "order by" date for each tablet.</span></div></div><div class="tip"><span class="tn">3</span><div><b>Order your repeat prescription in three clicks</b><span>On the laptop, open Order Tablets: tick, Review order, Send. You see a picture of the basket before anything is sent.</span></div></div><div class="tip"><span class="tn">4</span><div><b>Know straight away if the surgery said no</b><span>Rejections show as a red alert on the laptop and the phone, with the likely reason, such as "asked too early".</span></div></div><div class="tip"><span class="tn">5</span><div><b>Avoid rejections before they happen</b><span>A "Too early?" warning appears on any tablet the surgery is not due to issue yet.</span></div></div><div class="tip"><span class="tn">6</span><div><b>Skip a reminder when you don't need it yet</b><span>Pick 7, 14, 30, 60 or 90 days. It comes back by itself, or sooner if stock gets very low.</span></div></div><div class="tip"><span class="tn">7</span><div><b>Keep "as needed" medicines quiet</b><span>Mark a tablet "Only when I ask" and it is never flagged. Tick it yourself on the day you want it.</span></div></div><div class="tip"><span class="tn">8</span><div><b>Get told when it's ready to collect</b><span>On Android, the app notices the pharmacy's "ready" text and marks the order ready.</span></div></div><div class="tip"><span class="tn">9</span><div><b>Get calendar reminders automatically</b><span>After an order, the collection day and the next order day can go straight into your calendar.</span></div></div><div class="tip"><span class="tn">10</span><div><b>Fix a missed or extra dose in one tap</b><span>Log it and every count and date corrects itself.</span></div></div><div class="tip"><span class="tn">11</span><div><b>Check a pharmacy bag in seconds</b><span>The Receive screen has big + and − buttons and keeps track of anything still owed.</span></div></div><div class="tip"><span class="tn">12</span><div><b>Do a quick stock check now and then</b><span>The Check tab lists every tablet with what you should have. Tap the tick, or correct it. It can remind you every 3 months.</span></div></div><div class="tip"><span class="tn">13</span><div><b>Travel without running out</b><span>Add a trip and it warns what to collect before you go, and tracks stock at home and away separately.</span></div></div><div class="tip"><span class="tn">14</span><div><b>Let family order for you</b><span>"Show what each tablet is for" means "the heart tablets" is easy to match to the right box.</span></div></div><div class="tip"><span class="tn">15</span><div><b>Hand your doctor one tidy list</b><span>"For my doctor" gives every tablet, dose and purpose, ready to copy.</span></div></div><div class="tip"><span class="tn">16</span><div><b>Have emergency information ready</b><span>The Tablets SOS screen (its own home-screen icon) shows medicines, allergies, conditions and contacts for paramedics.</span></div></div><div class="tip"><span class="tn">17</span><div><b>Share your list with a 4-digit PIN</b><span>Give your partner your PIN and you both see the same list and each other's alerts.</span></div></div><div class="tip"><span class="tn">18</span><div><b>Use it anywhere</b><span>Android app, iPhone or any computer through the web link, and it still works with no internet.</span></div></div><div class="tip"><span class="tn">19</span><div><b>Bring your list in from a spreadsheet</b><span>Import or export a CSV file, so setting up a long list takes minutes.</span></div></div></div>
+  <p class="lead" style="font-size:15px">Tap "How to use it" for the step-by-step version, or "Try the app" to play with a working copy.</p>
+</section>
+
+<section id="how" hidden>
+  <h2>Every day</h2>
+  <p>Nothing. The app assumes you take every morning and evening dose, and the stock falls on its own. Open it when you want to see how many days are left.</p>
+  <div class="note good"><b>Colours on the Stock tab:</b> <span class="pill p-ok">green</span> plenty, <span class="pill p-warn">amber</span> order soon, red means order now. "Order by" is the last sensible day to ask Patient Access.</div>
+
+  <h2>Adding and changing tablets</h2>
+  <p>On the Stock tab tap <b>＋ Add a tablet</b>. Fill in the name, tap the type (tablet, capsule, liquid, boxes), the morning and evening dose, the box size, where it comes from (prescription, bought in the UK, bought abroad) and how many you have now. Tap any tablet, then <b>Edit this tablet</b>, to change it or delete it. You can also import a CSV (see below).</p>
+
+  <h2>When something goes wrong</h2>
+  <p>Open <b>Log</b>, pick what happened, save. A banner confirms it at the top.</p>
+  <ul>
+    <li><b>Missed a dose:</b> choose the tablet (or All), the date and morning, evening or both. The tablets stay in stock.</li>
+    <li><b>Recount:</b> if the number you hold differs from the app, type the real number. This is the quickest way to fix any drift.</li>
+    <li><b>Paused, took extra, moved between places:</b> same screen.</li>
+    <li>Made a mistake? Delete the line in History with the ✕.</li>
+  </ul>
+
+  <h2>Bags from the pharmacy: Bulk receipt</h2>
+  <ol>
+    <li>Tap the <b>Receive</b> tab. You see one tablet at a time, starting with anything you ordered.</li>
+    <li>Tap <b>+ 1 box</b> once per box in the bag. For part boxes use the big <b>−</b> and <b>+</b> buttons, which move one tablet at a time (hold to go faster), or <b>+ ½ box</b>, or type the exact number.</li>
+    <li>The card shows ordered, already received and expected. It says "still owed 15" or "order complete".</li>
+    <li>Use <b>Next</b> and <b>Back</b>, or swipe, to move on. The last page lists everything; tap <b>Save receipt</b>.</li>
+  </ol>
+  <div class="note"><b>Part deliveries:</b> if the pharmacy gives 45 of 60 and owes 15, save as normal. The order stays open as "owed". When the rest arrives, receive it the same way and the order closes. <b>Undo</b> on the last page reverses a receipt.</div>
+
+  <h2>Ordering</h2>
+  <p>The <b>Orders</b> tab lists what is due. After you order in Patient Access, tap <b>I ordered it</b>. Mark Approved or Rejected when you hear. A rejection is flagged on the Alerts tab.</p>
+
+  <h2>Trips to 24B</h2>
+  <p>Add your dates in <b>Settings → trips</b>. Before you fly out, Alerts shows what would run low while you are away, so you can order and collect first. Three or four days before you leave, it reminds you to buy anything you can only get abroad.</p>
+
+  <h2>Importing and exporting a CSV</h2>
+  <p>In <b>Settings → Import / export tablets</b>, choose a CSV file or paste text, or copy your current list as CSV. </p>
+  <div class="tw"><table>
+    <tr><th>Column</th><th>Meaning</th></tr>
+    <tr><td><code>name</code></td><td>Required. Matched to an existing tablet by name (brackets ignored); a new name adds a tablet</td></tr>
+    <tr><td><code>unit</code></td><td>tablet, capsule, ml or box</td></tr>
+    <tr><td><code>morning</code> <code>evening</code></td><td>How many per dose (0.5 for half)</td></tr>
+    <tr><td><code>box_size</code></td><td>What one tap of + 1 box adds</td></tr>
+    <tr><td><code>source</code></td><td>prescription, supplement-uk or supplement-spain</td></tr>
+    <tr><td><code>stock_now</code> <code>stock_24b</code></td><td>Counts as of the import; they replace the current figure</td></tr>
+    <tr><td><code>order_qty</code> <code>next_issue</code></td><td>Usual quantity ordered; earliest date Patient Access allows (YYYY-MM-DD)</td></tr>
+    <tr><td><code>days_per_box</code></td><td>Only for unit box (for example 30)</td></tr>
+    <tr><td><code>note</code></td><td>Free text</td></tr>
+  </table></div>
+  <p>Empty cells change nothing. Rows with a bad number are skipped and named in the banner.</p>
+
+  <h2>People, PINs and sharing</h2>
+  <ul>
+    <li>Each person has their <b>own list</b>, protected by their own PIN (4 digits). Choose it when you start your list, or later in Settings. It backs the list up and lets you open it on another phone, an iPhone or the web.</li>
+    <li>To let someone see your list, <b>give them your PIN</b>. They go to <b>Settings → Open another list</b> and type it. You and your partner can each open the other's list. Nobody else can see anything, and the public web link contains no medical information.</li>
+    <li>A name chip at the top switches between the lists on a phone. The Alerts tab shows alerts from every list on that phone, with the person's name. This can be turned off.</li>
+    <li>Lost a phone? <b>Settings → Devices that can see this list</b> removes it. Then change the PIN.</li>
+    <li>No internet, or the Synology is down? The app keeps working from the last saved data and shows a small note at the top. Changes made meanwhile are merged when it reconnects.</li>
+    <li>On an iPhone: open the link in Safari, tap Share, then <b>Add to Home Screen</b>.</li>
+    <li>Optional: <b>Settings → On this device</b> can ask for the PIN each time the app opens. A new phone always asks once.</li>
+  </ul>
+
+  <h2>Texts and calendar (Android phone only)</h2>
+  <ul>
+    <li><b>Settings → Pharmacy</b> holds the pharmacy name, town, phone and the sender name its texts show (for example Day-Lewis). The tick lets you ignore a pharmacy.</li>
+    <li><b>Settings → Android phone only → Read "ready to collect" texts</b>: the app watches only texts from those senders that say ready, collect or waiting. It keeps no message text. When one arrives you get a notification, your open orders change to <b>Ready to collect</b>, and a "Collect tablets" entry is placed in your calendar.</li>
+    <li><b>Put orders and collections in my calendar</b> makes short timed entries with a reminder in the first free weekday slot: ordering (15 minutes), collecting before a trip or when a text arrives (30 minutes), and buying something abroad before you leave. You can invite another person by email. Nothing is sent to anyone else's phone, and entries are only made once.</li>
+    <li>On an iPhone or the web these are greyed out. You can still tap <b>Ready to collect</b> on an order yourself.</li>
+    <li>The phone asks permission for texts, notifications and the calendar the first time you switch each on.</li>
+  </ul>
+
+  <h2>Tablets SOS: the emergency screen</h2>
+  <p>A second icon, <b>Tablets SOS</b>, shows the key medical details of the phone's owner to an ambulance crew or doctor: name, allergies, conditions, warnings (for example stents or blood thinners), emergency contacts you can tap to call, your medicines, and your doctor and pharmacy. It needs no PIN unless you turn that on.</p>
+  <ul>
+    <li><b>Settings → Set up what SOS shows</b> is a short step-by-step guide. Each question says why it matters. Everything is optional and each item has a Show tick. Medicines, allergies, conditions and contacts are on by default. NHS number and home address are off.</li>
+    <li>Blood type, organ donor and advance decisions are optional. Only enter a blood type if you are certain.</li>
+    <li><b>Preview the SOS screen</b> shows exactly what a stranger would see. <b>Copy text for the lock screen</b> makes text to paste into the phone's own Emergency Information (Android) or Medical ID (iPhone), the only part readable on a locked phone.</li>
+    <li>On Android add the icon from <b>Settings → Add Tablets SOS icon</b>. On an iPhone open the SOS page in Safari and Add to Home Screen.</li>
+    <li>Keep it up to date: the screen shows when it was last changed.</li>
+  </ul>
+
+  <h2>Backup and updates</h2>
+  <ul>
+    <li>Your data lives only on the phone. <b>Settings → Backup → Show my data</b> copies it as text.</li>
+
+    <li>The icon is on your home screen. <b>Settings → Add Tablets icon</b> asks again if it goes missing.</li>
+  </ul>
+</section>
+
+<section id="sum" hidden>
+  <h2>What it is</h2>
+  <p>An Android app (Pixel 8 Pro) that tracks tablet stock by routine, not by ticking. It tells you when to order prescribed tablets, when to buy supplements, and what to sort before a trip to 24B. Version 1.2, built 22 November 2026.</p>
+
+  <h2>Rules it follows</h2>
+  <ul>
+    <li>You take every morning and evening dose unless you log an exception.</li>
+    <li>Each person's list is separate and opened with that person's PIN. Giving someone your PIN is how you share your list with them.</li>
+    <li>Order when days left ≤ <b>21</b> = 5 days delivery + 14 days to the next ordering run + 2 spare. All three are editable.</li>
+    <li>It orders from your real stock, not from Patient Access "next issue" dates, and warns when those dates fall after you would run out.</li>
+    <li>Prescribed tablets come from your pharmacy. Supplements you buy yourself only give a warning, never an order.</li>
+    <li>Warnings come before a trip abroad (14 days ahead, urgent in the last 5), so stock covers the trip.</li>
+    
+  </ul>
+
+  <h2>Not built yet</h2>
+  <ul>
+    <li>Patient Access ordering script (no public API exists for patients, so it drives the website with your own sign-in; dry-run first).</li>
+    <li>Phone notifications, texts from the pharmacy marking an order ready, and calendar entries for ordering and collecting.</li>
+    <li>Sync between the phone and the laptop, and the laptop version.</li>
+    <li>Bulk-buy price search for supplements (up to 5 boxes).</li>
+    <li>Later release: rotate older tablets, which needs expiry dates.</li>
+  </ul>
+</section>
+
+<section id="try" hidden>
+  <h2>Try the app</h2>
+  <p>This is the working app with made-up example tablets. Tap around: Receive, Log, Alerts. Nothing you do here is saved.</p>
+  <iframe class="frame" id="appframe" title="Tablets app demo" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en-GB&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1,viewport-fit=cover&quot;&gt;
+&lt;title&gt;Tablets&lt;/title&gt;
+&lt;style&gt;
+:root{--bg:#f4f6f8;--card:#fff;--ink:#17212b;--mute:#5d6b79;--line:#dde3e9;--acc:#2a6fdb;--ok:#1f9d55;--warn:#d98a00;--bad:#d64545;--okbg:#e4f6ec;--warnbg:#fff3d6;--badbg:#fde6e6}
+@media (prefers-color-scheme:dark){:root{--bg:#10151b;--card:#19212a;--ink:#e8eef4;--mute:#9aa9b8;--line:#2a3541;--acc:#6aa2ff;--ok:#4cc58a;--warn:#f0b340;--bad:#ff7a7a;--okbg:#14301f;--warnbg:#3a2f12;--badbg:#3b1b1b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,sans-serif;padding-bottom:84px}
+#wait{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}#wait[hidden]{display:none}#wtxt{font-size:18px;font-weight:650}#wsec{color:var(--mute);font-size:14px;max-width:320px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 10px) 16px 8px}
+h1{font-size:22px;margin:0}
+.sub{color:var(--mute);font-size:13px}
+.stepper{display:flex;align-items:center;justify-content:center;gap:14px;margin:8px 0}
+.stp{width:84px;height:84px;border-radius:50%;border:0;background:var(--acc);color:#fff;font:700 44px/1 system-ui;touch-action:manipulation;user-select:none}
+.stv{min-width:120px;text-align:center;font-size:54px;font-weight:800;line-height:1.1}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:90px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px 6px;font:600 14px system-ui}
+.seg button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+body.sosmode{padding-bottom:24px}
+.sosbar{background:#b3261e;color:#fff;font:800 20px system-ui;letter-spacing:.06em;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 12px;text-align:center}
+.sospad{padding:12px 16px}
+.sosname{font-size:30px;font-weight:800;line-height:1.15}
+.sosage{color:var(--mute);margin-bottom:8px}
+.sosrow{margin:12px 0;padding:10px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line)}
+.sosrow.red{border-color:#b3261e;background:var(--badbg)}
+.soslab{font:700 12px system-ui;letter-spacing:.08em;color:var(--mute)}
+.sosrow.red .soslab{color:var(--bad)}
+.sosval{font-size:18px;font-weight:600;margin-top:2px}
+.soscall{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#1b7f4b;color:#fff;border-radius:12px;padding:14px 16px;margin:8px 0;text-decoration:none;font-size:18px}
+.sosmeds{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.sosmed{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.sosmed.key{border-color:#b3261e}
+.sosmed span{color:var(--mute);font-size:14px}
+.sosnote{color:var(--mute);font-size:13px;margin-top:6px}
+.soslink{color:var(--acc);font-weight:600}
+.sospreview{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:10px;background:var(--bg)}
+.swtog{display:flex;gap:10px;align-items:center;margin:10px 0;font-weight:500}
+#chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:6px 14px;font:600 14px system-ui;cursor:pointer}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center}
+#lock[hidden]{display:none}
+.lockbox{width:min(320px,86vw);text-align:center}
+.lockbox input{text-align:center;font-size:24px;letter-spacing:.3em}
+#syncbar{margin-top:6px;background:var(--warnbg);color:var(--warn);padding:7px 12px;border-radius:10px;font-weight:650;font-size:13px}
+#banner{position:fixed;left:0;right:0;top:0;z-index:20;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;font-weight:600;color:#fff;background:var(--ok);transform:translateY(-120%);transition:transform .2s}
+#banner.show{transform:none}
+#banner.err{background:var(--bad)}
+main{padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.name{font-weight:650}
+.big{font-size:20px;font-weight:700}
+.mute{color:var(--mute);font-size:13px}
+.bar{height:8px;border-radius:5px;background:var(--line);margin:8px 0 6px;overflow:hidden}
+.bar&gt;i{display:block;height:100%;border-radius:5px}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:650}
+.p-ok{background:var(--okbg);color:var(--ok)}.p-warn{background:var(--warnbg);color:var(--warn)}.p-bad{background:var(--badbg);color:var(--bad)}
+.alert{border-left:5px solid var(--warn);background:var(--card);border-radius:10px;padding:10px 12px;margin:10px 0;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.alert.bad{border-left-color:var(--bad)}.alert.info{border-left-color:var(--acc)}
+.alert b{display:block}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:10}
+nav button{flex:1;border:0;background:none;color:var(--mute);padding:10px 2px 12px;font:600 12px system-ui}
+nav button.on{color:var(--acc)}
+nav button{min-width:0;overflow:hidden;white-space:nowrap;position:relative}
+@media (max-width:440px){nav button{font-size:10.5px;padding:9px 0 11px}nav .ic{font-size:19px}}
+nav .ic{display:block;font-size:20px}
+nav .dot{position:absolute;background:var(--bad);color:#fff;border-radius:99px;font-size:10px;padding:0 5px;margin-left:4px}
+label{display:block;margin:10px 0 4px;font-weight:600;font-size:14px}
+input,select,textarea,button.btn{font:inherit;width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.btn{background:var(--acc);color:#fff;border:0;font-weight:650;margin-top:12px}
+button.btn.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+button.btn.sm{width:auto;padding:6px 12px;margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:15;display:none}
+.sheet.show{display:block}
+.sheet&gt;div{position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow:auto;background:var(--bg);border-radius:18px 18px 0 0;padding:16px}
+h2{font-size:17px;margin:18px 0 4px}
+.ev{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:8px 0;font-size:14px}
+.ev button{border:0;background:none;color:var(--bad);font-weight:700}
+a.lnk{color:var(--acc);font-weight:600}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;banner&quot;&gt;&lt;/div&gt;
+&lt;header&gt;&lt;h1 style=&quot;display:flex;align-items:center;gap:8px&quot;&gt;&lt;svg width=&quot;26&quot; height=&quot;26&quot; viewBox=&quot;0 0 80 80&quot; aria-hidden=&quot;true&quot;&gt;&lt;g transform=&quot;rotate(-35 40 40)&quot;&gt;&lt;rect x=&quot;4&quot; y=&quot;22&quot; width=&quot;72&quot; height=&quot;36&quot; rx=&quot;18&quot; fill=&quot;#e4573d&quot;/&gt;&lt;path d=&quot;M40 22h18a18 18 0 0 1 0 36H40z&quot; fill=&quot;#2a6fdb&quot;/&gt;&lt;/g&gt;&lt;circle cx=&quot;40&quot; cy=&quot;40&quot; r=&quot;14&quot; fill=&quot;#fff&quot;/&gt;&lt;path d=&quot;M32 40l6 6 10-12&quot; fill=&quot;none&quot; stroke=&quot;#1f9d55&quot; stroke-width=&quot;5&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;/&gt;&lt;/svg&gt;Tablets&lt;/h1&gt;&lt;div class=&quot;sub&quot; id=&quot;sub&quot;&gt;&lt;/div&gt;&lt;div id=&quot;chips&quot;&gt;&lt;/div&gt;&lt;div id=&quot;syncbar&quot; hidden&gt;&lt;/div&gt;&lt;/header&gt;&lt;div id=&quot;lock&quot; hidden&gt;&lt;/div&gt;
+&lt;main id=&quot;main&quot;&gt;&lt;/main&gt;
+&lt;nav id=&quot;nav&quot;&gt;&lt;/nav&gt;
+&lt;div id=&quot;wait&quot; hidden&gt;&lt;canvas id=&quot;wcv&quot; width=&quot;800&quot; height=&quot;600&quot; style=&quot;width:240px;height:180px&quot;&gt;&lt;/canvas&gt;&lt;div id=&quot;wtxt&quot;&gt;&lt;/div&gt;&lt;div id=&quot;wsec&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;sheet&quot; id=&quot;sheet&quot;&gt;&lt;div id=&quot;sheetBody&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;script&gt;window.__DEMO=1;
+&#x27;use strict&#x27;;
+const BUILD=&#x27;2026-11-23n&#x27;,APP_VER=&#x27;1.8.4&#x27;,APP_DATE=&#x27;23 November 2026&#x27;;
+const KEY=&#x27;tablets.v1&#x27;;
+const DAY=864e5;
+
+/* ---------- starting data (Ian&#x27;s counts, 22 Nov 2026 21:25) ---------- */
+/*SEED_BEGIN*/
+const SEED={meta:{items:0,settings:0,trips:0},tomb:{},receipts:[],
+  settings:{lead:5,gap:14,margin:2,amTime:&#x27;08:00&#x27;,pmTime:&#x27;21:30&#x27;,buyLow:45,preTripDays:14,pharmacies:[{name:&#x27;Your pharmacy&#x27;,sender:&#x27;Pharmacy&#x27;,use:true}]},
+  items:[
+    {id:&#x27;bp&#x27;,name:&#x27;Blood pressure tablet 5mg&#x27;,unit:&#x27;tablet&#x27;,am:1,pm:0,pack:28,src:&#x27;pa&#x27;,issue:84,next:&#x27;2026-12-30&#x27;,why:&#x27;&#x27;},
+    {id:&#x27;chol&#x27;,name:&#x27;Cholesterol tablet 20mg&#x27;,unit:&#x27;tablet&#x27;,am:0,pm:1,pack:28,src:&#x27;pa&#x27;,issue:84,next:&#x27;2027-01-10&#x27;,why:&#x27;&#x27;},
+    {id:&#x27;stom&#x27;,name:&#x27;Stomach capsule 15mg&#x27;,unit:&#x27;capsule&#x27;,am:1,pm:0,pack:28,src:&#x27;pa&#x27;,issue:56,next:&#x27;2026-12-02&#x27;,why:&#x27;&#x27;},
+    {id:&#x27;pain&#x27;,name:&#x27;Painkiller capsule&#x27;,unit:&#x27;capsule&#x27;,am:0,pm:1,pack:100,src:&#x27;pa&#x27;,issue:100,next:&#x27;2026-10-20&#x27;,why:&#x27;&#x27;},
+    {id:&#x27;vitd&#x27;,name:&#x27;Vitamin D&#x27;,unit:&#x27;tablet&#x27;,am:1,pm:0,pack:60,src:&#x27;diab&#x27;,issue:3,next:&#x27;&#x27;,why:&#x27;Bought yourself&#x27;}
+  ],
+  baselines:{bp:40,chol:100,stom:20,pain:30,vitd:50},baseAt:&#x27;2026-11-22T21:25:00&#x27;,
+  events:[],trips:[{from:&#x27;2026-12-10&#x27;,to:&#x27;2026-12-20&#x27;}],orders:[],seq:1};
+/*SEED_END*/
+
+/* ---------- state: several people (profiles) on one device ---------- */
+const hex=n=&gt;[...crypto.getRandomValues(new Uint8Array(n))].map(b=&gt;b.toString(16).padStart(2,&#x27;0&#x27;)).join(&#x27;&#x27;);
+const esc=s=&gt;String(s==null?&#x27;&#x27;:s).replace(/[&amp;&lt;&gt;&quot;&#x27;]/g,c=&gt;({&#x27;&amp;&#x27;:&#x27;&amp;amp;&#x27;,&#x27;&lt;&#x27;:&#x27;&amp;lt;&#x27;,&#x27;&gt;&#x27;:&#x27;&amp;gt;&#x27;,&#x27;&quot;&#x27;:&#x27;&amp;quot;&#x27;,&quot;&#x27;&quot;:&#x27;&amp;#39;&#x27;}[c]));
+const PKEY=&#x27;tablets.profiles.v2&#x27;;
+const stateKey=id=&gt;&#x27;tablets.p.&#x27;+id;
+const SOS_MODE=!!window.__SOS||location.hash===&#x27;#sos&#x27;;
+const EMPTY=(()=&gt;{const e=JSON.parse(JSON.stringify(SEED));Object.assign(e,{items:[],baselines:{},events:[],trips:[],orders:[],receipts:[],tomb:{},meta:{items:0,settings:0,trips:0,sos:0},baseAt:&#x27;NOW&#x27;});delete e.profileName;return e})();
+let PR=(()=&gt;{try{return JSON.parse(localStorage.getItem(PKEY))}catch(e){return null}})();
+const states={};
+function psave(){try{localStorage.setItem(PKEY,JSON.stringify(PR))}catch(e){}}
+function profile(id){return PR.list.find(p=&gt;p.id===id)}
+function activeP(){return PR.active?profile(PR.active):null}
+function persistState(S,id){try{localStorage.setItem(stateKey(id),JSON.stringify(S))}catch(e){if(!window.__DEMO)banner(&#x27;Could not save: &#x27;+e,true)}}
+if(!PR||!PR.list){
+  PR={list:[],active:null,device:null,token:null,lock:false,sosPin:false,showOthers:true,sms:false,cal:null,calDone:{}};
+  let legacy=null,old={};
+  try{legacy=localStorage.getItem(&#x27;tablets.v1&#x27;);old=JSON.parse(localStorage.getItem(&#x27;tablets.sync.v1&#x27;))||{}}catch(e){}
+  if(legacy||SEED.items.length){
+    const id=hex(4);
+    PR.list.push({id,name:SEED.profileName||&#x27;Me&#x27;,own:true,space:null,v:0,seed:SEED.items.length&gt;0});
+    PR.active=id;
+    if(legacy){try{localStorage.setItem(stateKey(id),legacy)}catch(e){}}
+  }
+  psave();
+}
+if(!PR.calDone)PR.calDone={};
+if(!PR.cal)PR.cal={on:false,account:(SEED.calDefault||{}).account||&#x27;&#x27;,invite:(SEED.calDefault||{}).invite||&#x27;&#x27;};
+function fix(o){
+  o.rc=o.rc||{};o.receipts=o.receipts||[];o.meta=o.meta||{};for(const k of [&#x27;items&#x27;,&#x27;settings&#x27;,&#x27;trips&#x27;,&#x27;sos&#x27;])o.meta[k]=o.meta[k]||0;o.tomb=o.tomb||{};
+  if(o.baseAt===&#x27;NOW&#x27;){const d=new Date(),p=n=&gt;String(n).padStart(2,&#x27;0&#x27;);o.baseAt=d.getFullYear()+&#x27;-&#x27;+p(d.getMonth()+1)+&#x27;-&#x27;+p(d.getDate())+&#x27;T00:00:00&#x27;}
+  o.settings=o.settings||{};if(o.settings.buyLow===undefined)o.settings.buyLow=o.settings[&#x27;diabeto&#x27;+&#x27;neLow&#x27;]||45;
+  if(!Array.isArray(o.settings.pharmacies))o.settings.pharmacies=[];
+  o.sos=o.sos||{};const d={name:&#x27;&#x27;,dob:&#x27;&#x27;,allergies:&#x27;&#x27;,conditions:&#x27;&#x27;,warnings:&#x27;&#x27;,diet:&#x27;&#x27;,contacts:[],gp:{name:&#x27;&#x27;,surgery:&#x27;&#x27;,address:&#x27;&#x27;,phone:&#x27;&#x27;},blood:&#x27;&#x27;,nhs:&#x27;&#x27;,address:&#x27;&#x27;,donor:&#x27;&#x27;,advance:&#x27;&#x27;,notes:&#x27;&#x27;,key:[],updated:&#x27;&#x27;,
+    show:{dob:true,meds:true,allergies:true,conditions:true,warnings:true,diet:true,contacts:true,gp:true,pharmacy:true,blood:true,donor:true,advance:true,nhs:false,address:false}};
+  for(const k of Object.keys(d))if(o.sos[k]===undefined)o.sos[k]=d[k];
+  o.sos.show=Object.assign({},d.show,o.sos.show||{});
+  return o}
+const isOpen=o=&gt;[&#x27;requested&#x27;,&#x27;approved&#x27;,&#x27;part&#x27;,&#x27;ready&#x27;].includes(o.status);
+const SNAPW=new WeakMap();
+function snapNow(S){
+  const o={};
+  o.items=JSON.stringify([S.items,S.baselines,S.baseAt]);o.settings=JSON.stringify(S.settings);o.trips=JSON.stringify(S.trips);o.sos=JSON.stringify(S.sos);
+  o.orders={};for(const x of S.orders){const {u,...r}=x;o.orders[x.id]=JSON.stringify(r)}
+  o.ids=new Set([...S.events.map(e=&gt;e.id),...S.receipts.map(r=&gt;r.id)]);
+  return o;
+}
+function snapReset(S){SNAPW.set(S,snapNow(S))}
+function stamp(S){
+  const cur=snapNow(S),prev=SNAPW.get(S),now=Date.now();
+  if(prev){
+    for(const s of [&#x27;items&#x27;,&#x27;settings&#x27;,&#x27;trips&#x27;,&#x27;sos&#x27;])if(cur[s]!==prev[s])S.meta[s]=now;
+    for(const x of S.orders)if(prev.orders[x.id]!==cur.orders[x.id])x.u=now;
+    for(const id of prev.ids)if(!cur.ids.has(id))S.tomb[id]=now;
+  }
+  SNAPW.set(S,cur);
+}
+function loadState(id){
+  if(states[id])return states[id];
+  let s=null;
+  try{const r=localStorage.getItem(stateKey(id));if(r)s=JSON.parse(r)}catch(e){}
+  if(!s){const p=profile(id);s=JSON.parse(JSON.stringify((p&amp;&amp;p.seed&amp;&amp;!p.space&amp;&amp;SEED.items.length)?SEED:EMPTY))}
+  states[id]=fix(s);snapReset(states[id]);
+  return states[id];
+}
+let st=PR.active?loadState(PR.active):fix(JSON.parse(JSON.stringify(EMPTY)));
+function save(){
+  stamp(st);
+  const p=activeP();if(p){p.dirty=true;persistState(st,p.id);psave()}
+  if(typeof syncSoon===&#x27;function&#x27;)syncSoon();
+}
+const uid=()=&gt;Date.now()*1000+Math.floor(Math.random()*1000);
+function banner(msg,err){const b=document.getElementById(&#x27;banner&#x27;);b.textContent=msg;b.className=&#x27;show&#x27;+(err?&#x27; err&#x27;:&#x27;&#x27;);clearTimeout(banner.t);banner.t=setTimeout(()=&gt;b.className=&#x27;&#x27;,err?6000:3500)}
+/* ---------- date helpers ---------- */
+const pad=n=&gt;String(n).padStart(2,&#x27;0&#x27;);
+const ymd=d=&gt;d.getFullYear()+&#x27;-&#x27;+pad(d.getMonth()+1)+&#x27;-&#x27;+pad(d.getDate());
+const lts=d=&gt;ymd(d)+&#x27;T&#x27;+pad(d.getHours())+&#x27;:&#x27;+pad(d.getMinutes())+&#x27;:&#x27;+pad(d.getSeconds());
+const pd=s=&gt;{const [y,m,d]=s.split(&#x27;-&#x27;).map(Number);return new Date(y,m-1,d)};
+const addD=(d,n)=&gt;{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const sod=d=&gt;{const x=new Date(d);x.setHours(0,0,0,0);return x};
+const nice=d=&gt;d.toLocaleDateString(&#x27;en-GB&#x27;,{day:&#x27;numeric&#x27;,month:&#x27;short&#x27;,year:&#x27;numeric&#x27;});
+const niceS=d=&gt;d.toLocaleDateString(&#x27;en-GB&#x27;,{day:&#x27;numeric&#x27;,month:&#x27;short&#x27;});
+function slotT(day,slot){const [h,m]=(slot===&#x27;am&#x27;?st.settings.amTime:st.settings.pmTime).split(&#x27;:&#x27;).map(Number);const x=new Date(day);x.setHours(h,m,0,0);return x}
+
+/* ---------- ENGINE ---------- */
+function inFV(day,slot){
+  const ds=ymd(day);
+  for(const t of st.trips){
+    if(ds&gt;t.from&amp;&amp;ds&lt;t.to)return true;
+    if(ds===t.from&amp;&amp;slot===&#x27;pm&#x27;)return true;
+    if(ds===t.to&amp;&amp;slot===&#x27;am&#x27;)return true;
+  }
+  return false;
+}
+function isPaused(it,ds){return st.events.some(e=&gt;e.type===&#x27;pause&#x27;&amp;&amp;(e.item===&#x27;all&#x27;||e.item===it.id)&amp;&amp;ds&gt;=e.from&amp;&amp;ds&lt;=e.to)}
+function isMissed(it,ds,slot){return st.events.some(e=&gt;e.type===&#x27;missed&#x27;&amp;&amp;(e.item===&#x27;all&#x27;||e.item===it.id)&amp;&amp;e.date===ds&amp;&amp;(e.slot===&#x27;both&#x27;||e.slot===slot))}
+
+/* simulate one item. Returns stock at `now` (per place) and the moment it runs out. */
+function sim(it,now){
+  const t0=new Date(it.from&amp;&amp;it.from&gt;st.baseAt?it.from:st.baseAt);
+  const pools={uk:st.baselines[it.id]||0,fv:0};
+  const pts=[];
+  for(const e of st.events){
+    if(e.item!==it.id)continue;
+    if(e.type===&#x27;recount&#x27;)pts.push({t:new Date(e.at),e});
+    else if(e.type===&#x27;delivery&#x27;||e.type===&#x27;extra&#x27;||e.type===&#x27;move&#x27;)pts.push({t:new Date(e.at||(e.date+&#x27;T12:00:00&#x27;)),e});
+  }
+  for(const p of pts){} // (sorted below with doses)
+  let snap=null,runOut=null,short=false,shortNow=false;
+  const take=(loc,amt)=&gt;{ // returns true if fully covered
+    const other=loc===&#x27;uk&#x27;?&#x27;fv&#x27;:&#x27;uk&#x27;;
+    let need=amt;
+    const a=Math.min(pools[loc],need);pools[loc]-=a;need-=a;
+    if(need&gt;1e-9){const b=Math.min(pools[other],need);pools[other]-=b;need-=b}
+    return need&lt;=1e-9;
+  };
+  const end=addD(now,900);
+  for(let day=sod(t0);day&lt;=end&amp;&amp;!runOut;day=addD(day,1)){
+    const ds=ymd(day);
+    const els=[];
+    for(const p of pts)if(p.t&gt;=day&amp;&amp;p.t&lt;addD(day,1)&amp;&amp;p.t&gt;=t0)els.push({t:p.t,kind:&#x27;pt&#x27;,e:p.e});
+    for(const slot of [&#x27;am&#x27;,&#x27;pm&#x27;]){
+      const amt=it[slot];if(!amt)continue;
+      const t=slotT(day,slot);if(t&lt;=t0)continue;
+      els.push({t,kind:&#x27;dose&#x27;,slot,amt});
+    }
+    els.sort((a,b)=&gt;a.t-b.t);
+    for(const el of els){
+      if(!snap&amp;&amp;el.t&gt;now){snap={uk:pools.uk,fv:pools.fv};shortNow=short}
+      if(el.kind===&#x27;pt&#x27;){
+        const e=el.e;
+        if(e.type===&#x27;recount&#x27;){pools[e.loc||&#x27;uk&#x27;]=e.qty;if(pools.uk+pools.fv&gt;1e-9)short=false}
+        else if(e.type===&#x27;delivery&#x27;){pools[e.loc||&#x27;uk&#x27;]+=e.qty;if(pools.uk+pools.fv&gt;1e-9)short=false}
+        else if(e.type===&#x27;extra&#x27;){take(inFV(day,&#x27;am&#x27;)?&#x27;fv&#x27;:&#x27;uk&#x27;,e.qty)}
+        else if(e.type===&#x27;move&#x27;){const from=e.from||&#x27;uk&#x27;,to=from===&#x27;uk&#x27;?&#x27;fv&#x27;:&#x27;uk&#x27;;const q=Math.min(e.qty,pools[from]);pools[from]-=q;pools[to]+=q}
+      }else{
+        if(isPaused(it,ds)||isMissed(it,ds,el.slot))continue;
+        const ok=take(inFV(day,el.slot)?&#x27;fv&#x27;:&#x27;uk&#x27;,el.amt);
+        if(!ok){if(el.t&lt;=now){short=true;continue}runOut=el.t;break}
+      }
+    }
+  }
+  if(!snap){snap={uk:pools.uk,fv:pools.fv};shortNow=short}
+  const out=shortNow;
+  const total=snap.uk+snap.fv;
+  const perDay=(it.am||0)+(it.pm||0);
+  return {uk:snap.uk,fv:snap.fv,total,runOut,out,perDay,daysLeft:runOut?Math.floor((runOut-now)/DAY):null};
+}
+function thr(){const s=st.settings;return s.lead+s.gap+s.margin}
+function lastOrderDate(it,r){return r.runOut?addD(r.runOut,-thr()):null}
+
+/* ---------- alerts ---------- */
+const WHY_HINTS=[[[&#x27;atorva&#x27;+&#x27;statin&#x27;,&#x27;simva&#x27;+&#x27;statin&#x27;,&#x27;rosuva&#x27;+&#x27;statin&#x27;],&#x27;Lowers cholesterol&#x27;],[[&#x27;bisop&#x27;+&#x27;rolol&#x27;],&#x27;Slows the heart and lowers blood pressure (beta blocker)&#x27;],[[&#x27;lisin&#x27;+&#x27;opril&#x27;,&#x27;rami&#x27;+&#x27;pril&#x27;],&#x27;Lowers blood pressure and protects the heart and kidneys&#x27;],[[&#x27;metf&#x27;+&#x27;ormin&#x27;],&#x27;Type 2 diabetes: lowers blood sugar&#x27;],[[&#x27;dapagl&#x27;+&#x27;iflozin&#x27;],&#x27;Type 2 diabetes, also protects the heart and kidneys&#x27;],[[&#x27;linag&#x27;+&#x27;liptin&#x27;,&#x27;traj&#x27;+&#x27;enta&#x27;,&#x27;sitag&#x27;+&#x27;liptin&#x27;],&#x27;Type 2 diabetes: lowers blood sugar&#x27;],[[&#x27;asp&#x27;+&#x27;irin&#x27;],&#x27;Low dose: helps prevent heart attack and stroke&#x27;],[[&#x27;lansop&#x27;+&#x27;razole&#x27;,&#x27;omepr&#x27;+&#x27;azole&#x27;],&#x27;Reduces stomach acid and protects the stomach&#x27;],[[&#x27;dulox&#x27;+&#x27;etine&#x27;],&#x27;Low mood, anxiety and nerve pain&#x27;],[[&#x27;traz&#x27;+&#x27;odone&#x27;],&#x27;Helps sleep; also low mood and anxiety&#x27;],[[&#x27;se&#x27;+&#x27;nna&#x27;,&#x27;lact&#x27;+&#x27;ulose&#x27;],&#x27;Constipation&#x27;],[[&#x27;co-co&#x27;+&#x27;damol&#x27;,&#x27;parac&#x27;+&#x27;etamol&#x27;,&#x27;cod&#x27;+&#x27;eine&#x27;],&#x27;Pain relief&#x27;],[[&#x27;alpro&#x27;+&#x27;stadil&#x27;],&#x27;Erectile dysfunction (injection)&#x27;],[[&#x27;neb&#x27;+&#x27;ido&#x27;,&#x27;testos&#x27;+&#x27;terone&#x27;],&#x27;Testosterone replacement&#x27;],[[&#x27;diab&#x27;+&#x27;etone&#x27;],&#x27;Food supplement to support blood sugar balance&#x27;],[[&#x27;dor&#x27;+&#x27;mir&#x27;],&#x27;Sleep supplement&#x27;],[[&#x27;amlod&#x27;+&#x27;ipine&#x27;],&#x27;Lowers blood pressure&#x27;],[[&#x27;levoth&#x27;+&#x27;yroxine&#x27;],&#x27;Underactive thyroid&#x27;],[[&#x27;clopi&#x27;+&#x27;dogrel&#x27;],&#x27;Blood thinner: prevents clots&#x27;],[[&#x27;ticag&#x27;+&#x27;relor&#x27;],&#x27;Blood thinner: prevents clots (stent)&#x27;]];
+const whyHint=n=&gt;{const s=(n||&#x27;&#x27;).toLowerCase();for(const [names,txt] of WHY_HINTS)if(names.some(x=&gt;s.includes(x)))return txt;return &#x27;&#x27;};
+const whyShow=it=&gt;PR.showWhy===false?&#x27;&#x27;:(it.why||(whyHint(it.name)?&#x27;Usually: &#x27;+whyHint(it.name):&#x27;&#x27;));
+const whyShort=it=&gt;PR.showWhy===false?&#x27;&#x27;:(it.why||whyHint(it.name)||&#x27;&#x27;);
+function whySuggest(){const n=($(&#x27;ef_name&#x27;)||{}).value||&#x27;&#x27;;const h=whyHint(n);if(!h)return banner(&#x27;No suggestion for that name. Type your own.&#x27;,true);$(&#x27;ef_why&#x27;).value=h;banner(&#x27;Suggestion filled in. Change it if it is not right.&#x27;)}
+function showDoctor(){
+  const lines=st.items.map(it=&gt;{const am=it.unit===&#x27;box&#x27;?&#x27;&#x27;:qtyTxt(it,it.am),pm=it.unit===&#x27;box&#x27;?&#x27;&#x27;:qtyTxt(it,it.pm);return it.name+(am||pm?&#x27; — morning &#x27;+(am||&#x27;none&#x27;)+&#x27;, evening &#x27;+(pm||&#x27;none&#x27;):&#x27;&#x27;)+&#x27; — &#x27;+(it.why||whyHint(it.name)||&#x27;(purpose not filled in)&#x27;)});
+  const txt=lines.join(&#x27;\n&#x27;);
+  $(&#x27;sheetBody&#x27;).innerHTML=&#x27;&lt;div class=&quot;row&quot;&gt;&lt;h2 style=&quot;margin:0&quot;&gt;For my doctor&lt;/h2&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;closeSheet()&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&lt;div class=&quot;mute&quot;&gt;My tablets and what they are for. Suggestions are only a guide: correct them in each tablet\&#x27;s note.&lt;/div&gt;&lt;div class=&quot;card&quot; style=&quot;white-space:pre-wrap;font-size:14px&quot;&gt;&#x27;+esc(txt)+&#x27;&lt;/div&gt;&lt;button class=&quot;btn&quot; onclick=&quot;copyDoctor()&quot;&gt;Copy this list&lt;/button&gt;&#x27;;
+  window.__doc=txt;$(&#x27;sheet&#x27;).className=&#x27;sheet show&#x27;;
+}
+function copyDoctor(){try{navigator.clipboard.writeText(window.__doc||&#x27;&#x27;).then(()=&gt;banner(&#x27;Copied. Paste it into a message or email.&#x27;),()=&gt;banner(&#x27;Could not copy: select the text instead.&#x27;,true))}catch(e){banner(&#x27;Could not copy: select the text instead.&#x27;,true)}}
+
+/* ---- waiting screen: one of three little animations, chosen at random each time ---- */
+const WAIT={on:false,t0:0,raf:0,kind:0,P:[]};
+function wRR(x,w,h,r){x.beginPath();x.moveTo(-w/2+r,-h/2);x.lineTo(w/2-r,-h/2);x.arc(w/2-r,-h/2+r,r,-Math.PI/2,0);x.lineTo(w/2,h/2-r);x.arc(w/2-r,h/2-r,r,0,Math.PI/2);x.lineTo(-w/2+r,h/2);x.arc(-w/2+r,h/2-r,r,Math.PI/2,Math.PI);x.lineTo(-w/2,-h/2+r);x.arc(-w/2+r,-h/2+r,r,Math.PI,Math.PI*1.5);x.closePath()}
+function wCap(x,px,py,rot,w,h,c1,c2){x.save();x.translate(px,py);x.rotate(rot);x.fillStyle=c1;wRR(x,w,h,h/2);x.fill();x.save();x.beginPath();x.rect(0,-h/2,w/2,h);x.clip();x.fillStyle=c2;wRR(x,w,h,h/2);x.fill();x.restore();x.restore()}
+function wTab(x,px,py,rot,r,c){x.save();x.translate(px,py);x.rotate(rot);x.fillStyle=c;x.beginPath();x.arc(0,0,r,0,7);x.fill();x.strokeStyle=&#x27;rgba(255,255,255,.7)&#x27;;x.lineWidth=2;x.beginPath();x.moveTo(-r*.6,0);x.lineTo(r*.6,0);x.stroke();x.restore()}
+function waitFrame(t){
+  if(!WAIT.on)return;
+  const cv=$(&#x27;wcv&#x27;),c=cv.getContext(&#x27;2d&#x27;),B=&#x27;#2a6fdb&#x27;,R=&#x27;#e4573d&#x27;,A=&#x27;#d98a00&#x27;,G=&#x27;#1f9d55&#x27;;c.setTransform(4,0,0,4,0,0);c.imageSmoothingEnabled=true;c.clearRect(0,0,200,150);
+  if(WAIT.kind===0){for(const p of WAIT.P){p.y+=p.v;p.r+=p.vr;if(p.y&gt;165){p.y=-15;p.x=10+Math.random()*180}const sx=p.x+Math.sin(t/500+p.s)*6;if(p.k===0)wCap(c,sx,p.y,p.r,26,12,B,R);else if(p.k===1)wTab(c,sx,p.y,p.r,8,A);else wCap(c,sx,p.y,p.r,22,10,G,&#x27;#9fe1cb&#x27;)}}
+  else if(WAIT.kind===1){const cols=[[B,R],[A,&#x27;#fac775&#x27;],[G,&#x27;#9fe1cb&#x27;]];for(let i=0;i&lt;3;i++){const p=((t/1500)+i/3)%1,x=38+124*(.5-.5*Math.cos(2*Math.PI*p)),q=(p*2)%1,y=104-78*Math.sin(Math.PI*q);wCap(c,x,y,p*14,24,11,cols[i][0],cols[i][1])}c.fillStyle=&#x27;#8a96a3&#x27;;for(const hx of [38,162]){c.save();c.translate(hx,122);wRR(c,36,14,7);c.fill();c.restore()}}
+  else{const T=t/700,n=Math.floor(T)%8,f=T%1;c.fillStyle=&#x27;#8a96a333&#x27;;c.save();c.translate(100,56);wRR(c,176,84,12);c.fill();c.restore();
+    for(let i=0;i&lt;8;i++){const cx=34+(i%4)*44,cy=36+Math.floor(i/4)*40;c.fillStyle=&#x27;#8a96a355&#x27;;c.beginPath();c.arc(cx,cy,13,0,7);c.fill();if(i&lt;n){c.fillStyle=&#x27;#fff&#x27;;c.beginPath();c.arc(cx,cy,9,0,7);c.fill()}else if(i===n){c.globalAlpha=1-f;wTab(c,cx,cy-f*34,f*3,12*(1-f*.4),B)}else wTab(c,cx,cy,0,11,B);c.globalAlpha=1}
+    for(let d=0;d&lt;3;d++){const ph=(t/450)-d*.6,k=Math.max(0,Math.sin(ph));c.globalAlpha=.35+.65*k;c.fillStyle=G;c.beginPath();c.arc(80+d*20,128,5+2*k,0,7);c.fill()}c.globalAlpha=1}
+  const el=Math.round((Date.now()-WAIT.t0)/1000);$(&#x27;wsec&#x27;).textContent=&#x27;Waiting &#x27;+el+&#x27; seconds&#x27;+(el&gt;15?&#x27;. Taking longer than usual: the connection may be slow. Still trying...&#x27;:&#x27;.&#x27;);
+  WAIT.raf=requestAnimationFrame(waitFrame);
+}
+function waitOn(text){
+  WAIT.kind=Math.floor(Math.random()*3);WAIT.P=[];for(let i=0;i&lt;12;i++)WAIT.P.push({x:10+Math.random()*180,y:-Math.random()*150,v:1+Math.random()*1.6,r:Math.random()*6,vr:(Math.random()-.5)*.08,k:i%3,s:Math.random()*6});
+  WAIT.on=true;WAIT.t0=Date.now();$(&#x27;wtxt&#x27;).textContent=text||&#x27;Please wait&#x27;;$(&#x27;wait&#x27;).hidden=false;cancelAnimationFrame(WAIT.raf);WAIT.raf=requestAnimationFrame(waitFrame);
+}
+function waitOff(){WAIT.on=false;cancelAnimationFrame(WAIT.raf);$(&#x27;wait&#x27;).hidden=true}
+
+/* ---- stock check: count what you really have, quickly, now and then ---- */
+let SC=null;
+const stockEvery=()=&gt;{const v=(st.settings||{}).stockEvery;return v===undefined?3:v};
+function stockDueDate(){const last=(st.settings||{}).lastStockCheck;if(!last)return null;const d=pd(last);d.setMonth(d.getMonth()+stockEvery());return d}
+function stockDue(){if(!stockEvery())return false;const d=stockDueDate();return !d||d&lt;=new Date()}
+function scLoc(){const today=ymd(new Date());return (st.trips||[]).some(x=&gt;x.from&lt;=today&amp;&amp;today&lt;=x.to)?&#x27;fv&#x27;:&#x27;uk&#x27;}
+function scStart(){
+  const now=new Date(),loc=scLoc();SC={loc,rows:{}};
+  for(const it of st.items){const r=sim(it,now);const exp=Math.max(0,Math.round(((loc===&#x27;fv&#x27;?r.fv:r.uk)||0)*10)/10);SC.rows[it.id]={exp,cnt:exp,ok:false}}
+}
+function scBump(id,d){const x=SC.rows[id];x.cnt=Math.max(0,Math.round((x.cnt+d)*10)/10);x.ok=true;render(true)}
+function scOk(id){SC.rows[id].ok=true;render(true)}
+function scAll(){for(const k in SC.rows)SC.rows[k].ok=true;render(true)}
+function scSave(){
+  const at=lts(new Date()),diffs=[];
+  for(const it of st.items){const x=SC.rows[it.id];if(!x||!x.ok)continue;
+    if(Math.abs(x.cnt-x.exp)&gt;0.001){st.events.push({id:uid(),type:&#x27;recount&#x27;,item:it.id,loc:SC.loc,qty:x.cnt,at});diffs.push(it.name.replace(/ \(.*/,&#x27;&#x27;)+&#x27; &#x27;+(x.cnt&gt;x.exp?&#x27;+&#x27;:&#x27;&#x27;)+(Math.round((x.cnt-x.exp)*10)/10))}}
+  st.settings.lastStockCheck=ymd(new Date());save();
+  const n=Object.values(SC.rows).filter(x=&gt;x.ok).length;SC=null;
+  banner(diffs.length?(&#x27;Stock check saved. Different: &#x27;+diffs.join(&#x27;, &#x27;)):&#x27;Stock check saved: &#x27;+n+&#x27; checked, all as expected&#x27;);render();
+}
+function vCheck(){
+  if(!SC)scStart();
+  const last=(st.settings||{}).lastStockCheck,dd=stockDueDate();
+  let h=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Stock check&lt;/h2&gt;&lt;div class=&quot;mute&quot;&gt;Count what you have &#x27;+(SC.loc===&#x27;fv&#x27;?&#x27;at 24B&#x27;:&#x27;at home (UK)&#x27;)+&#x27;. Tap ✓ if it matches, or use − and + to correct it. &#x27;
+   +(last?&#x27;Last check: &#x27;+niceS(pd(last))+&#x27;.&#x27;:&#x27;Never checked yet.&#x27;)+(stockEvery()?&#x27; Next one due: &#x27;+(dd?niceS(dd):&#x27;now&#x27;)+&#x27;.&#x27;:&#x27; Reminders are off (Settings).&#x27;)+&#x27;&lt;/div&gt;&#x27;
+   +&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;scAll()&quot;&gt;Everything matches&lt;/button&gt;&lt;/div&gt;&#x27;;
+  const items=[...st.items].sort((a,b)=&gt;(SC.rows[a.id].ok-SC.rows[b.id].ok)||a.name.localeCompare(b.name));
+  for(const it of items){const x=SC.rows[it.id],diff=Math.round((x.cnt-x.exp)*10)/10;
+    h+=&#x27;&lt;div class=&quot;card&quot; style=&quot;&#x27;+(x.ok?&#x27;border-color:var(--ok)&#x27;:&#x27;&#x27;)+&#x27;&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;name&quot;&gt;&#x27;+esc(it.name)+&#x27;&lt;/span&gt;&#x27;+(x.ok?&#x27;&lt;span class=&quot;pill p-ok&quot;&gt;&#x27;+(diff?((diff&gt;0?&#x27;+&#x27;:&#x27;&#x27;)+diff):&#x27;✓ matches&#x27;)+&#x27;&lt;/span&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;
+     +(whyShow(it)?&#x27;&lt;div class=&quot;mute&quot; style=&quot;font-size:13px&quot;&gt;&#x27;+esc(whyShow(it))+&#x27;&lt;/div&gt;&#x27;:&#x27;&#x27;)
+     +&#x27;&lt;div class=&quot;mute&quot; style=&quot;margin-top:4px&quot;&gt;Should have &lt;b&gt;&#x27;+qtyTxt(it,x.exp)+&#x27;&lt;/b&gt;&lt;/div&gt;&#x27;
+     +&#x27;&lt;div style=&quot;display:flex;align-items:center;gap:10px;margin-top:8px&quot;&gt;&#x27;
+     +&#x27;&lt;button class=&quot;btn sec&quot; style=&quot;width:56px;margin:0;font-size:22px&quot; onclick=&quot;scBump(\&#x27;&#x27;+it.id+&#x27;\&#x27;,-1)&quot;&gt;−&lt;/button&gt;&#x27;
+     +&#x27;&lt;div style=&quot;flex:1;text-align:center;font-size:22px;font-weight:700&quot;&gt;&#x27;+qtyTxt(it,x.cnt)+&#x27;&lt;/div&gt;&#x27;
+     +&#x27;&lt;button class=&quot;btn sec&quot; style=&quot;width:56px;margin:0;font-size:22px&quot; onclick=&quot;scBump(\&#x27;&#x27;+it.id+&#x27;\&#x27;,1)&quot;&gt;+&lt;/button&gt;&#x27;
+     +&#x27;&lt;button class=&quot;btn&quot; style=&quot;width:70px;margin:0;background:var(--ok)&quot; onclick=&quot;scOk(\&#x27;&#x27;+it.id+&#x27;\&#x27;)&quot;&gt;✓&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
+  }
+  const done=Object.values(SC.rows).filter(x=&gt;x.ok).length;
+  return h+&#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;mute&quot;&gt;&#x27;+done+&#x27; of &#x27;+st.items.length+&#x27; checked. Only checked tablets are saved.&lt;/div&gt;&lt;button class=&quot;btn&quot; onclick=&quot;scSave()&quot;&gt;Save stock check&lt;/button&gt;&lt;/div&gt;&#x27;;
+}
+function setStockEvery(v){st.settings.stockEvery=parseInt(v)||0;save();banner(&#x27;Saved&#x27;);render(true)}
+
+/* ---- &quot;Did you know?&quot; one tip a day at the top of the Stock tab ---- */
+const TIPS=[
+ [&#x27;do nothing every day&#x27;,&#x27;It counts your tablets down by itself, morning and evening. Only tell it about exceptions.&#x27;],
+ [&#x27;see what to order at a glance&#x27;,&#x27;Green, amber and red bars, most urgent at the top, each with an &quot;order by&quot; date.&#x27;],
+ [&#x27;order your repeat prescription in three clicks&#x27;,&#x27;On the laptop, open Order Tablets: tick, Review order, Send. You see the basket before anything is sent.&#x27;],
+ [&#x27;know straight away if the surgery said no&#x27;,&#x27;Rejections show as a red alert here and on the laptop, with the likely reason.&#x27;],
+ [&#x27;avoid rejections before they happen&#x27;,&#x27;A &quot;Too early?&quot; warning shows on any tablet the surgery is not due to issue yet.&#x27;],
+ [&#x27;skip a reminder when you do not need it yet&#x27;,&#x27;Open a tablet that needs ordering and pick 7 to 90 days. It comes back by itself.&#x27;],
+ [&#x27;keep &quot;as needed&quot; medicines quiet&#x27;,&#x27;Open the tablet and choose &quot;Only when I ask&quot;. It is never flagged on its own.&#x27;],
+ [&#x27;get told when it is ready to collect&#x27;,&#x27;Switch on pharmacy texts in Settings and the app marks the order ready when the text arrives.&#x27;],
+ [&#x27;get calendar reminders automatically&#x27;,&#x27;Settings, After I order: the collection day and next order day go into your calendar.&#x27;],
+ [&#x27;fix a missed or extra dose in one tap&#x27;,&#x27;Use the Log tab and every count and date corrects itself.&#x27;],
+ [&#x27;check a pharmacy bag in seconds&#x27;,&#x27;The Receive tab has big + and − buttons and remembers anything still owed.&#x27;],
+ [&#x27;do a quick stock check&#x27;,&#x27;The Check tab lists every tablet with what you should have. Tap the tick, or correct it.&#x27;],
+ [&#x27;travel without running out&#x27;,&#x27;Add a trip in Settings and it warns what to collect before you go.&#x27;],
+ [&#x27;let family order for you&#x27;,&#x27;&quot;Show what each tablet is for&quot; makes &quot;the heart tablets&quot; easy to match to the right box.&#x27;],
+ [&#x27;hand your doctor one tidy list&#x27;,&#x27;Settings, For my doctor: every tablet, dose and purpose, ready to copy.&#x27;],
+ [&#x27;have emergency information ready&#x27;,&#x27;Tablets SOS shows medicines, allergies and contacts for paramedics. Add its icon in Settings.&#x27;],
+ [&#x27;share your list with a 4-digit PIN&#x27;,&#x27;Give your partner your PIN and you both see the same list and alerts.&#x27;],
+ [&#x27;use it anywhere&#x27;,&#x27;Android, iPhone or any computer through the web link, even with no internet.&#x27;],
+ [&#x27;bring your list in from a spreadsheet&#x27;,&#x27;Settings: import or export a CSV file.&#x27;]];
+function tipIndex(){const d=new Date(),start=new Date(d.getFullYear(),0,0),day=Math.floor((d-start)/864e5);return ((day+(PR.tipOff||0))%TIPS.length+TIPS.length)%TIPS.length}
+function tipNext(){PR.tipOff=(PR.tipOff||0)+1;psave();render(true)}
+function tipHide(){PR.tipHidden=ymd(new Date());psave();render(true)}
+function tipCard(){
+  if(PR.tips===false||PR.tipHidden===ymd(new Date()))return &#x27;&#x27;;
+  const [a,b]=TIPS[tipIndex()];
+  return &#x27;&lt;div class=&quot;card&quot; style=&quot;border-color:var(--acc);display:flex;gap:12px;align-items:flex-start&quot;&gt;&lt;div style=&quot;flex:none;width:34px;height:34px;border-radius:17px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800&quot;&gt;?&lt;/div&gt;&lt;div style=&quot;flex:1&quot;&gt;&lt;div class=&quot;mute&quot; style=&quot;font-size:12px;font-weight:700;letter-spacing:.04em&quot;&gt;DID YOU KNOW?&lt;/div&gt;&lt;b&gt;You can &#x27;+esc(a)+&#x27;.&lt;/b&gt;&lt;div class=&quot;mute&quot; style=&quot;margin-top:2px&quot;&gt;&#x27;+esc(b)+&#x27;&lt;/div&gt;&lt;div style=&quot;margin-top:8px;display:flex;gap:8px&quot;&gt;&lt;button class=&quot;btn sm sec&quot; style=&quot;width:auto;margin:0&quot; onclick=&quot;tipNext()&quot;&gt;Next tip&lt;/button&gt;&lt;button class=&quot;btn sm sec&quot; style=&quot;width:auto;margin:0&quot; onclick=&quot;tipHide()&quot;&gt;Hide for today&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
+}
+const skipped=it=&gt;!!(it.skipUntil&amp;&amp;it.skipUntil&gt;ymd(new Date()));
+const SKIP_DAYS=[7,14,30,60,90];
+const ao=()=&gt;Object.assign({show:true,calCollect:true,calNext:true},(st.settings&amp;&amp;st.settings.afterOrder)||{});
+function setAfter(k,v){st.settings.afterOrder=Object.assign({},ao(),{[k]:v});save();banner(&#x27;Saved&#x27;);render(true)}
+function toggleAsk(id){const it=st.items.find(i=&gt;i.id===id);if(!it)return;if(it.onlyAsk)delete it.onlyAsk;else it.onlyAsk=true;save();closeSheet();banner(it.onlyAsk?&#x27;Only when you ask: no automatic reminders for this one&#x27;:&#x27;Automatic reminders are back on&#x27;);render()}
+function skipItem(id){
+  const it=st.items.find(i=&gt;i.id===id);if(!it)return;
+  const n=parseInt(($(&#x27;skd&#x27;)||{}).value)||30;it.skipUntil=ymd(addD(new Date(),n));
+  save();closeSheet();banner(&#x27;Not reordering &#x27;+it.name.replace(/ \(.*/,&#x27;&#x27;)+&#x27; until &#x27;+niceS(pd(it.skipUntil)));render();
+}
+function unskipItem(id){const it=st.items.find(i=&gt;i.id===id);if(!it)return;delete it.skipUntil;save();closeSheet();banner(&#x27;Ordering switched back on&#x27;);render()}
+function computeAlerts(now){
+  const A=[];const S=st.settings;const T=thr();
+  const R={};for(const it of st.items)R[it.id]=sim(it,now);
+  for(const it of st.items){
+    const r=R[it.id];
+    if(it.src===&#x27;pa&#x27;){
+      const sk=skipped(it)&amp;&amp;!(r.out||(r.daysLeft!==null&amp;&amp;r.daysLeft&lt;=10));
+      if(sk||it.onlyAsk){}
+      else if(r.out||(r.daysLeft!==null&amp;&amp;r.daysLeft&lt;=T)){
+        let msg=r.out?&#x27;You have run out.&#x27;:&#x27;About &#x27;+r.daysLeft+&#x27; days left (runs out &#x27;+niceS(r.runOut)+&#x27;).&#x27;;
+        const open=st.orders.find(o=&gt;o.item===it.id&amp;&amp;isOpen(o));
+        if(open)continue;
+        const late=it.next&amp;&amp;it.next&gt;ymd(addD(r.runOut||now,-S.lead));
+        A.push({lvl:&#x27;bad&#x27;,t:&#x27;Order &#x27;+it.name+(whyShort(it)?&#x27; (&#x27;+whyShort(it)+&#x27;)&#x27;:&#x27;&#x27;)+&#x27; now&#x27;,m:msg+(late&amp;&amp;it.next&gt;ymd(now)?&#x27; Patient Access will not issue before &#x27;+niceS(pd(it.next))+&#x27;, which is too late: ask the surgery to release it early.&#x27;:&#x27;&#x27;),item:it.id,sort:r.daysLeft??-1,cal:{kind:&#x27;order&#x27;,name:it.name.replace(/ \(.*/,&#x27;&#x27;),id:it.id}});
+      }else if(r.runOut&amp;&amp;it.next&amp;&amp;it.next&gt;ymd(addD(r.runOut,-S.lead))){
+        A.push({lvl:&#x27;warn&#x27;,t:it.name+&#x27;: issue date is after you run out&#x27;,m:&#x27;Runs out &#x27;+niceS(r.runOut)+&#x27; but the next issue is &#x27;+niceS(pd(it.next))+&#x27;. You may need the surgery to release it early.&#x27;,item:it.id,sort:r.daysLeft+500});
+      }
+    }
+    if(it.src===&#x27;diab&#x27;&amp;&amp;r.daysLeft!==null&amp;&amp;r.daysLeft&lt;=(S.buyLow||45)){
+      A.push({lvl:&#x27;warn&#x27;,t:&#x27;Buy &#x27;+it.name.replace(/ \(.*/,&#x27;&#x27;)+&#x27; (bulk deal, up to 5 boxes)&#x27;,m:&#x27;About &#x27;+r.daysLeft+&#x27; days left. Look for a bulk deal.&#x27;,item:it.id,sort:r.daysLeft,diab:it.name.replace(/ \(.*/,&#x27;&#x27;)});
+    }
+    if(it.src===&#x27;fv&#x27;){
+      const trips=st.trips.map(t=&gt;({...t,toD:pd(t.to)})).sort((a,b)=&gt;a.toD-b.toD);
+      if(r.runOut){
+        const before=trips.filter(t=&gt;t.toD&lt;r.runOut&amp;&amp;t.toD&gt;=sod(now));
+        const lastT=before[before.length-1];
+        if(!lastT)A.push({lvl:&#x27;bad&#x27;,t:&#x27;No trip to 24B before &#x27;+it.name+&#x27; runs out&#x27;,m:&#x27;Runs out &#x27;+niceS(r.runOut)+&#x27;. Plan a trip, or ask someone to buy it at Mercadona.&#x27;,item:it.id,sort:r.daysLeft});
+        else{
+          const dd=Math.round((lastT.toD-sod(now))/DAY);
+          if(dd&lt;=4)A.push({lvl:&#x27;bad&#x27;,t:&#x27;Buy &#x27;+it.name+&#x27; at Mercadona before you leave 24B&#x27;,m:&#x27;You leave &#x27;+niceS(lastT.toD)+&#x27; and run out &#x27;+niceS(r.runOut)+&#x27;. This is your last chance before it runs out.&#x27;,item:it.id,sort:dd-100,cal:{kind:&#x27;buy&#x27;,name:it.name,day:ymd(addD(lastT.toD,-3)),key:&#x27;buy:&#x27;+it.id+&#x27;:&#x27;+lastT.to}});
+          else if(before.length===1&amp;&amp;dd&lt;=30)A.push({lvl:&#x27;info&#x27;,t:it.name+&#x27;: buy on your trip ending &#x27;+niceS(lastT.toD),m:&#x27;Last trip before it runs out (&#x27;+niceS(r.runOut)+&#x27;). You will be reminded 3 to 4 days before you leave.&#x27;,item:it.id,sort:dd});
+        }
+      }
+    }
+  }
+  /* before leaving the UK: will prescribed stock still cover you after the trip? */
+  for(const t of st.trips){
+    const from=pd(t.from),to=pd(t.to);
+    const days=Math.round((from-sod(now))/DAY);
+    if(days&lt;0||days&gt;S.preTripDays)continue;
+    const bad=[];
+    for(const it of st.items){
+      if(it.src!==&#x27;pa&#x27;)continue;
+      const open=st.orders.find(o=&gt;o.item===it.id&amp;&amp;isOpen(o));
+      if(open)continue;
+      const r=sim(it,to);
+      if(r.out||(r.runOut&amp;&amp;Math.floor((r.runOut-to)/DAY)&lt;=S.lead+S.margin))bad.push(it.name.replace(/ \(.*/,&#x27;&#x27;));
+    }
+    if(bad.length)A.push({lvl:days&lt;=5?&#x27;bad&#x27;:&#x27;warn&#x27;,t:&#x27;Before you leave for 24B (&#x27;+niceS(from)+&#x27;)&#x27;,m:&#x27;These would be low or empty when you get back on &#x27;+niceS(to)+&#x27;: &#x27;+bad.join(&#x27;, &#x27;)+&#x27;. Order and collect them at Day Lewis before you go.&#x27;,sort:days-1000,cal:{kind:&#x27;trip&#x27;,day:ymd(addD(from,-3)),key:&#x27;trip:&#x27;+t.from+&#x27;:&#x27;+bad.join(&#x27;,&#x27;).length,names:bad}});
+  }
+  for(const o of st.orders){
+    const it=st.items.find(i=&gt;i.id===o.item);if(!it)continue;
+    /* rejected orders: see rejectAlerts() (can be dismissed) */
+    if(o.status===&#x27;part&#x27;){const owed=o.qty-(o.recv||0);A.push({lvl:&#x27;warn&#x27;,t:&#x27;Still owed: &#x27;+it.name,m:&#x27;Day Lewis gave &#x27;+qtyTxt(it,o.recv||0)+&#x27; of &#x27;+qtyTxt(it,o.qty)+&#x27;. &#x27;+qtyTxt(it,owed)+&#x27; still owed from the order of &#x27;+niceS(pd(o.date))+&#x27;.&#x27;,item:o.item,sort:40});continue}
+    if(o.status===&#x27;ready&#x27;){A.push({lvl:&#x27;warn&#x27;,t:&#x27;Ready to collect: &#x27;+it.name,m:&#x27;The pharmacy says it is ready (&#x27;+(o.readyAt?niceS(new Date(o.readyAt)):&#x27;today&#x27;)+&#x27;). Collect it, then tap Receive.&#x27;,item:o.item,sort:30});continue}
+    if(o.status===&#x27;approved&#x27;||o.status===&#x27;requested&#x27;)A.push({lvl:&#x27;info&#x27;,t:(o.status===&#x27;approved&#x27;?&#x27;Approved: &#x27;:&#x27;Requested: &#x27;)+it.name,m:&#x27;Expected about &#x27;+niceS(pd(o.expected))+&#x27; (collect at Day Lewis, Andover).&#x27;,item:o.item,sort:50});
+  }
+  A.sort((a,b)=&gt;a.sort-b.sort);
+  return {A,R};
+}
+
+/* ---------- views ---------- */
+let tab=&#x27;stock&#x27;;
+const $=id=&gt;document.getElementById(id);
+function qtyTxt(it,q){
+  if(it.unit===&#x27;box&#x27;){return (Math.round(q*10)/10)+&#x27; boxes (&#x27;+Math.round(q*30)+&#x27; days)&#x27;}
+  const u=it.unit===&#x27;ml&#x27;?&#x27; ml&#x27;:&#x27;&#x27;;
+  return (Math.round(q*10)/10)+u;
+}
+
+function go(t){tab=t;render()}
+function vStock(A,R,now){
+  const items=[...st.items].sort((a,b)=&gt;(R[a.id].daysLeft??9999)-(R[b.id].daysLeft??9999));
+  const T=thr();
+  let h=tipCard();
+  if(!st.items.length)return &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;No tablets yet&lt;/h2&gt;&lt;p&gt;Add your tablets one by one, or import a CSV list.&lt;/p&gt;&lt;button class=&quot;btn&quot; onclick=&quot;editItem(null)&quot;&gt;＋ Add a tablet&lt;/button&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;go(\&#x27;set\&#x27;)&quot;&gt;Import a CSV (Settings)&lt;/button&gt;&lt;/div&gt;&#x27;;
+  if(A.some(a=&gt;a.lvl===&#x27;bad&#x27;))h+=&#x27;&lt;div class=&quot;alert bad&quot;&gt;&lt;b&gt;&#x27;+A.filter(a=&gt;a.lvl===&#x27;bad&#x27;).length+&#x27; thing(s) need you&lt;/b&gt;See the Alerts tab.&lt;/div&gt;&#x27;;
+  for(const it of items){
+    const r=R[it.id];
+    const dl=r.daysLeft;
+    const cls=r.out||(dl!==null&amp;&amp;dl&lt;=T&amp;&amp;it.src===&#x27;pa&#x27;)?&#x27;bad&#x27;:(dl!==null&amp;&amp;dl&lt;=T+14)?&#x27;warn&#x27;:&#x27;ok&#x27;;
+    const col={bad:&#x27;var(--bad)&#x27;,warn:&#x27;var(--warn)&#x27;,ok:&#x27;var(--ok)&#x27;}[cls];
+    const pct=dl===null?100:Math.max(3,Math.min(100,dl/180*100));
+    const lo=lastOrderDate(it,r);
+    h+=&#x27;&lt;div class=&quot;card&quot; onclick=&quot;openItem(\&#x27;&#x27;+it.id+&#x27;\&#x27;)&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;name&quot;&gt;&#x27;+it.name+&#x27;&lt;/span&gt;&lt;span class=&quot;pill p-&#x27;+cls+&#x27;&quot;&gt;&#x27;+(r.out?&#x27;OUT&#x27;:dl===null?&#x27;plenty&#x27;:dl+&#x27; days&#x27;)+&#x27;&lt;/span&gt;&lt;/div&gt;&#x27;
+     +&#x27;&lt;div class=&quot;bar&quot;&gt;&lt;i style=&quot;width:&#x27;+pct+&#x27;%;background:&#x27;+col+&#x27;&quot;&gt;&lt;/i&gt;&lt;/div&gt;&#x27;+(whyShow(it)?&#x27;&lt;div class=&quot;mute&quot; style=&quot;font-size:13px;margin:-2px 0 4px&quot;&gt;&#x27;+esc(whyShow(it))+&#x27;&lt;/div&gt;&#x27;:&#x27;&#x27;)
+     +&#x27;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;big&quot;&gt;&#x27;+qtyTxt(it,r.total)+&#x27;&lt;/span&gt;&lt;span class=&quot;mute&quot;&gt;&#x27;+(r.runOut?&#x27;runs out &#x27;+niceS(r.runOut):&#x27;&#x27;)+&#x27;&lt;/span&gt;&lt;/div&gt;&#x27;
+     +&#x27;&lt;div class=&quot;mute&quot;&gt;&#x27;+(it.onlyAsk?&#x27;only when I ask · &#x27;:&#x27;&#x27;)+(skipped(it)?&#x27;skipped until &#x27;+niceS(pd(it.skipUntil))+&#x27; · &#x27;:&#x27;&#x27;)+(it.src===&#x27;pa&#x27;&amp;&amp;lo?&#x27;order by &#x27;+niceS(lo)+&#x27; · &#x27;:&#x27;&#x27;)+(r.fv&gt;0.001?&#x27;UK &#x27;+qtyTxt(it,r.uk)+&#x27; · 24B &#x27;+qtyTxt(it,r.fv):&#x27;&#x27;)+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
+  }
+  return h+&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;editItem(null)&quot;&gt;＋ Add a tablet&lt;/button&gt;&#x27;;
+}
+
+function diabLinks(name){
+  const q=encodeURIComponent((name||&#x27;&#x27;)+&#x27; tablets&#x27;);
+  return &#x27;&lt;a class=&quot;lnk&quot; href=&quot;https://www.google.com/search?tbm=shop&amp;q=&#x27;+q+&#x27;&quot; target=&quot;_blank&quot;&gt;Compare prices&lt;/a&gt; · &lt;a class=&quot;lnk&quot; href=&quot;https://www.amazon.co.uk/s?k=&#x27;+q+&#x27;&quot; target=&quot;_blank&quot;&gt;Amazon&lt;/a&gt; · &lt;a class=&quot;lnk&quot; href=&quot;https://www.hollandandbarrett.com/search/?query=&#x27;+q+&#x27;&quot; target=&quot;_blank&quot;&gt;Holland &amp;amp; Barrett&lt;/a&gt;&#x27;;
+}
+function itemOptions(all){return (all?&#x27;&lt;option value=&quot;all&quot;&gt;All tablets&lt;/option&gt;&#x27;:&#x27;&#x27;)+st.items.map(i=&gt;&#x27;&lt;option value=&quot;&#x27;+i.id+&#x27;&quot;&gt;&#x27;+i.name+&#x27;&lt;/option&gt;&#x27;).join(&#x27;&#x27;)}
+function vLog(){
+  const today=ymd(new Date());
+  const evs=[...st.events].sort((a,b)=&gt;(b.date||b.at||&#x27;&#x27;).localeCompare(a.date||a.at||&#x27;&#x27;)).slice(0,40);
+  return &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Add an exception&lt;/h2&gt;&#x27;
+   +&#x27;&lt;label&gt;What happened&lt;/label&gt;&lt;select id=&quot;lt&quot; onchange=&quot;logType()&quot;&gt;&lt;option value=&quot;missed&quot;&gt;Missed a dose&lt;/option&gt;&lt;option value=&quot;delivery&quot;&gt;Box received&lt;/option&gt;&lt;option value=&quot;recount&quot;&gt;Recount (set the real number)&lt;/option&gt;&lt;option value=&quot;extra&quot;&gt;Took extra&lt;/option&gt;&lt;option value=&quot;pause&quot;&gt;Paused (from–to)&lt;/option&gt;&lt;option value=&quot;move&quot;&gt;Moved between UK and 24B&lt;/option&gt;&lt;/select&gt;&#x27;
+   +&#x27;&lt;label&gt;Tablet&lt;/label&gt;&lt;select id=&quot;li&quot;&gt;&#x27;+itemOptions(true)+&#x27;&lt;/select&gt;&#x27;
+   +&#x27;&lt;div id=&quot;lf&quot;&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;button class=&quot;btn&quot; onclick=&quot;addLog()&quot;&gt;Save&lt;/button&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;h2&gt;History&lt;/h2&gt;&lt;div class=&quot;card&quot;&gt;&#x27;+(evs.length?evs.map(e=&gt;&#x27;&lt;div class=&quot;ev&quot;&gt;&lt;span&gt;&#x27;+evText(e)+&#x27;&lt;/span&gt;&lt;button onclick=&quot;delEv(&#x27;+e.id+&#x27;)&quot;&gt;✕&lt;/button&gt;&lt;/div&gt;&#x27;).join(&#x27;&#x27;):&#x27;&lt;span class=&quot;mute&quot;&gt;Nothing logged. Normal days need nothing.&lt;/span&gt;&#x27;)+&#x27;&lt;/div&gt;&#x27;
+   +&#x27;&#x27;;
+}
+function evText(e){
+  const it=e.item===&#x27;all&#x27;?&#x27;All&#x27;:(st.items.find(i=&gt;i.id===e.item)||{name:e.item}).name;
+  const d=e.date?niceS(pd(e.date)):&#x27;&#x27;;
+  if(e.type===&#x27;missed&#x27;)return d+&#x27; · missed &#x27;+({am:&#x27;morning&#x27;,pm:&#x27;evening&#x27;,both:&#x27;both doses&#x27;})[e.slot]+&#x27; · &#x27;+it;
+  if(e.type===&#x27;delivery&#x27;)return d+&#x27; · received &#x27;+e.qty+&#x27; · &#x27;+it;
+  if(e.type===&#x27;recount&#x27;)return niceS(new Date(e.at))+&#x27; · recount &#x27;+e.qty+&#x27; (&#x27;+(e.loc===&#x27;fv&#x27;?&#x27;24B&#x27;:&#x27;UK&#x27;)+&#x27;) · &#x27;+it;
+  if(e.type===&#x27;extra&#x27;)return d+&#x27; · took extra &#x27;+e.qty+&#x27; · &#x27;+it;
+  if(e.type===&#x27;pause&#x27;)return niceS(pd(e.from))+&#x27; to &#x27;+niceS(pd(e.to))+&#x27; · paused · &#x27;+it;
+  if(e.type===&#x27;move&#x27;)return d+&#x27; · moved &#x27;+e.qty+&#x27; &#x27;+(e.from===&#x27;fv&#x27;?&#x27;24B → UK&#x27;:&#x27;UK → 24B&#x27;)+&#x27; · &#x27;+it;
+  return JSON.stringify(e);
+}
+function logType(){
+  const t=$(&#x27;lt&#x27;).value,today=ymd(new Date());
+  const D=(id,l,v)=&gt;&#x27;&lt;label&gt;&#x27;+l+&#x27;&lt;/label&gt;&lt;input type=&quot;date&quot; id=&quot;&#x27;+id+&#x27;&quot; value=&quot;&#x27;+(v||today)+&#x27;&quot;&gt;&#x27;;
+  const N=(id,l,v)=&gt;&#x27;&lt;label&gt;&#x27;+l+&#x27;&lt;/label&gt;&lt;input type=&quot;number&quot; step=&quot;any&quot; id=&quot;&#x27;+id+&#x27;&quot; value=&quot;&#x27;+(v||&#x27;&#x27;)+&#x27;&quot; inputmode=&quot;decimal&quot;&gt;&#x27;;
+  let h=&#x27;&#x27;;
+  if(t===&#x27;missed&#x27;)h=D(&#x27;ld&#x27;,&#x27;Date&#x27;)+&#x27;&lt;label&gt;Which dose&lt;/label&gt;&lt;select id=&quot;ls&quot;&gt;&lt;option value=&quot;am&quot;&gt;Morning&lt;/option&gt;&lt;option value=&quot;pm&quot;&gt;Evening&lt;/option&gt;&lt;option value=&quot;both&quot;&gt;Both&lt;/option&gt;&lt;/select&gt;&#x27;;
+  if(t===&#x27;delivery&#x27;)h=D(&#x27;ld&#x27;,&#x27;Date&#x27;)+N(&#x27;lq&#x27;,&#x27;How many (tablets / ml / boxes)&#x27;);
+  if(t===&#x27;recount&#x27;)h=N(&#x27;lq&#x27;,&#x27;Number you have now&#x27;)+&#x27;&lt;label&gt;Where&lt;/label&gt;&lt;select id=&quot;lloc&quot;&gt;&lt;option value=&quot;uk&quot;&gt;UK (home)&lt;/option&gt;&lt;option value=&quot;fv&quot;&gt;24B&lt;/option&gt;&lt;/select&gt;&#x27;;
+  if(t===&#x27;extra&#x27;)h=D(&#x27;ld&#x27;,&#x27;Date&#x27;)+N(&#x27;lq&#x27;,&#x27;How many extra&#x27;);
+  if(t===&#x27;pause&#x27;)h=D(&#x27;lf1&#x27;,&#x27;From&#x27;)+D(&#x27;lf2&#x27;,&#x27;To&#x27;);
+  if(t===&#x27;move&#x27;)h=D(&#x27;ld&#x27;,&#x27;Date&#x27;)+N(&#x27;lq&#x27;,&#x27;How many&#x27;)+&#x27;&lt;label&gt;Direction&lt;/label&gt;&lt;select id=&quot;lmv&quot;&gt;&lt;option value=&quot;uk&quot;&gt;UK → 24B&lt;/option&gt;&lt;option value=&quot;fv&quot;&gt;24B → UK&lt;/option&gt;&lt;/select&gt;&#x27;;
+  $(&#x27;lf&#x27;).innerHTML=h;
+}
+function addLog(){
+  const t=$(&#x27;lt&#x27;).value,item=$(&#x27;li&#x27;).value;
+  const e={id:uid(),type:t,item};
+  const num=()=&gt;parseFloat($(&#x27;lq&#x27;).value);
+  if(t===&#x27;missed&#x27;){e.date=$(&#x27;ld&#x27;).value;e.slot=$(&#x27;ls&#x27;).value}
+  else if(t===&#x27;pause&#x27;){e.from=$(&#x27;lf1&#x27;).value;e.to=$(&#x27;lf2&#x27;).value;if(e.to&lt;e.from)return banner(&#x27;End date is before start&#x27;,true)}
+  else{
+    const q=num();if(!(q&gt;=0))return banner(&#x27;Enter a number&#x27;,true);
+    e.qty=q;
+    if(t===&#x27;recount&#x27;){e.loc=$(&#x27;lloc&#x27;).value;e.at=lts(new Date())}
+    else{e.date=$(&#x27;ld&#x27;).value;if(e.date===ymd(new Date()))e.at=lts(new Date())}
+    if(t===&#x27;move&#x27;)e.from=$(&#x27;lmv&#x27;).value;
+    if(item===&#x27;all&#x27;)return banner(&#x27;Pick one tablet for this&#x27;,true);
+  }
+  if((t===&#x27;missed&#x27;||t===&#x27;pause&#x27;)&amp;&amp;item===&#x27;all&#x27;){}
+  st.events.push(e);save();banner(&#x27;Saved: &#x27;+evText(e));render();
+}
+function delEv(id){st.events=st.events.filter(e=&gt;e.id!==id);save();banner(&#x27;Removed&#x27;);render()}
+function vOrders(A,R,now){
+  const T=thr();
+  const need=st.items.filter(i=&gt;i.src===&#x27;pa&#x27;&amp;&amp;R[i.id].daysLeft!==null&amp;&amp;R[i.id].daysLeft&lt;=T+14&amp;&amp;!st.orders.find(o=&gt;o.item===i.id&amp;&amp;isOpen(o)));
+  let h=&#x27;&lt;button class=&quot;btn&quot; style=&quot;margin-top:12px&quot; onclick=&quot;go(\&#x27;recv\&#x27;)&quot;&gt;⬇ Bulk receipt: bags from the pharmacy&lt;/button&gt;&lt;h2&gt;To order (Patient Access → Day Lewis, Andover)&lt;/h2&gt;&#x27;;
+  h+=need.length?need.map(i=&gt;&#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;name&quot;&gt;&#x27;+i.name+&#x27;&lt;/span&gt;&lt;span class=&quot;mute&quot;&gt;&#x27;+R[i.id].daysLeft+&#x27; days&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;mute&quot;&gt;Issue &#x27;+i.issue+&#x27; · allowed from &#x27;+(i.next?niceS(pd(i.next)):&#x27;now&#x27;)+&#x27;&lt;/div&gt;&lt;button class=&quot;btn sm&quot; style=&quot;margin-top:8px&quot; onclick=&quot;markOrdered(\&#x27;&#x27;+i.id+&#x27;\&#x27;)&quot;&gt;I ordered it&lt;/button&gt;&lt;/div&gt;&#x27;).join(&#x27;&#x27;):&#x27;&lt;div class=&quot;card mute&quot;&gt;Nothing due yet.&lt;/div&gt;&#x27;;
+  const open=st.orders.filter(o=&gt;o.status!==&#x27;collected&#x27;&amp;&amp;o.status!==&#x27;cancelled&#x27;);
+  h+=&#x27;&lt;h2&gt;Open orders&lt;/h2&gt;&#x27;;
+  h+=open.length?open.map(o=&gt;{const it=st.items.find(i=&gt;i.id===o.item);return &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;name&quot;&gt;&#x27;+it.name+&#x27;&lt;/span&gt;&lt;span class=&quot;pill p-&#x27;+(o.status===&#x27;rejected&#x27;?&#x27;bad&#x27;:&#x27;warn&#x27;)+&#x27;&quot;&gt;&#x27;+o.status+&#x27;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;mute&quot;&gt;Ordered &#x27;+niceS(pd(o.date))+&#x27; · expected &#x27;+niceS(pd(o.expected))+&#x27; · ordered &#x27;+qtyTxt(it,o.qty)+(o.recv?&#x27; · received &#x27;+qtyTxt(it,o.recv)+&#x27; · OWED &#x27;+qtyTxt(it,Math.max(0,o.qty-o.recv)):&#x27;&#x27;)+&#x27;&lt;/div&gt;&lt;div class=&quot;grid2&quot; style=&quot;margin-top:8px&quot;&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;setOrder(&#x27;+o.id+&#x27;,\&#x27;approved\&#x27;)&quot;&gt;Approved&lt;/button&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;setOrder(&#x27;+o.id+&#x27;,\&#x27;rejected\&#x27;)&quot;&gt;Rejected&lt;/button&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;setOrder(&#x27;+o.id+&#x27;,\&#x27;ready\&#x27;)&quot;&gt;Ready to collect&lt;/button&gt;&lt;button class=&quot;btn sm&quot; onclick=&quot;recvItem(\&#x27;&#x27;+o.item+&#x27;\&#x27;)&quot;&gt;Receive&lt;/button&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;setOrder(&#x27;+o.id+&#x27;,\&#x27;cancelled\&#x27;)&quot;&gt;Cancel&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&#x27;}).join(&#x27;&#x27;):&#x27;&lt;div class=&quot;card mute&quot;&gt;No open orders.&lt;/div&gt;&#x27;;
+  return h;
+}
+function markOrdered(id){const it=st.items.find(i=&gt;i.id===id);const d=new Date();st.orders.push({id:uid(),item:id,date:ymd(d),expected:ymd(addD(d,st.settings.lead)),qty:it.issue,status:&#x27;requested&#x27;});save();banner(&#x27;Order noted: &#x27;+it.name);render()}
+function setOrder(id,s){
+  const o=st.orders.find(x=&gt;x.id===id);if(!o)return;o.status=s;if(s===&#x27;ready&#x27;)o.readyAt=Date.now();
+  if(s===&#x27;cancelled&#x27;&amp;&amp;o.recv&gt;0)o.status=&#x27;part&#x27;;
+  banner(&#x27;Order &#x27;+s);
+  save();render();
+}
+function vTrips(){
+  const rows=st.trips.map((t,i)=&gt;&#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;name&quot;&gt;24B trip&lt;/span&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;delTrip(&#x27;+i+&#x27;)&quot;&gt;Remove&lt;/button&gt;&lt;/div&gt;&lt;div class=&quot;grid2&quot;&gt;&lt;div&gt;&lt;label&gt;Fly out&lt;/label&gt;&lt;input type=&quot;date&quot; value=&quot;&#x27;+t.from+&#x27;&quot; onchange=&quot;upTrip(&#x27;+i+&#x27;,\&#x27;from\&#x27;,this.value)&quot;&gt;&lt;/div&gt;&lt;div&gt;&lt;label&gt;Fly home&lt;/label&gt;&lt;input type=&quot;date&quot; value=&quot;&#x27;+t.to+&#x27;&quot; onchange=&quot;upTrip(&#x27;+i+&#x27;,\&#x27;to\&#x27;,this.value)&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27;).join(&#x27;&#x27;);
+  return rows+&#x27;&lt;button class=&quot;btn&quot; onclick=&quot;addTrip()&quot;&gt;Add a trip&lt;/button&gt;&lt;p class=&quot;mute&quot;&gt;While you are in 24B, doses are taken from the 24B stock first. Enter the 24B count with Log → Recount → 24B.&lt;/p&gt;&#x27;;
+}
+function upTrip(i,k,v){st.trips[i][k]=v;save();banner(&#x27;Trip saved&#x27;);render()}
+function delTrip(i){st.trips.splice(i,1);save();banner(&#x27;Trip removed&#x27;);render()}
+function addTrip(){const d=ymd(addD(new Date(),30));st.trips.push({from:d,to:ymd(addD(new Date(),44))});st.trips.sort((a,b)=&gt;a.from.localeCompare(b.from));save();banner(&#x27;Trip added: set the dates&#x27;);render()}
+function vSet(){
+  const s=st.settings;
+  const f=(k,l)=&gt;&#x27;&lt;label&gt;&#x27;+l+&#x27;&lt;/label&gt;&lt;input type=&quot;number&quot; value=&quot;&#x27;+s[k]+&#x27;&quot; onchange=&quot;upSet(\&#x27;&#x27;+k+&#x27;\&#x27;,+this.value)&quot;&gt;&#x27;;
+  return vProfile()+vSecurity()+(typeof sosCard===&#x27;function&#x27;?sosCard():&#x27;&#x27;)+vPharm()+vPhoneOnly()+&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;For my doctor&lt;/h2&gt;&lt;div class=&quot;mute&quot;&gt;One list of your tablets, doses and what each is for.&lt;/div&gt;&lt;button class=&quot;btn&quot; onclick=&quot;showDoctor()&quot;&gt;Show list for my doctor&lt;/button&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Stock check&lt;/h2&gt;&lt;div class=&quot;mute&quot;&gt;A quick count now and then, in case tablets were lost or the numbers drifted.&lt;/div&gt;&lt;label&gt;Remind me to do a stock check&lt;/label&gt;&lt;select onchange=&quot;setStockEvery(this.value)&quot;&gt;&#x27;+[[0,&#x27;Never&#x27;],[1,&#x27;Every month&#x27;],[3,&#x27;Every 3 months&#x27;],[6,&#x27;Every 6 months&#x27;],[12,&#x27;Every year&#x27;]].map(o=&gt;&#x27;&lt;option value=&quot;&#x27;+o[0]+&#x27;&quot;&#x27;+(stockEvery()===o[0]?&#x27; selected&#x27;:&#x27;&#x27;)+&#x27;&gt;&#x27;+o[1]+&#x27;&lt;/option&gt;&#x27;).join(&#x27;&#x27;)+&#x27;&lt;/select&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;go(\&#x27;check\&#x27;)&quot;&gt;Do a stock check now&lt;/button&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;After I order&lt;/h2&gt;&lt;div class=&quot;mute&quot;&gt;What happens when an order has been sent (from the laptop or here).&lt;/div&gt;&#x27;
+   +[[&#x27;show&#x27;,&#x27;Show a summary: what I ordered, when to collect, when to come back&#x27;],[&#x27;calCollect&#x27;,&#x27;Put the collection reminder in my calendar (Android)&#x27;],[&#x27;calNext&#x27;,&#x27;Put the next order reminder in my calendar (Android)&#x27;]].map(x=&gt;&#x27;&lt;label style=&quot;display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-weight:500&quot;&gt;&lt;input type=&quot;checkbox&quot; style=&quot;width:auto;margin-top:4px&quot; &#x27;+(ao()[x[0]]?&#x27;checked&#x27;:&#x27;&#x27;)+&#x27; onchange=&quot;setAfter(\&#x27;&#x27;+x[0]+&#x27;\&#x27;,this.checked)&quot;&gt;&lt;span&gt;&#x27;+x[1]+&#x27;&lt;/span&gt;&lt;/label&gt;&#x27;).join(&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;+vAbout()+&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Reorder rule&lt;/h2&gt;&lt;div class=&quot;mute&quot;&gt;Order when days left ≤ delivery + days to next check + spare = &lt;b&gt;&#x27;+thr()+&#x27;&lt;/b&gt;&lt;/div&gt;&#x27;+f(&#x27;lead&#x27;,&#x27;Delivery days (Patient Access → Day Lewis)&#x27;)+f(&#x27;gap&#x27;,&#x27;Days until the next ordering run&#x27;)+f(&#x27;margin&#x27;,&#x27;Spare days&#x27;)+f(&#x27;buyLow&#x27;,&#x27;Supplements bought in the UK: warn when days left ≤&#x27;)+f(&#x27;preTripDays&#x27;,&#x27;Warn this many days before leaving the UK&#x27;)+&#x27;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Dose times&lt;/h2&gt;&lt;div class=&quot;grid2&quot;&gt;&lt;div&gt;&lt;label&gt;Morning&lt;/label&gt;&lt;input type=&quot;time&quot; value=&quot;&#x27;+s.amTime+&#x27;&quot; onchange=&quot;upSetS(\&#x27;amTime\&#x27;,this.value)&quot;&gt;&lt;/div&gt;&lt;div&gt;&lt;label&gt;Evening&lt;/label&gt;&lt;input type=&quot;time&quot; value=&quot;&#x27;+s.pmTime+&#x27;&quot; onchange=&quot;upSetS(\&#x27;pmTime\&#x27;,this.value)&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Import / export tablets (CSV)&lt;/h2&gt;&lt;div class=&quot;mute&quot;&gt;Columns: name, unit, morning, evening, box_size, source (prescription / supplement-uk / supplement-spain), stock_now, stock_24b, order_qty, next_issue, days_per_box, note. Empty cells leave things unchanged. Names are matched to your existing tablets; new names are added.&lt;/div&gt;&#x27;
+   +&#x27;&lt;label&gt;Choose a CSV file&lt;/label&gt;&lt;input type=&quot;file&quot; accept=&quot;.csv,text/csv,text/plain&quot; onchange=&quot;csvFile(this)&quot;&gt;&#x27;
+   +&#x27;&lt;label&gt;Or paste CSV text&lt;/label&gt;&lt;textarea id=&quot;csvt&quot; rows=&quot;4&quot; placeholder=&quot;name,unit,morning,evening,...&quot;&gt;&lt;/textarea&gt;&#x27;
+   +&#x27;&lt;button class=&quot;btn&quot; onclick=&quot;importCSV($(\&#x27;csvt\&#x27;).value)&quot;&gt;Import pasted CSV&lt;/button&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;exportCSV()&quot;&gt;Show my list as CSV (copy it)&lt;/button&gt;&#x27;
+   +&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;if(window.AndroidApp)AndroidApp.pinShortcut();else banner(\&#x27;Only in the phone app\&#x27;,true)&quot;&gt;Add Tablets icon to home screen&lt;/button&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Backup&lt;/h2&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;exportData()&quot;&gt;Show my data (copy it)&lt;/button&gt;&lt;textarea id=&quot;bk&quot; rows=&quot;4&quot; style=&quot;margin-top:8px&quot; placeholder=&quot;Paste data here to restore&quot;&gt;&lt;/textarea&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;importData()&quot;&gt;Restore from pasted data&lt;/button&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;resetAll()&quot;&gt;Reset to 22 Nov starting counts&lt;/button&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;h2&gt;24B trips&lt;/h2&gt;&#x27;+vTrips()
+   +&#x27;&lt;p class=&quot;mute&quot;&gt;Spec: D:\\_system\\claude\\tablets\\SPEC.md&lt;/p&gt;&#x27;;
+}
+function upSet(k,v){st.settings[k]=v;save();banner(&#x27;Setting saved&#x27;);render()}
+function upSetS(k,v){st.settings[k]=v;save();banner(&#x27;Setting saved&#x27;);render()}
+function exportData(){const t=$(&#x27;bk&#x27;);t.value=JSON.stringify(st);t.select();try{navigator.clipboard.writeText(t.value);banner(&#x27;Copied to clipboard&#x27;)}catch(e){banner(&#x27;Select all and copy&#x27;)}}
+function importData(){try{const o=JSON.parse($(&#x27;bk&#x27;).value);if(!o.items||!o.baselines)throw 0;st=fix(o);save();banner(&#x27;Restored&#x27;);render()}catch(e){banner(&#x27;That is not valid backup data&#x27;,true)}}
+function resetAll(){if(confirm(&#x27;Delete all logged exceptions and orders and go back to the 22 Nov counts?&#x27;)){st=fix(JSON.parse(JSON.stringify(SEED)));save();banner(&#x27;Reset&#x27;);render()}}
+
+/* ---------- item sheet ---------- */
+function openItem(id){
+  const it=st.items.find(i=&gt;i.id===id);const now=new Date();const r=sim(it,now);
+  const lo=lastOrderDate(it,r);
+  let h=&#x27;&lt;div class=&quot;row&quot;&gt;&lt;h2 style=&quot;margin:0&quot;&gt;&#x27;+it.name+&#x27;&lt;/h2&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;closeSheet()&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;mute&quot;&gt;&#x27;+esc(whyShow(it))+&#x27;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;big&quot;&gt;&#x27;+qtyTxt(it,r.total)+&#x27;&lt;/div&gt;&lt;div class=&quot;mute&quot;&gt;Morning &#x27;+(it.unit===&#x27;box&#x27;?&#x27;1 type&#x27;:qtyTxt(it,it.am))+&#x27; · Evening &#x27;+(it.unit===&#x27;box&#x27;?&#x27;2 type&#x27;:qtyTxt(it,it.pm))+&#x27; · pack &#x27;+it.pack+&#x27;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;mute&quot;&gt;&#x27;+(r.runOut?&#x27;Runs out &#x27;+nice(r.runOut)+&#x27; (&#x27;+r.daysLeft+&#x27; days)&#x27;:&#x27;No run-out in the next 2 years&#x27;)+(lo&amp;&amp;it.src===&#x27;pa&#x27;?&#x27; · order by &#x27;+nice(lo):&#x27;&#x27;)+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;label&gt;Recount: I actually have&lt;/label&gt;&lt;input type=&quot;number&quot; step=&quot;any&quot; id=&quot;rc&quot; inputmode=&quot;decimal&quot;&gt;&lt;button class=&quot;btn&quot; onclick=&quot;quickRecount(\&#x27;&#x27;+id+&#x27;\&#x27;)&quot;&gt;Save recount (UK)&lt;/button&gt;&#x27;
+   +(it.src===&#x27;pa&#x27;?(()=&gt;{const flagged=r.out||(r.daysLeft!==null&amp;&amp;r.daysLeft&lt;=thr());let h2=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;b&gt;Order reminders&lt;/b&gt;&#x27;;
+      if(skipped(it))h2+=&#x27;&lt;div class=&quot;mute&quot;&gt;Skipped until &#x27;+niceS(pd(it.skipUntil))+&#x27;. It comes back by itself, or if it gets very low.&lt;/div&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;unskipItem(\&#x27;&#x27;+id+&#x27;\&#x27;)&quot;&gt;Stop skipping&lt;/button&gt;&#x27;;
+      else if(flagged&amp;&amp;!it.onlyAsk)h2+=&#x27;&lt;div class=&quot;mute&quot;&gt;This one needs ordering. Not yet?&lt;/div&gt;&lt;label&gt;Skip ordering for&lt;/label&gt;&lt;select id=&quot;skd&quot;&gt;&#x27;+SKIP_DAYS.map(d=&gt;&#x27;&lt;option value=&quot;&#x27;+d+&#x27;&quot;&#x27;+(d===30?&#x27; selected&#x27;:&#x27;&#x27;)+&#x27;&gt;&#x27;+d+&#x27; days&lt;/option&gt;&#x27;).join(&#x27;&#x27;)+&#x27;&lt;/select&gt;&lt;button class=&quot;btn&quot; onclick=&quot;skipItem(\&#x27;&#x27;+id+&#x27;\&#x27;)&quot;&gt;Skip ordering&lt;/button&gt;&#x27;;
+      else if(!it.onlyAsk)h2+=&#x27;&lt;div class=&quot;mute&quot;&gt;Nothing to do yet. It will appear when it needs ordering.&lt;/div&gt;&#x27;;
+      h2+=&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;toggleAsk(\&#x27;&#x27;+id+&#x27;\&#x27;)&quot;&gt;&#x27;+(it.onlyAsk?&#x27;Remind me automatically again&#x27;:&#x27;Only when I ask (no automatic reminders)&#x27;)+&#x27;&lt;/button&gt;&lt;/div&gt;&#x27;;return h2})():&#x27;&#x27;)
+   +&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;editItem(\&#x27;&#x27;+id+&#x27;\&#x27;)&quot;&gt;Edit this tablet (name, doses, box size…)&lt;/button&gt;&#x27;
+   +(it.src===&#x27;diab&#x27;?&#x27;&lt;p&gt;&#x27;+diabLinks(it.name.replace(/ \(.*/,&#x27;&#x27;))+&#x27;&lt;/p&gt;&#x27;:&#x27;&#x27;);
+  $(&#x27;sheetBody&#x27;).innerHTML=h;$(&#x27;sheet&#x27;).className=&#x27;sheet show&#x27;;
+}
+function closeSheet(){$(&#x27;sheet&#x27;).className=&#x27;sheet&#x27;}
+function quickRecount(id){const q=parseFloat($(&#x27;rc&#x27;).value);if(!(q&gt;=0))return banner(&#x27;Enter a number&#x27;,true);st.events.push({id:uid(),type:&#x27;recount&#x27;,item:id,loc:&#x27;uk&#x27;,qty:q,at:lts(new Date())});save();closeSheet();banner(&#x27;Recount saved&#x27;);render()}
+function saveDoseOld(id){const it=st.items.find(i=&gt;i.id===id);if(it.unit!==&#x27;box&#x27;){it.am=parseFloat($(&#x27;ea&#x27;).value)||0;it.pm=parseFloat($(&#x27;ep&#x27;).value)||0}const k=parseFloat($(&#x27;ek&#x27;).value);if(k&gt;0)it.pack=k;save();closeSheet();banner(&#x27;Saved: doses apply to all dates since the last count&#x27;);render()}
+
+/* ---------- add / edit a tablet ---------- */
+let EF=null;
+function efRead(){
+  if(!EF)return;const g=id=&gt;{const e=document.getElementById(id);return e?e.value:&#x27;&#x27;};
+  EF.name=g(&#x27;ef_name&#x27;);EF.am=g(&#x27;ef_am&#x27;);EF.pm=g(&#x27;ef_pm&#x27;);EF.pack=g(&#x27;ef_pack&#x27;);EF.issue=g(&#x27;ef_issue&#x27;);EF.next=g(&#x27;ef_next&#x27;);EF.why=g(&#x27;ef_why&#x27;);EF.start=g(&#x27;ef_start&#x27;);EF.days=g(&#x27;ef_days&#x27;);
+}
+function editItem(id){
+  const it=id?st.items.find(i=&gt;i.id===id):null;
+  EF=it?{id,name:it.name,unit:it.unit,src:it.src,am:it.unit===&#x27;box&#x27;?&#x27;&#x27;:it.am,pm:it.unit===&#x27;box&#x27;?&#x27;&#x27;:it.pm,pack:it.pack,issue:it.issue||&#x27;&#x27;,next:it.next||&#x27;&#x27;,why:it.why||&#x27;&#x27;,start:&#x27;&#x27;,days:it.unit===&#x27;box&#x27;?Math.round(1/((it.am||0)+(it.pm||0))):30}
+     :{id:null,name:&#x27;&#x27;,unit:&#x27;tablet&#x27;,src:&#x27;pa&#x27;,am:1,pm:0,pack:28,issue:&#x27;&#x27;,next:&#x27;&#x27;,why:&#x27;&#x27;,start:&#x27;&#x27;,days:30};
+  efDraw();
+}
+function efSet(k,v){efRead();EF[k]=v;efDraw()}
+function efDraw(){
+  const E=EF,seg=(k,opts)=&gt;&#x27;&lt;div class=&quot;seg&quot;&gt;&#x27;+opts.map(o=&gt;&#x27;&lt;button class=&quot;&#x27;+(E[k]===o[0]?&#x27;on&#x27;:&#x27;&#x27;)+&#x27;&quot; onclick=&quot;efSet(\&#x27;&#x27;+k+&#x27;\&#x27;,\&#x27;&#x27;+o[0]+&#x27;\&#x27;)&quot;&gt;&#x27;+o[1]+&#x27;&lt;/button&gt;&#x27;).join(&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;;
+  const inp=(id,l,v,ph,type)=&gt;&#x27;&lt;label&gt;&#x27;+l+&#x27;&lt;/label&gt;&lt;input id=&quot;&#x27;+id+&#x27;&quot; type=&quot;&#x27;+(type||&#x27;text&#x27;)+&#x27;&quot; &#x27;+(type===&#x27;number&#x27;?&#x27;step=&quot;any&quot; inputmode=&quot;decimal&quot; &#x27;:&#x27;&#x27;)+&#x27;value=&quot;&#x27;+esc(v)+&#x27;&quot; placeholder=&quot;&#x27;+(ph||&#x27;&#x27;)+&#x27;&quot;&gt;&#x27;;
+  let h=&#x27;&lt;div class=&quot;row&quot;&gt;&lt;h2 style=&quot;margin:0&quot;&gt;&#x27;+(E.id?&#x27;Edit tablet&#x27;:&#x27;Add a tablet&#x27;)+&#x27;&lt;/h2&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;closeSheet()&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&#x27;
+   +inp(&#x27;ef_name&#x27;,&#x27;Name and strength&#x27;,E.name,&#x27;tablet name and strength&#x27;)
+   +&#x27;&lt;label&gt;Type&lt;/label&gt;&#x27;+seg(&#x27;unit&#x27;,[[&#x27;tablet&#x27;,&#x27;Tablet&#x27;],[&#x27;capsule&#x27;,&#x27;Capsule&#x27;],[&#x27;ml&#x27;,&#x27;Liquid (ml)&#x27;],[&#x27;box&#x27;,&#x27;Boxes&#x27;]])
+   +(E.unit===&#x27;box&#x27;?inp(&#x27;ef_days&#x27;,&#x27;Days one box lasts&#x27;,E.days,&#x27;30&#x27;,&#x27;number&#x27;):&#x27;&lt;div class=&quot;grid2&quot;&gt;&lt;div&gt;&#x27;+inp(&#x27;ef_am&#x27;,&#x27;Morning dose (how many)&#x27;,E.am,&#x27;0&#x27;,&#x27;number&#x27;)+&#x27;&lt;/div&gt;&lt;div&gt;&#x27;+inp(&#x27;ef_pm&#x27;,&#x27;Evening dose (how many)&#x27;,E.pm,&#x27;0&#x27;,&#x27;number&#x27;)+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;)
+   +inp(&#x27;ef_pack&#x27;,E.unit===&#x27;box&#x27;?&#x27;One box (leave 1)&#x27;:&#x27;Box or bottle size (what + 1 box adds)&#x27;,E.pack,&#x27;28&#x27;,&#x27;number&#x27;)
+   +&#x27;&lt;label&gt;Where does it come from?&lt;/label&gt;&#x27;+seg(&#x27;src&#x27;,[[&#x27;pa&#x27;,&#x27;Prescription&#x27;],[&#x27;diab&#x27;,&#x27;Bought in the UK&#x27;],[&#x27;fv&#x27;,&#x27;Bought abroad&#x27;]])
+   +(E.src===&#x27;pa&#x27;?&#x27;&lt;div class=&quot;grid2&quot;&gt;&lt;div&gt;&#x27;+inp(&#x27;ef_issue&#x27;,&#x27;Usual amount ordered&#x27;,E.issue,&#x27;e.g. 84&#x27;,&#x27;number&#x27;)+&#x27;&lt;/div&gt;&lt;div&gt;&#x27;+inp(&#x27;ef_next&#x27;,&#x27;Next issue date&#x27;,E.next,&#x27;&#x27;,&#x27;date&#x27;)+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;:&#x27;&#x27;)
+   +inp(&#x27;ef_why&#x27;,&#x27;What it is for (your doctor can see this list)&#x27;,E.why,&#x27;e.g. cholesterol&#x27;)+&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;whySuggest()&quot;&gt;Suggest what it is for&lt;/button&gt;&#x27;
+   +(E.id?&#x27;&#x27;:inp(&#x27;ef_start&#x27;,&#x27;How many do you have now?&#x27;,E.start,&#x27;e.g. 56&#x27;,&#x27;number&#x27;))
+   +&#x27;&lt;button class=&quot;btn&quot; onclick=&quot;efSave()&quot;&gt;Save&lt;/button&gt;&#x27;+(E.id?&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;efDelete()&quot;&gt;Delete this tablet&lt;/button&gt;&#x27;:&#x27;&#x27;);
+  document.getElementById(&#x27;sheetBody&#x27;).innerHTML=h;document.getElementById(&#x27;sheet&#x27;).className=&#x27;sheet show&#x27;;
+}
+function efSave(){
+  efRead();const E=EF;const name=(E.name||&#x27;&#x27;).trim();
+  if(!name)return banner(&#x27;Type the tablet name&#x27;,true);
+  const num=x=&gt;{const v=parseFloat(x);return isNaN(v)?0:v};
+  let am=num(E.am),pm=num(E.pm);
+  if(E.unit===&#x27;box&#x27;){const d=num(E.days)||30;am=pm=1/(2*d)}
+  else if(!am&amp;&amp;!pm)return banner(&#x27;Enter how many you take in the morning or evening&#x27;,true);
+  const pack=num(E.pack)||1;
+  let it=E.id?st.items.find(i=&gt;i.id===E.id):null;
+  if(!it){
+    let id=slug(name),n=2;while(st.items.some(i=&gt;i.id===id))id=slug(name)+(n++);
+    it={id,from:lts(new Date())};st.items.push(it);st.baselines[id]=0;
+    if(num(E.start)&gt;0)st.events.push({id:uid(),type:&#x27;recount&#x27;,item:id,loc:&#x27;uk&#x27;,qty:num(E.start),at:lts(new Date())});
+  }
+  Object.assign(it,{name,unit:E.unit,am,pm,pack,src:E.src,issue:num(E.issue),next:E.next||&#x27;&#x27;,why:E.why||&#x27;&#x27;});
+  save();closeSheet();banner(&#x27;Saved: &#x27;+name);render();
+}
+function efDelete(){
+  if(!confirm(&#x27;Delete this tablet and its history from this list?&#x27;))return;
+  const id=EF.id;st.items=st.items.filter(i=&gt;i.id!==id);delete st.baselines[id];
+  st.events=st.events.filter(e=&gt;e.item!==id);st.orders=st.orders.filter(o=&gt;o.item!==id);
+  save();closeSheet();banner(&#x27;Deleted&#x27;);render();
+}
+
+/* ---------- BULK RECEIPT: tap per box, back/forward like photos ---------- */
+let rcIdx=0;
+const openFor=id=&gt;st.orders.filter(o=&gt;o.item===id&amp;&amp;isOpen(o)).sort((a,b)=&gt;a.date.localeCompare(b.date))[0];
+function recvList(){const w=st.items.filter(i=&gt;openFor(i.id)),r=st.items.filter(i=&gt;!openFor(i.id));return [...w,...r]}
+const U=it=&gt;it.unit===&#x27;box&#x27;?&#x27;box&#x27;:it.unit===&#x27;ml&#x27;?&#x27;ml&#x27;:it.unit;
+function recvItem(id){const L=recvList();rcIdx=Math.max(0,L.findIndex(i=&gt;i.id===id));go(&#x27;recv&#x27;)}
+function rcPersist(){const p=activeP();if(p)persistState(st,p.id)}
+function rcAdd(id,n){const cur=st.rc[id]||0;st.rc[id]=Math.max(0,Math.round((cur+n)*1000)/1000);rcPersist();render(true)}
+let holdT=null,holdI=null,holdN=0;
+function rcBump(id,n){const cur=st.rc[id]||0;st.rc[id]=Math.max(0,Math.round((cur+n)*1000)/1000);const e=document.getElementById(&#x27;stv&#x27;);if(e)e.textContent=(Math.round(st.rc[id]*10)/10)}
+function rcHold(ev,id,d){
+  ev.preventDefault();rcStop(true);holdN=0;rcBump(id,d);
+  holdT=setTimeout(()=&gt;{holdI=setInterval(()=&gt;{holdN++;rcBump(id,d*(holdN&gt;12?5:1))},holdN&gt;12?60:110)},420);
+}
+function rcStop(quiet){clearTimeout(holdT);clearInterval(holdI);holdT=holdI=null;if(!quiet){rcPersist();render(true)}}
+function rcSet(id,v){const q=parseFloat(v);st.rc[id]=q&gt;0?q:0;rcPersist();render(true)}
+function rcGo(d){const n=recvList().length+1;rcIdx=(rcIdx+d+n)%n;render(true)}
+function vRecv(){
+  const L=recvList();if(rcIdx&gt;L.length)rcIdx=0;
+  const n=L.length+1;
+  const dots=(cur)=&gt;&#x27;&lt;div class=&quot;mute&quot; style=&quot;text-align:center;margin:6px 0&quot;&gt;&#x27;+(cur+1)+&#x27; of &#x27;+n+&#x27; · swipe or use Back / Next&lt;/div&gt;&#x27;;
+  const navb=&#x27;&lt;div class=&quot;grid2&quot; style=&quot;position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 66px);z-index:9&quot;&gt;&lt;button class=&quot;btn sec&quot; style=&quot;padding:14px&quot; onclick=&quot;rcGo(-1)&quot;&gt;◀ Back&lt;/button&gt;&lt;button class=&quot;btn&quot; style=&quot;padding:14px&quot; onclick=&quot;rcGo(1)&quot;&gt;Next ▶&lt;/button&gt;&lt;/div&gt;&#x27;;
+  if(rcIdx===L.length){
+    const lines=L.filter(i=&gt;(st.rc[i.id]||0)&gt;0);
+    let h=&#x27;&lt;h2 style=&quot;margin-top:6px&quot;&gt;Check and save&lt;/h2&gt;&#x27;;
+    h+=lines.length?lines.map(i=&gt;{const o=openFor(i.id);const got=st.rc[i.id];let s=&#x27;&#x27;;if(o){const rem=o.qty-(o.recv||0)-got;s=rem&gt;0.0001?&#x27;&lt;span class=&quot;pill p-warn&quot;&gt;still owed &#x27;+qtyTxt(i,rem)+&#x27;&lt;/span&gt;&#x27;:&#x27;&lt;span class=&quot;pill p-ok&quot;&gt;order complete&lt;/span&gt;&#x27;}else s=&#x27;&lt;span class=&quot;pill p-warn&quot;&gt;no open order&lt;/span&gt;&#x27;;return &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;name&quot;&gt;&#x27;+i.name+&#x27;&lt;/span&gt;&#x27;+s+&#x27;&lt;/div&gt;&lt;div class=&quot;big&quot;&gt;+&#x27;+qtyTxt(i,got)+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;}).join(&#x27;&#x27;):&#x27;&lt;div class=&quot;card mute&quot;&gt;Nothing entered yet. Use Back to tap boxes.&lt;/div&gt;&#x27;;
+    h+=&#x27;&lt;button class=&quot;btn&quot; onclick=&quot;saveReceipt()&quot;&gt;Save receipt (add to stock)&lt;/button&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;rcClear()&quot;&gt;Clear everything entered&lt;/button&gt;&#x27;;
+    const last=[...st.receipts].reverse().slice(0,3);
+    if(last.length)h+=&#x27;&lt;h2&gt;Recent receipts&lt;/h2&gt;&#x27;+last.map(r=&gt;&#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;name&quot;&gt;&#x27;+niceS(pd(r.date))+&#x27;&lt;/span&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;undoReceipt(&#x27;+r.id+&#x27;)&quot;&gt;Undo&lt;/button&gt;&lt;/div&gt;&lt;div class=&quot;mute&quot;&gt;&#x27;+r.lines.map(l=&gt;{const it=st.items.find(i=&gt;i.id===l.item);return it.name.replace(/ \(.*/,&#x27;&#x27;)+&#x27; +&#x27;+Math.round(l.qty*10)/10}).join(&#x27;, &#x27;)+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;).join(&#x27;&#x27;);
+    return dots(rcIdx)+h+navb+&#x27;&lt;div style=&quot;height:70px&quot;&gt;&lt;/div&gt;&#x27;;
+  }
+  const it=L[rcIdx],o=openFor(it.id),got=st.rc[it.id]||0,box=it.pack;
+  let status=&#x27;&#x27;;
+  if(o){
+    const prev=o.recv||0,rem=o.qty-prev;
+    const after=rem-got;
+    status=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span&gt;Ordered&lt;/span&gt;&lt;b&gt;&#x27;+qtyTxt(it,o.qty)+&#x27;&lt;/b&gt;&lt;/div&gt;&#x27;+(prev?&#x27;&lt;div class=&quot;row&quot;&gt;&lt;span&gt;Already received&lt;/span&gt;&lt;b&gt;&#x27;+qtyTxt(it,prev)+&#x27;&lt;/b&gt;&lt;/div&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;div class=&quot;row&quot;&gt;&lt;span&gt;Expected in this bag&lt;/span&gt;&lt;b&gt;&#x27;+qtyTxt(it,rem)+&#x27;&lt;/b&gt;&lt;/div&gt;&#x27;
+      +&#x27;&lt;div style=&quot;margin-top:6px&quot;&gt;&#x27;+(after&gt;0.0001?(got&gt;0?&#x27;&lt;span class=&quot;pill p-warn&quot;&gt;short: still owed &#x27;+qtyTxt(it,after)+&#x27;&lt;/span&gt;&#x27;:&#x27;&lt;span class=&quot;pill p-bad&quot;&gt;not received yet&lt;/span&gt;&#x27;):(got&gt;0?&#x27;&lt;span class=&quot;pill p-ok&quot;&gt;✓ order complete&lt;/span&gt;&#x27;:&#x27;&#x27;))+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
+  }else status=&#x27;&lt;div class=&quot;card mute&quot;&gt;No open order for this one. Anything you add still goes into stock.&lt;/div&gt;&#x27;;
+  return dots(rcIdx)
+   +&#x27;&lt;div style=&quot;text-align:center&quot;&gt;&lt;div class=&quot;big&quot; style=&quot;font-size:24px&quot;&gt;&#x27;+it.name+&#x27;&lt;/div&gt;&lt;div class=&quot;mute&quot;&gt;one box = &#x27;+qtyTxt(it,box)+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;
+   +status
+   +&#x27;&lt;div class=&quot;mute&quot; style=&quot;text-align:center;margin-top:6px&quot;&gt;Received now (tap − or + for one at a time, hold to go faster)&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;stepper&quot;&gt;&lt;button class=&quot;stp&quot; aria-label=&quot;one less&quot; onpointerdown=&quot;rcHold(event,\&#x27;&#x27;+it.id+&#x27;\&#x27;,-1)&quot; onpointerup=&quot;rcStop()&quot; onpointerleave=&quot;rcStop()&quot; onpointercancel=&quot;rcStop()&quot;&gt;−&lt;/button&gt;&lt;div class=&quot;stv&quot; id=&quot;stv&quot;&gt;&#x27;+(Math.round(got*10)/10)+&#x27;&lt;/div&gt;&lt;button class=&quot;stp&quot; aria-label=&quot;one more&quot; onpointerdown=&quot;rcHold(event,\&#x27;&#x27;+it.id+&#x27;\&#x27;,1)&quot; onpointerup=&quot;rcStop()&quot; onpointerleave=&quot;rcStop()&quot; onpointercancel=&quot;rcStop()&quot;&gt;+&lt;/button&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;mute&quot; style=&quot;text-align:center&quot;&gt;&#x27;+(it.unit===&#x27;ml&#x27;?&#x27;ml&#x27;:it.unit===&#x27;box&#x27;?&#x27;boxes&#x27;:&#x27;&#x27;)+&#x27; &#x27;+(box&gt;0?&#x27;· &#x27;+(Math.round(got/box*100)/100)+&#x27; boxes&#x27;:&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;grid2&quot; style=&quot;margin-top:10px&quot;&gt;&lt;button class=&quot;btn&quot; onclick=&quot;rcAdd(\&#x27;&#x27;+it.id+&#x27;\&#x27;,&#x27;+box+&#x27;)&quot;&gt;+ 1 box (&#x27;+box+&#x27;)&lt;/button&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;rcAdd(\&#x27;&#x27;+it.id+&#x27;\&#x27;,&#x27;+(box/2)+&#x27;)&quot;&gt;+ ½ box&lt;/button&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;rcAdd(\&#x27;&#x27;+it.id+&#x27;\&#x27;,&#x27;+(-box)+&#x27;)&quot;&gt;− 1 box&lt;/button&gt;&#x27;
+   +&#x27;&lt;label&gt;Or type the exact number&lt;/label&gt;&lt;input type=&quot;number&quot; step=&quot;any&quot; inputmode=&quot;decimal&quot; value=&quot;&#x27;+(got||&#x27;&#x27;)+&#x27;&quot; onchange=&quot;rcSet(\&#x27;&#x27;+it.id+&#x27;\&#x27;,this.value)&quot; placeholder=&quot;e.g. 15&quot;&gt;&#x27;
+   +navb+&#x27;&lt;div style=&quot;height:70px&quot;&gt;&lt;/div&gt;&#x27;;
+}
+function rcClear(){st.rc={};save();banner(&#x27;Cleared&#x27;);rcIdx=0;render(true)}
+function saveReceipt(){
+  const L=recvList();const lines=[];const rid=uid();const today=ymd(new Date());const msgs=[];
+  for(const it of L){
+    const q=st.rc[it.id]||0;if(q&lt;=0)continue;
+    st.events.push({id:uid(),type:&#x27;delivery&#x27;,item:it.id,date:today,at:lts(new Date()),qty:q,loc:&#x27;uk&#x27;,rid});
+    const o=openFor(it.id);let oid=null,prevStatus=null;
+    if(o){oid=o.id;prevStatus=o.status;o.recv=(o.recv||0)+q;if(o.recv&gt;=o.qty-1e-6){o.status=&#x27;collected&#x27;;o.done=today;msgs.push(it.name.replace(/ \(.*/,&#x27;&#x27;)+&#x27; complete&#x27;)}else{o.status=&#x27;part&#x27;;msgs.push(it.name.replace(/ \(.*/,&#x27;&#x27;)+&#x27; owed &#x27;+Math.round((o.qty-o.recv)*10)/10)}}
+    lines.push({item:it.id,qty:q,order:oid,prev:prevStatus});
+  }
+  if(!lines.length)return banner(&#x27;Nothing entered&#x27;,true);
+  st.receipts.push({id:rid,date:today,lines});st.rc={};rcIdx=0;save();
+  banner(&#x27;Saved &#x27;+lines.length+&#x27; items into stock. &#x27;+msgs.join(&#x27; · &#x27;));render(true);
+}
+function undoReceipt(rid){
+  const r=st.receipts.find(x=&gt;x.id===rid);if(!r)return;
+  st.events=st.events.filter(e=&gt;e.rid!==rid);
+  for(const l of r.lines){const o=st.orders.find(x=&gt;x.id===l.order);if(o){o.recv=Math.max(0,(o.recv||0)-l.qty);o.status=o.recv&gt;0?&#x27;part&#x27;:(l.prev&amp;&amp;l.prev!==&#x27;part&#x27;?l.prev:&#x27;requested&#x27;);delete o.done}}
+  st.receipts=st.receipts.filter(x=&gt;x.id!==rid);save();banner(&#x27;Receipt undone&#x27;);render(true);
+}
+let tx=null;
+document.addEventListener(&#x27;touchstart&#x27;,e=&gt;{tx=e.touches[0].clientX},{passive:true});
+document.addEventListener(&#x27;touchend&#x27;,e=&gt;{if(tab!==&#x27;recv&#x27;||tx===null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)&gt;70&amp;&amp;!/INPUT|TEXTAREA/.test(document.activeElement.tagName))rcGo(dx&lt;0?1:-1)},{passive:true});
+
+/* ---------- CSV import / export ---------- */
+const CSVCOLS=[&#x27;name&#x27;,&#x27;unit&#x27;,&#x27;morning&#x27;,&#x27;evening&#x27;,&#x27;box_size&#x27;,&#x27;source&#x27;,&#x27;stock_now&#x27;,&#x27;stock_24b&#x27;,&#x27;order_qty&#x27;,&#x27;next_issue&#x27;,&#x27;days_per_box&#x27;,&#x27;note&#x27;];
+const SRC={prescription:&#x27;pa&#x27;,&#x27;supplement-uk&#x27;:&#x27;diab&#x27;,&#x27;supplement-spain&#x27;:&#x27;fv&#x27;};
+const SRCR={pa:&#x27;prescription&#x27;,diab:&#x27;supplement-uk&#x27;,fv:&#x27;supplement-spain&#x27;};
+function parseCSV(t){
+  const rows=[];let r=[],c=&#x27;&#x27;,q=false;
+  for(let i=0;i&lt;t.length;i++){const ch=t[i];
+    if(q){if(ch===&#x27;&quot;&#x27;){if(t[i+1]===&#x27;&quot;&#x27;){c+=&#x27;&quot;&#x27;;i++}else q=false}else c+=ch}
+    else if(ch===&#x27;&quot;&#x27;)q=true;
+    else if(ch===&#x27;,&#x27;){r.push(c);c=&#x27;&#x27;}
+    else if(ch===&#x27;\n&#x27;||ch===&#x27;\r&#x27;){if(ch===&#x27;\r&#x27;&amp;&amp;t[i+1]===&#x27;\n&#x27;)i++;r.push(c);c=&#x27;&#x27;;if(r.some(x=&gt;x.trim()!==&#x27;&#x27;))rows.push(r);r=[]}
+    else c+=ch}
+  r.push(c);if(r.some(x=&gt;x.trim()!==&#x27;&#x27;))rows.push(r);return rows;
+}
+const normName=s=&gt;s.toLowerCase().replace(/\(.*?\)/g,&#x27; &#x27;).replace(/[^a-z0-9.]+/g,&#x27; &#x27;).trim();
+const slug=s=&gt;normName(s).replace(/[^a-z0-9]+/g,&#x27;&#x27;)||(&#x27;item&#x27;+Date.now());
+function csvFile(inp){const f=inp.files&amp;&amp;inp.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=&gt;importCSV(String(fr.result));fr.onerror=()=&gt;banner(&#x27;Could not read that file&#x27;,true);fr.readAsText(f)}
+function importCSV(text){
+  const rows=parseCSV((text||&#x27;&#x27;).replace(/^﻿/,&#x27;&#x27;));
+  if(rows.length&lt;2)return banner(&#x27;CSV needs a header row and at least one tablet&#x27;,true);
+  const H=rows[0].map(h=&gt;h.trim().toLowerCase().replace(/\s+/g,&#x27;_&#x27;));
+  if(H.indexOf(&#x27;name&#x27;)&lt;0)return banner(&#x27;CSV needs a &quot;name&quot; column&#x27;,true);
+  let upd=0,add=0,cnt=0;const bad=[];
+  const now=lts(new Date());
+  for(let k=1;k&lt;rows.length;k++){
+    const row=rows[k];const g=n=&gt;{const i=H.indexOf(n);return i&lt;0?&#x27;&#x27;:(row[i]||&#x27;&#x27;).trim()};
+    const name=g(&#x27;name&#x27;);if(!name)continue;
+    const num=n=&gt;{const v=g(n);if(v===&#x27;&#x27;)return null;const x=parseFloat(v);return isNaN(x)?NaN:x};
+    const vals={morning:num(&#x27;morning&#x27;),evening:num(&#x27;evening&#x27;),box_size:num(&#x27;box_size&#x27;),stock_now:num(&#x27;stock_now&#x27;),stock_24b:num(&#x27;stock_24b&#x27;),order_qty:num(&#x27;order_qty&#x27;),days_per_box:num(&#x27;days_per_box&#x27;)};
+    if(Object.values(vals).some(x=&gt;Number.isNaN(x))){bad.push(name);continue}
+    const srcTxt=g(&#x27;source&#x27;).toLowerCase();if(srcTxt&amp;&amp;!SRC[srcTxt]){bad.push(name+&#x27; (source)&#x27;);continue}
+    let it=st.items.find(i=&gt;normName(i.name)===normName(name)||i.id===slug(name));
+    if(!it){it={id:slug(name),name,unit:g(&#x27;unit&#x27;)||&#x27;tablet&#x27;,am:0,pm:0,pack:1,src:&#x27;pa&#x27;,issue:0,next:&#x27;&#x27;,why:&#x27;&#x27;};st.items.push(it);st.baselines[it.id]=0;add++}else upd++;
+    if(g(&#x27;unit&#x27;))it.unit=g(&#x27;unit&#x27;);
+    if(srcTxt)it.src=SRC[srcTxt];
+    if(vals.box_size!==null)it.pack=vals.box_size;
+    if(it.unit===&#x27;box&#x27;&amp;&amp;vals.days_per_box){it.am=it.pm=1/(2*vals.days_per_box)}
+    else{if(vals.morning!==null)it.am=vals.morning;if(vals.evening!==null)it.pm=vals.evening}
+    if(vals.order_qty!==null)it.issue=vals.order_qty;
+    if(g(&#x27;next_issue&#x27;))it.next=g(&#x27;next_issue&#x27;);
+    if(g(&#x27;note&#x27;))it.why=g(&#x27;note&#x27;);
+    if(vals.stock_now!==null){st.events.push({id:uid(),type:&#x27;recount&#x27;,item:it.id,loc:&#x27;uk&#x27;,qty:vals.stock_now,at:now});cnt++}
+    if(vals.stock_24b!==null){st.events.push({id:uid(),type:&#x27;recount&#x27;,item:it.id,loc:&#x27;fv&#x27;,qty:vals.stock_24b,at:now});cnt++}
+  }
+  save();
+  if(bad.length)banner(&#x27;Skipped (bad numbers): &#x27;+bad.join(&#x27;, &#x27;)+&#x27;. Others imported.&#x27;,true);
+  else banner(&#x27;Imported: &#x27;+upd+&#x27; updated, &#x27;+add+&#x27; new, &#x27;+cnt+&#x27; stock counts set&#x27;);
+  render();
+}
+function exportCSV(){
+  const q=s=&gt;/[&quot;,\n]/.test(s)?&#x27;&quot;&#x27;+s.replace(/&quot;/g,&#x27;&quot;&quot;&#x27;)+&#x27;&quot;&#x27;:s;
+  const now=new Date();
+  const lines=[CSVCOLS.join(&#x27;,&#x27;)];
+  for(const it of st.items){
+    const r=sim(it,now);const box=it.unit===&#x27;box&#x27;;
+    const rd=x=&gt;Math.round(x*100)/100;
+    lines.push([it.name,it.unit,box?&#x27;&#x27;:it.am,box?&#x27;&#x27;:it.pm,it.pack,SRCR[it.src]||&#x27;prescription&#x27;,rd(r.uk),rd(r.fv),it.issue,it.next,box?rd(1/((it.am||0)+(it.pm||0))):&#x27;&#x27;,it.why].map(v=&gt;q(String(v))).join(&#x27;,&#x27;));
+  }
+  const ta=$(&#x27;csvt&#x27;);ta.value=lines.join(&#x27;\n&#x27;);ta.select();
+  try{navigator.clipboard.writeText(ta.value);banner(&#x27;CSV copied to clipboard&#x27;)}catch(e){banner(&#x27;Select all and copy&#x27;)}
+}
+
+/* ---------- PEOPLE, PINs AND SYNC (Synology; works offline from the last saved copy) ---------- */
+const API_DEFAULT=&#x27;https://myev.cloudgough.synology.me:8443&#x27;;
+const API=(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&amp;&amp;new URLSearchParams(location.search).get(&#x27;api&#x27;))||API_DEFAULT;
+function ensureIds(){if(!PR.device){PR.device=hex(16);PR.token=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,&#x27;-&#x27;).replace(/\//g,&#x27;_&#x27;).replace(/=+$/,&#x27;&#x27;);psave()}}
+async function api(path,body,ms){
+  const c=new AbortController(),t=setTimeout(()=&gt;c.abort(),ms||9000);
+  try{
+    const r=await fetch(API+path,{method:&#x27;POST&#x27;,headers:{&#x27;Content-Type&#x27;:&#x27;application/json&#x27;},body:JSON.stringify(body),signal:c.signal});
+    let j={};try{j=await r.json()}catch(e){}
+    if(!r.ok){const e=new Error(j.error||(&#x27;http &#x27;+r.status));e.http=r.status;e.code=j.error;throw e}
+    return j;
+  }finally{clearTimeout(t)}
+}
+const docNow=S=&gt;({items:S.items,baselines:S.baselines,baseAt:S.baseAt,settings:S.settings,trips:S.trips,events:S.events,orders:S.orders,receipts:S.receipts,tomb:S.tomb,meta:S.meta,sos:S.sos});
+/* merge a remote document into a state (same result on every device); returns true if anything changed */
+function mergeDoc(L,R){
+  if(!R||typeof R!==&#x27;object&#x27;)return false;
+  const before=JSON.stringify(docNow(L));
+  const RM=R.meta||{};
+  const pick=(sec,fs)=&gt;{if((RM[sec]||0)&gt;(L.meta[sec]||0)){fs.forEach(f=&gt;{if(R[f]!==undefined)L[f]=R[f]});L.meta[sec]=RM[sec]}};
+  pick(&#x27;items&#x27;,[&#x27;items&#x27;,&#x27;baselines&#x27;,&#x27;baseAt&#x27;]);pick(&#x27;settings&#x27;,[&#x27;settings&#x27;]);pick(&#x27;trips&#x27;,[&#x27;trips&#x27;]);pick(&#x27;sos&#x27;,[&#x27;sos&#x27;]);
+  for(const [k,v] of Object.entries(R.tomb||{}))L.tomb[k]=Math.max(L.tomb[k]||0,v);
+  const union=(a,b)=&gt;{const m=new Map();for(const x of [...(a||[]),...(b||[])])if(!m.has(x.id))m.set(x.id,x);return [...m.values()].filter(x=&gt;!L.tomb[x.id])};
+  L.events=union(L.events,R.events);L.receipts=union(L.receipts,R.receipts);
+  const om=new Map();
+  for(const x of [...(L.orders||[]),...(R.orders||[])]){const o=om.get(x.id);if(!o||(x.u||0)&gt;(o.u||0))om.set(x.id,x)}
+  L.orders=[...om.values()];
+  fix(L);
+  return JSON.stringify(docNow(L))!==before;
+}
+let syncTimer=null;
+function syncSoon(){clearTimeout(syncTimer);syncTimer=setTimeout(syncAll,1500)}
+async function syncAll(){for(const p of PR.list)await syncProfile(p);paintSync()}
+function typing(){const a=document.activeElement;return a&amp;&amp;/INPUT|TEXTAREA|SELECT/.test(a.tagName)}
+async function syncProfile(p){
+  if(!p.space||p.busy)return;
+  if(navigator.onLine===false){p.state=&#x27;offline&#x27;;return}
+  p.busy=true;let changed=false;
+  try{
+    const S=loadState(p.id);
+    let guard=0;
+    while(guard++&lt;5){
+      const wantPush=p.dirty||!p.v;
+      const body={device:PR.device,token:PR.token,space:p.space,base:p.v||0};
+      if(wantPush)body.doc=docNow(S);
+      const r=await api(&#x27;/v1/tablets/sync&#x27;,body);
+      if(r.same)break;
+      if(r.conflict||(!wantPush&amp;&amp;r.doc)){
+        if(mergeDoc(S,r.doc)){changed=true;snapReset(S);persistState(S,p.id)}
+        p.v=r.v;
+        if(r.conflict){p.dirty=true;continue}
+        p.dirty=false;break;
+      }
+      if(r.ok){p.v=r.v;p.dirty=false;break}
+      if(r.doc===null&amp;&amp;!wantPush)break;
+    }
+    p.lastOk=Date.now();p.state=&#x27;ok&#x27;;
+  }catch(e){
+    if(e.http===403||e.code===&#x27;not_a_member&#x27;)p.state=&#x27;removed&#x27;;
+    else p.state=navigator.onLine===false?&#x27;offline&#x27;:&#x27;server&#x27;;
+  }finally{
+    p.busy=false;psave();paintSync();
+    if(changed&amp;&amp;!typing()&amp;&amp;!document.getElementById(&#x27;sheet&#x27;).classList.contains(&#x27;show&#x27;))render(true);
+  }
+}
+function syncText(){
+  const p=activeP();if(!p||!p.space)return &#x27;&#x27;;
+  return p.state===&#x27;ok&#x27;&amp;&amp;p.lastOk?&#x27;synced &#x27;+new Date(p.lastOk).toLocaleTimeString(&#x27;en-GB&#x27;,{hour:&#x27;2-digit&#x27;,minute:&#x27;2-digit&#x27;}):p.state===&#x27;removed&#x27;?&#x27;removed&#x27;:p.busy||!p.state?&#x27;syncing…&#x27;:&#x27;saved data&#x27;;
+}
+function subLine(){
+  const s=document.getElementById(&#x27;sub&#x27;);if(!s)return;
+  const sy=syncText();
+  s.textContent=&#x27;Today &#x27;+nice(new Date())+&#x27; · counted &#x27;+nice(new Date(st.baseAt))+(sy?&#x27; · &#x27;+sy:&#x27;&#x27;)+&#x27; · build &#x27;+BUILD;
+}
+function paintSync(){
+  const bar=document.getElementById(&#x27;syncbar&#x27;);
+  if(bar){
+    const ps=PR.list.filter(p=&gt;p.space);
+    const bad=ps.map(p=&gt;p.state).filter(s=&gt;s&amp;&amp;s!==&#x27;ok&#x27;);
+    const msg=bad.includes(&#x27;offline&#x27;)?&#x27;No internet connection. Showing the last saved data.&#x27;:bad.includes(&#x27;server&#x27;)?&#x27;Synology not reachable. Showing the last saved data.&#x27;:bad.includes(&#x27;removed&#x27;)?&#x27;This device was removed from a shared list. Open it again with the PIN.&#x27;:&#x27;&#x27;;
+    bar.textContent=msg;bar.hidden=!msg;
+  }
+  subLine();
+}
+/* ----- PINs ----- */
+const errTxt=e=&gt;e.code||(e.name===&#x27;AbortError&#x27;?&#x27;no reply from the server (timed out)&#x27;:e.http?(&#x27;server error &#x27;+e.http):(&#x27;no connection (&#x27;+(e.message||e.name)+&#x27;)&#x27;));
+const okPin=p=&gt;/^\d{4}$/.test(p||&#x27;&#x27;);
+async function pinHash(pin,salt){const h=await crypto.subtle.digest(&#x27;SHA-256&#x27;,new TextEncoder().encode(salt+&#x27;:&#x27;+pin));return [...new Uint8Array(h)].map(x=&gt;x.toString(16).padStart(2,&#x27;0&#x27;)).join(&#x27;&#x27;)}
+async function setLocalPin(p,pin){p.salt=hex(8);p.ph=await pinHash(pin,p.salt)}
+const PINERR={pin_in_use:&#x27;That PIN is already used by someone else. Choose a different one.&#x27;,bad_pin:&#x27;That PIN is wrong.&#x27;,too_many_tries:&#x27;Too many wrong tries. Wait an hour.&#x27;,group_full:&#x27;That list already has the most devices allowed.&#x27;,bad_code:&#x27;That PIN is wrong.&#x27;,full:&#x27;The service is full.&#x27;};
+async function makeShared(p,pin){
+  ensureIds();
+  const r=await api(&#x27;/v1/tablets/create&#x27;,{device:PR.device,token:PR.token,name:p.name,pin});
+  p.space=r.space;p.v=0;p.dirty=true;p.state=&#x27;pending&#x27;;
+  await setLocalPin(p,pin);
+  const S=loadState(p.id);const n=Date.now();S.meta.items=S.meta.settings=S.meta.trips=S.meta.sos=n;persistState(S,p.id);psave();
+  await syncProfile(p);
+}
+async function welcomeCreate(){
+  const name=($(&#x27;wn&#x27;).value||&#x27;&#x27;).trim(),pin=($(&#x27;wp&#x27;).value||&#x27;&#x27;).trim();
+  if(!name)return banner(&#x27;Type your name&#x27;,true);
+  if(pin&amp;&amp;!okPin(pin))return banner(&#x27;The PIN must be 4 digits&#x27;,true);
+  const id=hex(4),p={id,name,own:PR.list.length===0};
+  try{
+    PR.list.push(p);PR.active=id;psave();st=loadState(id);
+    if(pin){waitOn(&#x27;Creating and backing up your list...&#x27;);await makeShared(p,pin);waitOff()}
+    banner(pin?&#x27;Created and backed up. Remember your PIN.&#x27;:&#x27;Created on this device only. Add a PIN in Settings to back it up.&#x27;);tab=&#x27;stock&#x27;;render();
+  }catch(e){
+    waitOff();PR.list=PR.list.filter(x=&gt;x.id!==id);PR.active=PR.list[0]?PR.list[0].id:null;psave();st=PR.active?loadState(PR.active):fix(JSON.parse(JSON.stringify(EMPTY)));
+    banner(PINERR[e.code]||(&#x27;Could not create: &#x27;+errTxt(e)),true);render();
+  }
+}
+async function setupPin(){
+  const p=activeP(),pin=($(&#x27;np&#x27;).value||&#x27;&#x27;).trim();
+  if(!okPin(pin))return banner(&#x27;The PIN must be 4 digits&#x27;,true);
+  waitOn(&#x27;Backing up your list...&#x27;);
+  try{await makeShared(p,pin);waitOff();banner(&#x27;Backed up. Give this PIN only to people who may see this list.&#x27;);render()}
+  catch(e){waitOff();banner(PINERR[e.code]||(&#x27;Could not back up: &#x27;+errTxt(e)),true)}
+}
+async function openByPin(){
+  const pin=($(&#x27;op&#x27;).value||&#x27;&#x27;).trim();
+  if(!okPin(pin))return banner(&#x27;Type the 4-digit PIN&#x27;,true);
+  ensureIds();waitOn(&#x27;Opening that list...&#x27;);
+  try{
+    const r=await api(&#x27;/v1/tablets/open&#x27;,{device:PR.device,token:PR.token,pin});
+    if(PR.list.some(p=&gt;p.space===r.space)){waitOff();return banner(&#x27;That list is already on this device&#x27;,true)}
+    const id=hex(4),p={id,name:r.name||&#x27;Person&#x27;,own:PR.list.length===0,space:r.space,v:0,opened:true};
+    PR.list.push(p);PR.active=id;await setLocalPin(p,pin);psave();st=loadState(id);
+    banner(&#x27;Opening &#x27;+p.name+&#x27;…&#x27;);tab=&#x27;stock&#x27;;await syncProfile(p);waitOff();render();
+  }catch(e){waitOff();banner(PINERR[e.code]||(&#x27;Could not open: &#x27;+errTxt(e)),true)}
+}
+async function changePin(){
+  const p=activeP(),pin=($(&#x27;cp&#x27;).value||&#x27;&#x27;).trim();
+  if(!okPin(pin))return banner(&#x27;The PIN must be 4 digits&#x27;,true);
+  try{await api(&#x27;/v1/tablets/setpin&#x27;,{device:PR.device,token:PR.token,space:p.space,pin});await setLocalPin(p,pin);psave();banner(&#x27;PIN changed. People with the old PIN can no longer open it on a new device.&#x27;);render()}
+  catch(e){banner(PINERR[e.code]||(&#x27;Could not change: &#x27;+errTxt(e)),true)}
+}
+async function showDevices(){
+  const p=activeP();
+  try{
+    const r=await api(&#x27;/v1/tablets/devices&#x27;,{device:PR.device,token:PR.token,space:p.space});
+    const ago=t=&gt;t?new Date(t*1000).toLocaleDateString(&#x27;en-GB&#x27;,{day:&#x27;numeric&#x27;,month:&#x27;short&#x27;}):&#x27;never&#x27;;
+    document.getElementById(&#x27;sheetBody&#x27;).innerHTML=&#x27;&lt;div class=&quot;row&quot;&gt;&lt;h2 style=&quot;margin:0&quot;&gt;Devices on &#x27;+esc(p.name)+&#x27;&lt;/h2&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;closeSheet()&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&#x27;
+      +r.devices.map((d,i)=&gt;&#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;name&quot;&gt;Device &#x27;+(i+1)+(d.me?&#x27; (this one)&#x27;:&#x27;&#x27;)+&#x27;&lt;/span&gt;&#x27;+(d.me?&#x27;&#x27;:&#x27;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;removeDevice(\&#x27;&#x27;+d.id+&#x27;\&#x27;)&quot;&gt;Remove&lt;/button&gt;&#x27;)+&#x27;&lt;/div&gt;&lt;div class=&quot;mute&quot;&gt;Joined &#x27;+ago(d.joined)+&#x27; · last used &#x27;+ago(d.seen)+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;).join(&#x27;&#x27;)
+      +&#x27;&lt;p class=&quot;mute&quot;&gt;Removing a device stops it seeing this list. If a phone is lost, remove it here and change the PIN.&lt;/p&gt;&#x27;;
+    document.getElementById(&#x27;sheet&#x27;).className=&#x27;sheet show&#x27;;
+  }catch(e){banner(&#x27;Could not get the device list: &#x27;+errTxt(e),true)}
+}
+async function removeDevice(t){
+  const p=activeP();
+  try{await api(&#x27;/v1/tablets/remove&#x27;,{device:PR.device,token:PR.token,space:p.space,target:t});banner(&#x27;Device removed&#x27;);showDevices()}
+  catch(e){banner(&#x27;Could not remove: &#x27;+errTxt(e),true)}
+}
+async function leaveProfile(id){
+  const p=profile(id);if(!p)return;
+  if(!confirm(&#x27;Remove &#x27;+p.name+&#x27; from this device? &#x27;+(p.space?&#x27;It stays safe on the Synology; open it again with the PIN.&#x27;:&#x27;This list is only on this device and will be deleted.&#x27;)))return;
+  if(p.space){try{await api(&#x27;/v1/tablets/leave&#x27;,{device:PR.device,token:PR.token,space:p.space})}catch(e){}}
+  try{localStorage.removeItem(stateKey(id))}catch(e){}
+  delete states[id];PR.list=PR.list.filter(x=&gt;x.id!==id);
+  if(PR.active===id){PR.active=PR.list[0]?PR.list[0].id:null;st=PR.active?loadState(PR.active):fix(JSON.parse(JSON.stringify(EMPTY)))}
+  psave();banner(&#x27;Removed from this device&#x27;);tab=&#x27;stock&#x27;;render();
+}
+function useProfile(id){
+  if(id===PR.active)return;
+  PR.active=id;psave();st=loadState(id);tab=&#x27;stock&#x27;;rcIdx=0;render();
+}
+function renameProfile(v){const p=activeP();v=(v||&#x27;&#x27;).trim();if(!p||!v)return;p.name=v;psave();banner(&#x27;Name saved&#x27;);render(true)}
+/* ----- this-device options ----- */
+function setOpt(k,v){PR[k]=v;psave();banner(&#x27;Saved&#x27;);render(true)}
+async function setLock(on){
+  const own=PR.list.find(p=&gt;p.own&amp;&amp;p.ph)||PR.list.find(p=&gt;p.ph);
+  if(on&amp;&amp;!own){banner(&#x27;Back up a list with a PIN first (Settings), then you can turn this on&#x27;,true);render(true);return}
+  setOpt(&#x27;lock&#x27;,on);
+}
+function needLock(){return !!PR.lock&amp;&amp;!SOS_MODE&amp;&amp;!!PR.list.find(p=&gt;p.ph)&amp;&amp;!sessionStorage.getItem(&#x27;tablets.unlocked&#x27;)}
+function showLock(){
+  const L=document.getElementById(&#x27;lock&#x27;);L.hidden=false;
+  L.innerHTML=&#x27;&lt;div class=&quot;lockbox&quot;&gt;&lt;h2&gt;Tablets&lt;/h2&gt;&lt;p class=&quot;mute&quot;&gt;Type your PIN&lt;/p&gt;&lt;input id=&quot;lp&quot; type=&quot;password&quot; inputmode=&quot;numeric&quot; maxlength=&quot;4&quot; autocomplete=&quot;off&quot;&gt;&lt;button class=&quot;btn&quot; onclick=&quot;tryUnlock()&quot;&gt;Open&lt;/button&gt;&lt;/div&gt;&#x27;;
+  setTimeout(()=&gt;{const i=document.getElementById(&#x27;lp&#x27;);if(i)i.focus()},100);
+}
+async function tryUnlock(){
+  const pin=(document.getElementById(&#x27;lp&#x27;).value||&#x27;&#x27;).trim();
+  if(await checkAnyPin(pin)){try{sessionStorage.setItem(&#x27;tablets.unlocked&#x27;,&#x27;1&#x27;)}catch(e){}document.getElementById(&#x27;lock&#x27;).hidden=true;return}
+  banner(&#x27;Wrong PIN&#x27;,true);
+}
+async function checkAnyPin(pin){for(const p of PR.list.filter(x=&gt;x.ph)){if(await pinHash(pin,p.salt)===p.ph)return true}return false}
+window.addEventListener(&#x27;online&#x27;,()=&gt;syncAll());
+window.addEventListener(&#x27;offline&#x27;,()=&gt;{PR.list.forEach(p=&gt;{if(p.space)p.state=&#x27;offline&#x27;});paintSync()});
+document.addEventListener(&#x27;visibilitychange&#x27;,()=&gt;{if(!document.hidden)syncAll()});
+setInterval(()=&gt;{if(!document.hidden)syncAll()},60000);
+setTimeout(()=&gt;{paintSync();syncAll();pushSenders();pollSms();calSync()},600);
+document.addEventListener(&#x27;visibilitychange&#x27;,()=&gt;{if(!document.hidden){pollSms();calSync()}});
+
+/* ---------- people: header chips, welcome, alerts for everyone, settings cards ---------- */
+function chips(){
+  const c=document.getElementById(&#x27;chips&#x27;);if(!c)return;
+  c.innerHTML=PR.list.map(p=&gt;&#x27;&lt;button class=&quot;chip&#x27;+(p.id===PR.active?&#x27; on&#x27;:&#x27;&#x27;)+&#x27;&quot; onclick=&quot;useProfile(\&#x27;&#x27;+p.id+&#x27;\&#x27;)&quot;&gt;&#x27;+esc(p.name)+&#x27;&lt;/button&gt;&#x27;).join(&#x27;&#x27;)+&#x27;&lt;button class=&quot;chip&quot; onclick=&quot;go(\&#x27;set\&#x27;);setTimeout(()=&gt;{const e=document.getElementById(\&#x27;op\&#x27;);if(e){e.scrollIntoView();e.focus()}},60)&quot; aria-label=&quot;Open another list&quot;&gt;＋&lt;/button&gt;&#x27;;
+}
+function vWelcome(){
+  return &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Welcome&lt;/h2&gt;&lt;p&gt;Tablets counts down your tablets by itself and tells you when to order. Start your own list, or open a list someone shared with you.&lt;/p&gt;&#x27;
+   +&#x27;&lt;label&gt;Your name&lt;/label&gt;&lt;input id=&quot;wn&quot; placeholder=&quot;e.g. Ian&quot; autocomplete=&quot;off&quot;&gt;&#x27;
+   +&#x27;&lt;label&gt;PIN (4 digits, optional)&lt;/label&gt;&lt;input id=&quot;wp&quot; type=&quot;password&quot; inputmode=&quot;numeric&quot; maxlength=&quot;4&quot; placeholder=&quot;Backs your list up and opens it on a new phone&quot; autocomplete=&quot;off&quot;&gt;&#x27;
+   +&#x27;&lt;button class=&quot;btn&quot; onclick=&quot;welcomeCreate()&quot;&gt;Start my list&lt;/button&gt;&lt;/div&gt;&#x27;
+   +&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Open a list with a PIN&lt;/h2&gt;&lt;p class=&quot;mute&quot;&gt;If someone gave you their PIN, type it to see their tablets here. You can also type your own PIN to open your list on a new phone.&lt;/p&gt;&#x27;
+   +&#x27;&lt;input id=&quot;op&quot; type=&quot;password&quot; inputmode=&quot;numeric&quot; maxlength=&quot;4&quot; placeholder=&quot;PIN&quot; autocomplete=&quot;off&quot;&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;openByPin()&quot;&gt;Open&lt;/button&gt;&lt;/div&gt;&#x27;;
+}
+function rejectAlerts(){const lim=ymd(addD(new Date(),-45));const out=[];for(const o of st.orders){if(o.status!==&#x27;rejected&#x27;||o.ack||(o.date||&#x27;&#x27;)&lt;lim)continue;const it=st.items.find(i=&gt;i.id===o.item);if(!it)continue;
+  out.push({lvl:&#x27;bad&#x27;,t:&#x27;Rejected by your GP: &#x27;+it.name.replace(/ \(.*/,&#x27;&#x27;),m:&#x27;In the order of &#x27;+niceS(pd(o.date))+&#x27;. Patient Access gives no reason. &#x27;+(it.next&amp;&amp;it.next&gt;o.date?&#x27;It was probably asked for too early: the next issue date is &#x27;+niceS(pd(it.next))+&#x27;. &#x27;:&#x27;&#x27;)+&#x27;If you need it now, contact the surgery.&#x27;,item:it.id,sort:-50,ack:o.id})}return out}
+function ackOrder(id){const o=st.orders.find(x=&gt;x.id===id);if(o){o.ack=Date.now();save();banner(&#x27;OK, noted&#x27;);render(true)}}
+function stockAlert(){return stockDue()?[{lvl:&#x27;warn&#x27;,t:&#x27;Stock check due&#x27;,m:&#x27;Count your tablets in the Check tab, so the numbers stay right.&#x27;,sort:900}]:[]}
+function allAlerts(now,mine){
+  const multi=PR.list.length&gt;1,me=activeP();
+  let out=mine.concat(rejectAlerts(),stockAlert()).map(a=&gt;({...a,who:multi&amp;&amp;me?me.name:&#x27;&#x27;}));
+  if(PR.showOthers!==false){
+    for(const p of PR.list){
+      if(p.id===PR.active)continue;
+      const keep=st;st=loadState(p.id);
+      try{out=out.concat(computeAlerts(now).A.map(a=&gt;({...a,who:p.name})))}finally{st=keep}
+    }
+  }
+  out.sort((a,b)=&gt;a.sort-b.sort);
+  return out;
+}
+function vAlerts(A){
+  const rd=(PR.ready||[]).map((r,i)=&gt;&#x27;&lt;div class=&quot;alert&quot;&gt;&lt;b&gt;Pharmacy text received&lt;/b&gt;&#x27;+esc(r.sender)+&#x27; texted on &#x27;+esc(niceS(new Date(r.t)))+&#x27;. &#x27;+(r.named&amp;&amp;r.named.length?&#x27;Ready: &#x27;+esc(r.named.join(&#x27;, &#x27;))+&#x27;. &#x27;:&#x27;&#x27;)+&#x27;&lt;div style=&quot;margin-top:8px&quot;&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;PR.ready.splice(&#x27;+i+&#x27;,1);psave();render(true)&quot;&gt;Dismiss&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&#x27;).join(&#x27;&#x27;);
+  if(!A.length)return rd+&#x27;&lt;div class=&quot;card&quot;&gt;All good. Nothing needs doing.&lt;/div&gt;&#x27;;
+  return rd+A.map(a=&gt;&#x27;&lt;div class=&quot;alert &#x27;+a.lvl+&#x27;&quot;&gt;&lt;b&gt;&#x27;+(a.who?&#x27;&lt;span class=&quot;pill p-acc&quot;&gt;&#x27;+esc(a.who)+&#x27;&lt;/span&gt; &#x27;:&#x27;&#x27;)+a.t+&#x27;&lt;/b&gt;&#x27;+a.m+(a.diab?&#x27;&lt;div style=&quot;margin-top:8px&quot;&gt;&#x27;+diabLinks(a.diab)+&#x27;&lt;/div&gt;&#x27;:&#x27;&#x27;)+(a.ack&amp;&amp;!a.who?&#x27;&lt;div style=&quot;margin-top:8px&quot;&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;ackOrder(\&#x27;&#x27;+a.ack+&#x27;\&#x27;)&quot;&gt;OK, got it&lt;/button&gt;&lt;/div&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;).join(&#x27;&#x27;);
+}
+function render(keepScroll){
+  const now=new Date();
+  if(SOS_MODE){renderSos();return}
+  if(!PR.list.length){chips();document.getElementById(&#x27;nav&#x27;).innerHTML=&#x27;&#x27;;$(&#x27;main&#x27;).innerHTML=vWelcome();subLine();return}
+  const {A,R}=computeAlerts(now);
+  const ALL=allAlerts(now,A);
+  subLine();chips();
+  const nBad=ALL.filter(a=&gt;a.lvl===&#x27;bad&#x27;).length;
+  const tabs=[[&#x27;stock&#x27;,&#x27;▤&#x27;,&#x27;Stock&#x27;],[&#x27;alerts&#x27;,&#x27;⚠&#x27;,&#x27;Alerts&#x27;+(nBad?&#x27;&lt;span class=&quot;dot&quot;&gt;&#x27;+nBad+&#x27;&lt;/span&gt;&#x27;:&#x27;&#x27;)],[&#x27;recv&#x27;,&#x27;⬇&#x27;,&#x27;Receive&#x27;],[&#x27;log&#x27;,&#x27;✎&#x27;,&#x27;Log&#x27;],[&#x27;orders&#x27;,&#x27;✚&#x27;,&#x27;Orders&#x27;],[&#x27;check&#x27;,&#x27;✓&#x27;,&#x27;Check&#x27;+(stockDue()?&#x27;&lt;span class=&quot;dot&quot;&gt;!&lt;/span&gt;&#x27;:&#x27;&#x27;)],[&#x27;set&#x27;,&#x27;⚙&#x27;,&#x27;Settings&#x27;]];
+  $(&#x27;nav&#x27;).innerHTML=tabs.map(t=&gt;&#x27;&lt;button class=&quot;&#x27;+(tab===t[0]?&#x27;on&#x27;:&#x27;&#x27;)+&#x27;&quot; onclick=&quot;go(\&#x27;&#x27;+t[0]+&#x27;\&#x27;)&quot;&gt;&lt;span class=&quot;ic&quot;&gt;&#x27;+t[1]+&#x27;&lt;/span&gt;&#x27;+t[2]+&#x27;&lt;/button&gt;&#x27;).join(&#x27;&#x27;);
+  $(&#x27;main&#x27;).innerHTML=({stock:vStock,alerts:()=&gt;vAlerts(ALL),log:vLog,orders:vOrders,recv:vRecv,check:vCheck,set:vSet})[tab](A,R,now);
+  if(tab===&#x27;log&#x27;)logType();
+  if(keepScroll!==true)window.scrollTo(0,0);
+}
+function vProfile(){
+  const p=activeP();if(!p)return &#x27;&#x27;;
+  const others=PR.list.filter(x=&gt;x.id!==p.id);
+  let h=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;This list: &#x27;+esc(p.name)+&#x27;&lt;/h2&gt;&#x27;
+   +&#x27;&lt;label&gt;Name&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(p.name)+&#x27;&quot; onchange=&quot;renameProfile(this.value)&quot;&gt;&#x27;;
+  if(p.space){
+    h+=&#x27;&lt;div class=&quot;mute&quot; style=&quot;margin-top:8px&quot;&gt;Backed up on the Synology (&#x27;+esc(syncText()||&#x27;not synced yet&#x27;)+&#x27;). Anyone who has this list\&#x27;s PIN can open it on their own phone. Give the PIN only to people who may see it, for example your wife or husband.&lt;/div&gt;&#x27;
+     +&#x27;&lt;label&gt;Change this list\&#x27;s PIN (4 digits)&lt;/label&gt;&lt;input id=&quot;cp&quot; type=&quot;password&quot; inputmode=&quot;numeric&quot; maxlength=&quot;4&quot; autocomplete=&quot;off&quot;&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;changePin()&quot;&gt;Change PIN&lt;/button&gt;&#x27;
+     +&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;showDevices()&quot;&gt;Devices that can see this list&lt;/button&gt;&#x27;;
+  }else{
+    h+=&#x27;&lt;div class=&quot;mute&quot; style=&quot;margin-top:8px&quot;&gt;This list is only on this phone. Add a PIN to back it up and to open it on another phone or the web.&lt;/div&gt;&#x27;
+     +&#x27;&lt;label&gt;Choose a PIN (4 digits)&lt;/label&gt;&lt;input id=&quot;np&quot; type=&quot;password&quot; inputmode=&quot;numeric&quot; maxlength=&quot;4&quot; autocomplete=&quot;off&quot;&gt;&lt;button class=&quot;btn&quot; onclick=&quot;setupPin()&quot;&gt;Back up with this PIN&lt;/button&gt;&#x27;;
+  }
+  h+=&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;leaveProfile(\&#x27;&#x27;+p.id+&#x27;\&#x27;)&quot;&gt;Remove this list from this device&lt;/button&gt;&lt;/div&gt;&#x27;;
+  h+=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Open another list&lt;/h2&gt;&lt;div class=&quot;mute&quot;&gt;Type the PIN of a list someone shared with you (or your own PIN on a new phone).&lt;/div&gt;&lt;input id=&quot;op&quot; type=&quot;password&quot; inputmode=&quot;numeric&quot; maxlength=&quot;4&quot; placeholder=&quot;PIN&quot; autocomplete=&quot;off&quot;&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;openByPin()&quot;&gt;Open&lt;/button&gt;&lt;/div&gt;&#x27;;
+  return h;
+}
+function vSecurity(){
+  const chk=(on,fn,label,note)=&gt;&#x27;&lt;label style=&quot;display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-weight:500&quot;&gt;&lt;input type=&quot;checkbox&quot; style=&quot;width:auto;margin-top:4px&quot; &#x27;+(on?&#x27;checked&#x27;:&#x27;&#x27;)+&#x27; onchange=&quot;&#x27;+fn+&#x27;(this.checked)&quot;&gt;&lt;span&gt;&#x27;+label+(note?&#x27;&lt;span class=&quot;mute&quot; style=&quot;display:block&quot;&gt;&#x27;+note+&#x27;&lt;/span&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;/span&gt;&lt;/label&gt;&#x27;;
+  return &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;On this device&lt;/h2&gt;&#x27;
+   +chk(PR.showOthers!==false,&quot;setOpt.bind(null,&#x27;showOthers&#x27;)&quot;,&#x27;Show alerts from the other lists on this phone&#x27;,&#x27;On by default, so you and your wife see each other\&#x27;s alerts.&#x27;)
+   +chk(PR.showWhy!==false,&quot;setOpt.bind(null,&#x27;showWhy&#x27;)&quot;,&#x27;Show what each tablet is for&#x27;,&#x27;On by default. Helps a family member who orders for you: &quot;the heart tablets&quot; is easier to match than a drug name.&#x27;)
+   +chk(PR.tips!==false,&quot;setOpt.bind(null,&#x27;tips&#x27;)&quot;,&#x27;Show a &quot;Did you know?&quot; tip each day&#x27;,&#x27;A small card at the top of the Stock tab. &quot;Hide for today&quot; or switch it off here.&#x27;)
+   +chk(!!PR.lock,&#x27;setLock&#x27;,&#x27;Ask for my PIN when the app opens&#x27;,&#x27;Off by default. A new phone always needs the PIN once.&#x27;)
+   +chk(!!PR.sosPin,&quot;setOpt.bind(null,&#x27;sosPin&#x27;)&quot;,&#x27;Tablets SOS asks for my PIN&#x27;,&#x27;Off by default so emergency crews can read it.&#x27;)
+   +&#x27;&lt;/div&gt;&#x27;;
+}
+function vPharm(){
+  const ph=st.settings.pharmacies;
+  let h=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Pharmacy&lt;/h2&gt;&lt;div class=&quot;mute&quot;&gt;Used for collection reminders and the SOS screen. &quot;Text sender&quot; is how the pharmacy appears when it texts you (the contact name or sender label on your phone).&lt;/div&gt;&#x27;;
+  h+=ph.map((p,i)=&gt;&#x27;&lt;div class=&quot;card&quot; style=&quot;margin:10px 0&quot;&gt;&lt;label style=&quot;margin-top:0&quot;&gt;Pharmacy name&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(p.name)+&#x27;&quot; onchange=&quot;upPh(&#x27;+i+&#x27;,\&#x27;name\&#x27;,this.value)&quot;&gt;&#x27;
+    +&#x27;&lt;div class=&quot;grid2&quot;&gt;&lt;div&gt;&lt;label&gt;Town&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(p.town||&#x27;&#x27;)+&#x27;&quot; onchange=&quot;upPh(&#x27;+i+&#x27;,\&#x27;town\&#x27;,this.value)&quot;&gt;&lt;/div&gt;&lt;div&gt;&lt;label&gt;Phone&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(p.phone||&#x27;&#x27;)+&#x27;&quot; inputmode=&quot;tel&quot; onchange=&quot;upPh(&#x27;+i+&#x27;,\&#x27;phone\&#x27;,this.value)&quot;&gt;&lt;/div&gt;&lt;/div&gt;&#x27;
+    +&#x27;&lt;label&gt;Text sender (as on your phone)&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(p.sender||&#x27;&#x27;)+&#x27;&quot; onchange=&quot;upPh(&#x27;+i+&#x27;,\&#x27;sender\&#x27;,this.value)&quot;&gt;&#x27;
+    +&#x27;&lt;label style=&quot;display:flex;gap:8px;align-items:center;font-weight:500&quot;&gt;&lt;input type=&quot;checkbox&quot; style=&quot;width:auto&quot; &#x27;+(p.use?&#x27;checked&#x27;:&#x27;&#x27;)+&#x27; onchange=&quot;upPh(&#x27;+i+&#x27;,\&#x27;use\&#x27;,this.checked)&quot;&gt; Use this pharmacy (untick to ignore it)&lt;/label&gt;&#x27;
+    +&#x27;&lt;button class=&quot;btn sm sec&quot; style=&quot;margin-top:8px&quot; onclick=&quot;delPh(&#x27;+i+&#x27;)&quot;&gt;Remove&lt;/button&gt;&lt;/div&gt;&#x27;).join(&#x27;&#x27;);
+  return h+&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;addPh()&quot;&gt;Add a pharmacy&lt;/button&gt;&lt;/div&gt;&#x27;;
+}
+function upPh(i,k,v){st.settings.pharmacies[i][k]=v;save();pushSenders();banner(&#x27;Pharmacy saved&#x27;);if(k===&#x27;use&#x27;)render(true)}
+function addPh(){st.settings.pharmacies.push({name:&#x27;&#x27;,town:&#x27;&#x27;,phone:&#x27;&#x27;,sender:&#x27;&#x27;,use:true});save();banner(&#x27;Pharmacy added: fill it in&#x27;);render(true)}
+function delPh(i){st.settings.pharmacies.splice(i,1);save();banner(&#x27;Pharmacy removed&#x27;);render(true)}
+function permState(){try{return window.AndroidApp&amp;&amp;AndroidApp.perms?JSON.parse(AndroidApp.perms()):{}}catch(e){return {}}}
+function pharmSenders(){const s=[];for(const p of PR.list){const S=loadState(p.id);for(const ph of S.settings.pharmacies||[])if(ph.use&amp;&amp;ph.sender&amp;&amp;!s.includes(ph.sender))s.push(ph.sender)}return s}
+function pushSenders(){if(window.AndroidApp&amp;&amp;AndroidApp.setSmsSenders)AndroidApp.setSmsSenders(JSON.stringify(PR.sms?pharmSenders():[]))}
+function setSms(on){
+  PR.sms=on;psave();
+  if(on&amp;&amp;window.AndroidApp)AndroidApp.enableSms();
+  pushSenders();banner(on?&#x27;Watching texts from your pharmacy. Allow SMS and notifications if the phone asks.&#x27;:&#x27;No longer reading texts&#x27;);render(true);
+}
+function setCal(on){
+  PR.cal.on=on;psave();
+  if(on&amp;&amp;window.AndroidApp)AndroidApp.enableCalendar();
+  banner(on?&#x27;Calendar entries on. Allow calendar access if the phone asks.&#x27;:&#x27;Calendar entries off&#x27;);render(true);setTimeout(calSync,1500);
+}
+function setCalField(k,v){PR.cal[k]=(v||&#x27;&#x27;).trim();psave();banner(&#x27;Saved&#x27;)}
+function vAbout(){
+  let a={};try{if(window.AndroidApp&amp;&amp;AndroidApp.about)a=JSON.parse(AndroidApp.about())}catch(e){}
+  const ua=navigator.userAgent,row=(k,v)=&gt;&#x27;&lt;div class=&quot;row&quot; style=&quot;margin:6px 0&quot;&gt;&lt;span class=&quot;mute&quot;&gt;&#x27;+k+&#x27;&lt;/span&gt;&lt;span style=&quot;text-align:right&quot;&gt;&#x27;+esc(String(v))+&#x27;&lt;/span&gt;&lt;/div&gt;&#x27;;
+  let h=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;About Tablets&lt;/h2&gt;&#x27;+row(&#x27;Version&#x27;,(a.versionName||APP_VER)+(a.versionCode?&#x27; (release &#x27;+a.versionCode+&#x27;)&#x27;:&#x27;&#x27;))+row(&#x27;Released&#x27;,APP_DATE)+row(&#x27;Build&#x27;,BUILD);
+  if(a.model){h+=row(&#x27;Phone&#x27;,a.maker+&#x27; &#x27;+a.model)+row(&#x27;Android&#x27;,a.android+&#x27; (API &#x27;+a.sdk+&#x27;)&#x27;)+row(&#x27;Installed&#x27;,a.installed)+row(&#x27;Last updated&#x27;,a.updated)}
+  else{const ios=/iPhone|iPad|iPod/.test(ua),m=ua.match(/(?:OS|Android) ([\d_.]+)/);h+=row(&#x27;Device&#x27;,ios?&#x27;iPhone / iPad (web app)&#x27;:/Android/.test(ua)?&#x27;Android (web)&#x27;:&#x27;Computer (web)&#x27;)+(m?row(&#x27;System version&#x27;,m[1].replace(/_/g,&#x27;.&#x27;)):&#x27;&#x27;)}
+  return h+row(&#x27;Server&#x27;,API.replace(&#x27;https://&#x27;,&#x27;&#x27;))+&#x27;&lt;div class=&quot;mute&quot; style=&quot;margin-top:8px&quot;&gt;Quote these when you ask for help.&lt;/div&gt;&lt;/div&gt;&#x27;;
+}
+function vPhoneOnly(){
+  const ps=permState(),A=IS_ANDROID;
+  const grey=A?&#x27;&#x27;:&#x27;opacity:.45;&#x27;;
+  const chk=(on,fn,label,note,dis)=&gt;&#x27;&lt;label style=&quot;display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-weight:500;&#x27;+grey+&#x27;&quot;&gt;&lt;input type=&quot;checkbox&quot; style=&quot;width:auto;margin-top:4px&quot; &#x27;+(on?&#x27;checked&#x27;:&#x27;&#x27;)+&#x27; &#x27;+(dis?&#x27;disabled&#x27;:&#x27;&#x27;)+&#x27; onchange=&quot;&#x27;+fn+&#x27;(this.checked)&quot;&gt;&lt;span&gt;&#x27;+label+&#x27;&lt;span class=&quot;mute&quot; style=&quot;display:block&quot;&gt;&#x27;+note+&#x27;&lt;/span&gt;&lt;/span&gt;&lt;/label&gt;&#x27;;
+  return &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Android phone only&lt;/h2&gt;&#x27;
+   +chk(!!PR.sms,&#x27;setSms&#x27;,&#x27;Read &quot;ready to collect&quot; texts from the pharmacy&#x27;,A?&#x27;Only texts from the sender names in Pharmacy above. The message text is never kept. &#x27;+(PR.sms?(ps.sms?&#x27;SMS allowed.&#x27;:&#x27;Waiting for SMS permission: tap again or allow it in Android settings.&#x27;):&#x27;&#x27;):&#x27;Not available here: only the Android app can read texts.&#x27;,!A)
+   +chk(!!PR.cal.on,&#x27;setCal&#x27;,&#x27;Put orders and collections in my calendar&#x27;,A?&#x27;Short timed entries (order 15 min, collect 30 min) with a reminder, placed in the first free weekday slot. &#x27;+(PR.cal.on?(ps.cal?&#x27;Calendar allowed.&#x27;:&#x27;Waiting for calendar permission.&#x27;):&#x27;&#x27;):&#x27;Not available here: only the Android app can write to the calendar.&#x27;,!A)
+   +(A?&#x27;&lt;label&gt;Calendar account to use&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(PR.cal.account)+&#x27;&quot; placeholder=&quot;e.g. you@gmail.com&quot; onchange=&quot;setCalField(\&#x27;account\&#x27;,this.value)&quot;&gt;&lt;label&gt;Also invite (email, optional)&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(PR.cal.invite)+&#x27;&quot; placeholder=&quot;e.g. wife or husband&quot; onchange=&quot;setCalField(\&#x27;invite\&#x27;,this.value)&quot;&gt;&#x27;:&#x27;&#x27;)
+   +&#x27;&lt;div style=&quot;&#x27;+grey+&#x27;margin-top:12px&quot;&gt;&lt;button class=&quot;btn sec&quot; &#x27;+(A?&#x27;&#x27;:&#x27;disabled&#x27;)+&#x27; onclick=&quot;if(window.AndroidApp)AndroidApp.pinShortcut()&quot;&gt;Add Tablets icon to home screen&lt;/button&gt;&#x27;
+   +&#x27;&lt;button class=&quot;btn sec&quot; &#x27;+(A?&#x27;&#x27;:&#x27;disabled&#x27;)+&#x27; onclick=&quot;if(window.AndroidApp)AndroidApp.pinSos()&quot;&gt;Add Tablets SOS icon to home screen&lt;/button&gt;&lt;/div&gt;&#x27;
+   +(IS_IOS?&#x27;&lt;div class=&quot;mute&quot; style=&quot;margin-top:8px&quot;&gt;On this iPhone: tap the Share button in Safari, then &lt;b&gt;Add to Home Screen&lt;/b&gt;. For the emergency screen open the &quot;Tablets SOS&quot; page and add that to the Home Screen too.&lt;/div&gt;&#x27;:&#x27;&#x27;)
+   +&#x27;&lt;/div&gt;&#x27;;
+}
+/* ---- texts from the pharmacy -&gt; orders become &quot;ready&quot;; calendar entries ---- */
+function pollSms(){
+  if(!window.AndroidApp||!AndroidApp.takeSmsEvents)return;
+  let ev=[];try{ev=JSON.parse(AndroidApp.takeSmsEvents()||&#x27;[]&#x27;)}catch(e){}
+  if(!ev.length)return;
+  for(const e of ev){
+    let named=[],pharm=&#x27;&#x27;;
+    for(const p of PR.list){
+      const S=loadState(p.id);let ch=false;
+      for(const o of S.orders)if([&#x27;requested&#x27;,&#x27;approved&#x27;,&#x27;part&#x27;].includes(o.status)){o.status=&#x27;ready&#x27;;o.readyAt=e.t;ch=true;const it=S.items.find(i=&gt;i.id===o.item);if(it)named.push(it.name.replace(/ \(.*/,&#x27;&#x27;))}
+      const ph=(S.settings.pharmacies||[]).find(x=&gt;x.use&amp;&amp;x.name);if(ph&amp;&amp;!pharm)pharm=[ph.name,ph.town].filter(Boolean).join(&#x27;, &#x27;);
+      if(ch){stamp(S);p.dirty=true;persistState(S,p.id)}
+    }
+    PR.ready=(PR.ready||[]).concat([{t:e.t,sender:e.sender,pharm,named}]).slice(-5);
+    calAdd(&#x27;ready:&#x27;+e.t,&#x27;Collect tablets: &#x27;+(pharm||e.sender),ymd(new Date()),&#x27;ready&#x27;,30,pharm,named.length?(&#x27;Ready: &#x27;+named.join(&#x27;, &#x27;)):&#x27;The pharmacy sent a ready text.&#x27;);
+  }
+  psave();syncSoon();render(true);
+}
+function calDone(k){return !!PR.calDone[k]}
+function calAdd(key,title,day,time,dur,loc,desc){
+  if(!window.AndroidApp||!PR.cal.on||calDone(key))return;
+  if(!(permState().cal)){return}
+  let hm=time;
+  if(time===&#x27;ready&#x27;||time===&#x27;slot&#x27;){const s=AndroidApp.findSlot(day,dur,7);if(s){day=s.slice(0,10);hm=s.slice(11)}else hm=&#x27;09:00&#x27;}
+  const r=AndroidApp.addEvent(title,day,hm,dur,loc||&#x27;&#x27;,desc||&#x27;&#x27;,PR.cal.invite||&#x27;&#x27;,PR.cal.account||&#x27;&#x27;);
+  if(String(r).startsWith(&#x27;ok&#x27;)){PR.calDone[key]=Date.now();psave()}
+  else if(!calAdd.warned){calAdd.warned=1;banner(&#x27;Calendar: &#x27;+r,true)}
+}
+function calSync(){
+  if(!window.AndroidApp||!PR.cal||!PR.cal.on||!permState().cal)return;
+  const now=new Date(),today=ymd(now),multi=PR.list.length&gt;1;
+  for(const k of Object.keys(PR.calDone))if(Date.now()-PR.calDone[k]&gt;60*864e5)delete PR.calDone[k];
+  for(const p of PR.list){
+    const keep=st;st=loadState(p.id);
+    try{
+      const A=computeAlerts(now).A.filter(a=&gt;a.cal),who=multi?&#x27; (&#x27;+p.name+&#x27;)&#x27;:&#x27;&#x27;;
+      const ph=(st.settings.pharmacies||[]).find(x=&gt;x.use&amp;&amp;x.name),loc=ph?[ph.name,ph.town].filter(Boolean).join(&#x27;, &#x27;):&#x27;&#x27;;
+      const ord=A.filter(a=&gt;a.cal.kind===&#x27;order&#x27;);
+      if(ord.length){const ids=ord.map(a=&gt;a.cal.id).sort().join(&#x27;,&#x27;);calAdd(&#x27;ord:&#x27;+p.id+&#x27;:&#x27;+today+&#x27;:&#x27;+ids,&#x27;Order tablets (Patient Access): &#x27;+ord.map(a=&gt;a.cal.name).join(&#x27;, &#x27;)+who,today,&#x27;slot&#x27;,15,&#x27;&#x27;,&#x27;Request these repeats in Patient Access.&#x27;)}
+      const seen={};
+      for(const o of st.orders){
+        if(!o.batch||seen[o.batch]||![&#x27;requested&#x27;,&#x27;approved&#x27;,&#x27;part&#x27;,&#x27;ready&#x27;].includes(o.status))continue;seen[o.batch]=1;
+        const grp=st.orders.filter(x=&gt;x.batch===o.batch),names=grp.map(x=&gt;{const i=st.items.find(y=&gt;y.id===x.item);return i?i.name.replace(/ \(.*/,&#x27;&#x27;):&#x27;&#x27;}).filter(Boolean).join(&#x27;, &#x27;);
+        if(o.collectBy&amp;&amp;(ao().calCollect||o.calNow))calAdd(&#x27;collect:&#x27;+o.batch,&#x27;Collect tablets: &#x27;+(loc||&#x27;pharmacy&#x27;)+who,o.collectBy&lt;today?today:o.collectBy,&#x27;slot&#x27;,30,loc,&#x27;Ordered &#x27;+o.date+&#x27;: &#x27;+names);
+        if(o.nextOn&amp;&amp;(ao().calNext||o.calNow))calAdd(&#x27;nextord:&#x27;+o.batch,&#x27;Order tablets (Patient Access)&#x27;+who,o.nextOn&lt;today?today:o.nextOn,&#x27;slot&#x27;,15,&#x27;&#x27;,&#x27;Next tablets due: &#x27;+(o.nextNames||&#x27;&#x27;));
+      }
+      for(const a of A){
+        if(a.cal.kind===&#x27;trip&#x27;)calAdd(&#x27;trip:&#x27;+p.id+&#x27;:&#x27;+a.cal.key,&#x27;Collect tablets before the trip&#x27;+who,a.cal.day&lt;today?today:a.cal.day,&#x27;slot&#x27;,30,loc,&#x27;Low or empty when you are back: &#x27;+a.cal.names.join(&#x27;, &#x27;));
+        if(a.cal.kind===&#x27;buy&#x27;)calAdd(&#x27;buy:&#x27;+p.id+&#x27;:&#x27;+a.cal.key,&#x27;Buy &#x27;+a.cal.name+&#x27; before you leave&#x27;+who,a.cal.day&lt;today?today:a.cal.day,&#x27;10:00&#x27;,15,&#x27;&#x27;,&#x27;Last chance to buy it before it runs out.&#x27;);
+      }
+    }finally{st=keep}
+  }
+}
+const IS_ANDROID=!!window.AndroidApp,IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
+/* ---------- TABLETS SOS: emergency information screen + set-up wizard ---------- */
+function doseTxt(it){
+  const u=it.unit===&#x27;ml&#x27;?&#x27; ml&#x27;:&#x27;&#x27;;
+  if(it.unit===&#x27;box&#x27;)return &#x27;daily supplement&#x27;;
+  const p=[];if(it.am)p.push(it.am+u+&#x27; morning&#x27;);if(it.pm)p.push(it.pm+u+&#x27; evening&#x27;);
+  return p.join(&#x27;, &#x27;)||&#x27;as needed&#x27;;
+}
+function ageOf(dob){if(!dob)return &#x27;&#x27;;const d=pd(dob),n=new Date();let a=n.getFullYear()-d.getFullYear();if(n&lt;new Date(n.getFullYear(),d.getMonth(),d.getDate()))a--;return a&gt;=0&amp;&amp;a&lt;130?a:&#x27;&#x27;}
+function nl(s){return esc(s).replace(/\n/g,&#x27;&lt;br&gt;&#x27;)}
+function sosHtml(S,p){
+  const o=S.sos,sh=o.show||{};
+  const name=o.name||p.name;
+  const row=(label,val,cls)=&gt;val?&#x27;&lt;div class=&quot;sosrow &#x27;+(cls||&#x27;&#x27;)+&#x27;&quot;&gt;&lt;div class=&quot;soslab&quot;&gt;&#x27;+label+&#x27;&lt;/div&gt;&lt;div class=&quot;sosval&quot;&gt;&#x27;+nl(val)+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;:&#x27;&#x27;;
+  let h=&#x27;&lt;div class=&quot;sosbar&quot;&gt;EMERGENCY INFORMATION&lt;/div&gt;&lt;div class=&quot;sospad&quot;&gt;&lt;div class=&quot;sosname&quot;&gt;&#x27;+esc(name)+&#x27;&lt;/div&gt;&#x27;;
+  if(sh.dob&amp;&amp;o.dob)h+=&#x27;&lt;div class=&quot;sosage&quot;&gt;Born &#x27;+esc(nice(pd(o.dob)))+(ageOf(o.dob)!==&#x27;&#x27;?&#x27; · age &#x27;+ageOf(o.dob):&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;;
+  if(sh.allergies)h+=row(&#x27;ALLERGIES&#x27;,o.allergies,&#x27;red&#x27;);
+  if(sh.warnings)h+=row(&#x27;IMPORTANT&#x27;,o.warnings,&#x27;red&#x27;);
+  if(sh.conditions)h+=row(&#x27;LONG-TERM CONDITIONS&#x27;,o.conditions);
+  if(sh.diet)h+=row(&#x27;DIET&#x27;,o.diet);
+  if(sh.contacts){
+    const cs=(o.contacts||[]).filter(c=&gt;c.name||c.phone);
+    if(cs.length)h+=&#x27;&lt;div class=&quot;soslab&quot; style=&quot;margin-top:14px&quot;&gt;EMERGENCY CONTACTS&lt;/div&gt;&#x27;+cs.map(c=&gt;&#x27;&lt;a class=&quot;soscall&quot; href=&quot;tel:&#x27;+esc(String(c.phone||&#x27;&#x27;).replace(/[^+\d]/g,&#x27;&#x27;))+&#x27;&quot;&gt;&lt;span&gt;&#x27;+esc(c.name||&#x27;&#x27;)+(c.rel?&#x27; &lt;small&gt;(&#x27;+esc(c.rel)+&#x27;)&lt;/small&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;/span&gt;&lt;b&gt;&#x27;+esc(c.phone||&#x27;&#x27;)+&#x27;&lt;/b&gt;&lt;/a&gt;&#x27;).join(&#x27;&#x27;);
+  }
+  if(sh.meds){
+    const key=new Set(o.key||[]);
+    const items=[...S.items].sort((a,b)=&gt;(key.has(b.id)?1:0)-(key.has(a.id)?1:0));
+    if(items.length)h+=&#x27;&lt;div class=&quot;soslab&quot; style=&quot;margin-top:14px&quot;&gt;MEDICINES&lt;/div&gt;&lt;div class=&quot;sosmeds&quot;&gt;&#x27;+items.map(it=&gt;&#x27;&lt;div class=&quot;sosmed&#x27;+(key.has(it.id)?&#x27; key&#x27;:&#x27;&#x27;)+&#x27;&quot;&gt;&lt;b&gt;&#x27;+(key.has(it.id)?&#x27;★ &#x27;:&#x27;&#x27;)+esc(it.name)+&#x27;&lt;/b&gt;&lt;span&gt;&#x27;+esc(doseTxt(it))+(it.why?&#x27; · &#x27;+esc(it.why):&#x27;&#x27;)+&#x27;&lt;/span&gt;&lt;/div&gt;&#x27;).join(&#x27;&#x27;)+&#x27;&lt;/div&gt;&lt;div class=&quot;sosnote&quot;&gt;From the daily schedule: not confirmed as taken.&lt;/div&gt;&#x27;;
+  }
+  if(sh.blood)h+=row(&#x27;BLOOD TYPE&#x27;,o.blood);
+  if(sh.donor)h+=row(&#x27;ORGAN DONOR&#x27;,o.donor);
+  if(sh.advance)h+=row(&#x27;ADVANCE DECISIONS&#x27;,o.advance);
+  if(sh.nhs)h+=row(&#x27;NHS NUMBER&#x27;,o.nhs);
+  if(sh.address)h+=row(&#x27;HOME ADDRESS&#x27;,o.address);
+  if(sh.gp){const g=o.gp||{};const gt=[g.name,g.surgery,g.address,g.phone].filter(Boolean).join(&#x27;\n&#x27;);h+=row(&#x27;DOCTOR / SURGERY&#x27;,gt)}
+  if(sh.pharmacy){const ph=(S.settings.pharmacies||[]).filter(x=&gt;x.use&amp;&amp;x.name);if(ph.length)h+=row(&#x27;PHARMACY&#x27;,ph.map(x=&gt;[x.name,x.town,x.phone].filter(Boolean).join(&#x27;, &#x27;)).join(&#x27;\n&#x27;))}
+  h+=row(&#x27;OTHER&#x27;,o.notes);
+  h+=&#x27;&lt;div class=&quot;sosnote&quot; style=&quot;margin-top:16px&quot;&gt;Written by the owner&#x27;+(o.updated?&#x27;, last updated &#x27;+esc(nice(pd(o.updated))):&#x27;&#x27;)+&#x27;. It may be out of date.&lt;/div&gt;&#x27;;
+  return h+&#x27;&lt;/div&gt;&#x27;;
+}
+function sosOwner(){return PR.list.find(p=&gt;p.own)||PR.list[0]}
+async function renderSos(){
+  document.body.classList.add(&#x27;sosmode&#x27;);
+  const hd=document.querySelector(&#x27;header&#x27;);if(hd)hd.hidden=true;$(&#x27;nav&#x27;).innerHTML=&#x27;&#x27;;
+  const p=sosOwner();
+  if(!p){$(&#x27;main&#x27;).innerHTML=&#x27;&lt;div class=&quot;sosbar&quot;&gt;EMERGENCY INFORMATION&lt;/div&gt;&lt;div class=&quot;sospad&quot;&gt;&lt;p&gt;No information has been set up on this phone yet.&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;soscall&quot; href=&quot;index.html&quot;&gt;&lt;span&gt;Open Tablets&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/div&gt;&#x27;;return}
+  let ok=!PR.sosPin;try{if(sessionStorage.getItem(&#x27;tablets.sosok&#x27;))ok=true}catch(e){}
+  if(!ok){
+    $(&#x27;main&#x27;).innerHTML=&#x27;&lt;div class=&quot;sosbar&quot;&gt;EMERGENCY INFORMATION&lt;/div&gt;&lt;div class=&quot;sospad&quot;&gt;&lt;p&gt;This screen is locked by its owner. Type the PIN.&lt;/p&gt;&lt;input id=&quot;sp&quot; type=&quot;password&quot; inputmode=&quot;numeric&quot; maxlength=&quot;4&quot; autocomplete=&quot;off&quot;&gt;&lt;button class=&quot;btn&quot; onclick=&quot;sosUnlock()&quot;&gt;Show&lt;/button&gt;&lt;/div&gt;&#x27;;return;
+  }
+  $(&#x27;main&#x27;).innerHTML=sosHtml(loadState(p.id),p)+&#x27;&lt;div class=&quot;sospad&quot;&gt;&lt;a class=&quot;soslink&quot; href=&quot;index.html&quot;&gt;Open the Tablets app&lt;/a&gt;&lt;/div&gt;&#x27;;
+}
+async function sosUnlock(){
+  const pin=(document.getElementById(&#x27;sp&#x27;).value||&#x27;&#x27;).trim();
+  if(await checkAnyPin(pin)){try{sessionStorage.setItem(&#x27;tablets.sosok&#x27;,&#x27;1&#x27;)}catch(e){}renderSos()}else banner(&#x27;Wrong PIN&#x27;,true);
+}
+function sosPlain(S,p){
+  const o=S.sos,sh=o.show||{};const L=[];
+  L.push((o.name||p.name)+(sh.dob&amp;&amp;o.dob?&#x27; (born &#x27;+o.dob+&#x27;)&#x27;:&#x27;&#x27;));
+  if(sh.allergies&amp;&amp;o.allergies)L.push(&#x27;ALLERGIES: &#x27;+o.allergies.replace(/\n/g,&#x27;; &#x27;));
+  if(sh.warnings&amp;&amp;o.warnings)L.push(&#x27;IMPORTANT: &#x27;+o.warnings.replace(/\n/g,&#x27;; &#x27;));
+  if(sh.conditions&amp;&amp;o.conditions)L.push(&#x27;CONDITIONS: &#x27;+o.conditions.replace(/\n/g,&#x27;; &#x27;));
+  if(sh.meds&amp;&amp;S.items.length)L.push(&#x27;MEDICINES: &#x27;+S.items.map(i=&gt;i.name.replace(/ \(.*/,&#x27;&#x27;)+&#x27; (&#x27;+doseTxt(i)+&#x27;)&#x27;).join(&#x27;; &#x27;));
+  if(sh.contacts){const cs=(o.contacts||[]).filter(c=&gt;c.name||c.phone);if(cs.length)L.push(&#x27;CONTACTS: &#x27;+cs.map(c=&gt;c.name+(c.rel?&#x27; (&#x27;+c.rel+&#x27;)&#x27;:&#x27;&#x27;)+&#x27; &#x27;+c.phone).join(&#x27;; &#x27;))}
+  if(sh.blood&amp;&amp;o.blood)L.push(&#x27;BLOOD TYPE: &#x27;+o.blood);
+  if(sh.gp){const g=o.gp||{};const gt=[g.name,g.surgery,g.phone].filter(Boolean).join(&#x27;, &#x27;);if(gt)L.push(&#x27;DOCTOR: &#x27;+gt)}
+  return L.join(&#x27;\n&#x27;);
+}
+function sosCard(){
+  const p=activeP();if(!p)return &#x27;&#x27;;
+  return &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Tablets SOS (emergency screen)&lt;/h2&gt;&lt;div class=&quot;mute&quot;&gt;A separate icon that shows the key medical information of the owner of this phone, with no PIN unless you turn that on above. Everything is optional and you choose what is shown. Defaults: medicines, allergies, conditions and emergency contacts are shown; NHS number and home address are hidden.&lt;/div&gt;&#x27;
+   +&#x27;&lt;button class=&quot;btn&quot; onclick=&quot;swStart()&quot;&gt;Set up what SOS shows&lt;/button&gt;&lt;button class=&quot;btn sec&quot; onclick=&quot;sosPreview()&quot;&gt;Preview the SOS screen&lt;/button&gt;&#x27;
+   +&#x27;&lt;button class=&quot;btn sec&quot; onclick=&quot;sosCopy()&quot;&gt;Copy text for the phone\&#x27;s lock-screen Emergency Information&lt;/button&gt;&#x27;
+   +&#x27;&lt;div class=&quot;mute&quot; style=&quot;margin-top:8px&quot;&gt;Only the phone\&#x27;s own lock-screen information can be read when the phone is locked. On Android: Settings → Safety &amp;amp; emergency → Medical information. On iPhone: Health app → Medical ID. Paste the copied text there.&lt;/div&gt;&lt;/div&gt;&#x27;;
+}
+function sosPreview(){
+  const p=activeP(),h=sosHtml(st,p);
+  document.getElementById(&#x27;sheetBody&#x27;).innerHTML=&#x27;&lt;div class=&quot;row&quot;&gt;&lt;h2 style=&quot;margin:0&quot;&gt;SOS preview&lt;/h2&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;closeSheet()&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&lt;div class=&quot;sospreview&quot;&gt;&#x27;+h+&#x27;&lt;/div&gt;&#x27;;
+  document.getElementById(&#x27;sheet&#x27;).className=&#x27;sheet show&#x27;;
+}
+function sosCopy(){
+  const txt=sosPlain(st,activeP());
+  document.getElementById(&#x27;sheetBody&#x27;).innerHTML=&#x27;&lt;div class=&quot;row&quot;&gt;&lt;h2 style=&quot;margin:0&quot;&gt;For the lock screen&lt;/h2&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;closeSheet()&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&lt;p class=&quot;mute&quot;&gt;Copy this and paste it into your phone\&#x27;s own emergency information.&lt;/p&gt;&lt;textarea id=&quot;sosc&quot; rows=&quot;12&quot;&gt;&#x27;+esc(txt)+&#x27;&lt;/textarea&gt;&lt;button class=&quot;btn&quot; onclick=&quot;const t=document.getElementById(\&#x27;sosc\&#x27;);t.select();try{navigator.clipboard.writeText(t.value);banner(\&#x27;Copied\&#x27;)}catch(e){banner(\&#x27;Select all and copy\&#x27;)}&quot;&gt;Copy&lt;/button&gt;&#x27;;
+  document.getElementById(&#x27;sheet&#x27;).className=&#x27;sheet show&#x27;;
+}
+/* ---- wizard ---- */
+let SW={step:0};
+function sosTouch(){st.sos.updated=ymd(new Date())}
+function sosSet(k,v){st.sos[k]=v;sosTouch();save()}
+function sosGp(k,v){st.sos.gp[k]=v;sosTouch();save()}
+function sosShow(k,on){st.sos.show[k]=on;sosTouch();save()}
+function sosContact(i,k,v){while(st.sos.contacts.length&lt;=i)st.sos.contacts.push({name:&#x27;&#x27;,rel:&#x27;&#x27;,phone:&#x27;&#x27;});st.sos.contacts[i][k]=v;sosTouch();save()}
+function sosKey(id,on){const k=new Set(st.sos.key||[]);on?k.add(id):k.delete(id);st.sos.key=[...k];sosTouch();save()}
+function swStart(){SW.step=0;swDraw()}
+function swGo(d){SW.step=Math.max(0,Math.min(SW_STEPS.length-1,SW.step+d));swDraw()}
+const SW_STEPS=[&#x27;intro&#x27;,&#x27;who&#x27;,&#x27;allergies&#x27;,&#x27;conditions&#x27;,&#x27;warnings&#x27;,&#x27;diet&#x27;,&#x27;contacts&#x27;,&#x27;doctor&#x27;,&#x27;more&#x27;,&#x27;key&#x27;,&#x27;done&#x27;];
+function swDraw(){
+  const o=st.sos,sh=o.show,step=SW_STEPS[SW.step];
+  const tog=(k,label)=&gt;&#x27;&lt;label class=&quot;swtog&quot;&gt;&lt;input type=&quot;checkbox&quot; style=&quot;width:auto&quot; &#x27;+(sh[k]?&#x27;checked&#x27;:&#x27;&#x27;)+&#x27; onchange=&quot;sosShow(\&#x27;&#x27;+k+&#x27;\&#x27;,this.checked)&quot;&gt; &#x27;+(label||&#x27;Show this on the SOS screen&#x27;)+&#x27;&lt;/label&gt;&#x27;;
+  const ta=(k,ph)=&gt;&#x27;&lt;textarea rows=&quot;4&quot; placeholder=&quot;&#x27;+ph+&#x27;&quot; onchange=&quot;sosSet(\&#x27;&#x27;+k+&#x27;\&#x27;,this.value)&quot;&gt;&#x27;+esc(o[k])+&#x27;&lt;/textarea&gt;&#x27;;
+  const why=t=&gt;&#x27;&lt;p class=&quot;mute&quot;&gt;&#x27;+t+&#x27;&lt;/p&gt;&#x27;;
+  let body=&#x27;&#x27;;
+  if(step===&#x27;intro&#x27;)body=&#x27;&lt;h3&gt;Tablets SOS&lt;/h3&gt;&#x27;+why(&#x27;If an ambulance crew or a doctor picks up your phone, this screen can tell them what they most need to know. Answer as much or as little as you like. You can skip any question, change it later, and choose what is shown.&#x27;)+why(&#x27;Only put in what you are comfortable with anyone holding your phone seeing.&#x27;);
+  if(step===&#x27;who&#x27;)body=&#x27;&lt;h3&gt;Who you are&lt;/h3&gt;&#x27;+why(&#x27;Your name, so crews know who the information belongs to. A date of birth helps them find your records.&#x27;)
+    +&#x27;&lt;label&gt;Full name&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(o.name||activeP().name)+&#x27;&quot; onchange=&quot;sosSet(\&#x27;name\&#x27;,this.value)&quot;&gt;&lt;label&gt;Date of birth&lt;/label&gt;&lt;input type=&quot;date&quot; value=&quot;&#x27;+esc(o.dob)+&#x27;&quot; onchange=&quot;sosSet(\&#x27;dob\&#x27;,this.value)&quot;&gt;&#x27;+tog(&#x27;dob&#x27;,&#x27;Show date of birth&#x27;);
+  if(step===&#x27;allergies&#x27;)body=&#x27;&lt;h3&gt;Allergies&lt;/h3&gt;&#x27;+why(&#x27;Reactions to medicines, food, latex or stings. Crews check this before they give you anything. Write what you react to and what happens.&#x27;)+ta(&#x27;allergies&#x27;,&#x27;e.g. Penicillin: rash and swelling&#x27;)+tog(&#x27;allergies&#x27;);
+  if(step===&#x27;conditions&#x27;)body=&#x27;&lt;h3&gt;Long-term conditions&lt;/h3&gt;&#x27;+why(&#x27;Illnesses you live with change how you are treated: diabetes, heart conditions, asthma, epilepsy, rheumatoid arthritis, coeliac disease and so on. Say the type if it matters (for example type 2 diabetes).&#x27;)+ta(&#x27;conditions&#x27;,&#x27;one per line&#x27;)+tog(&#x27;conditions&#x27;);
+  if(step===&#x27;warnings&#x27;)body=&#x27;&lt;h3&gt;Important warnings&lt;/h3&gt;&#x27;+why(&#x27;Anything that changes emergency care: blood thinners, insulin, a pacemaker or stents, a steroid card, implants, a medical device.&#x27;)+ta(&#x27;warnings&#x27;,&#x27;e.g. Has heart stents&#x27;)+tog(&#x27;warnings&#x27;);
+  if(step===&#x27;diet&#x27;)body=&#x27;&lt;h3&gt;Diet&lt;/h3&gt;&#x27;+why(&#x27;Intolerances or needs that matter in hospital, such as coeliac disease or a nut allergy.&#x27;)+ta(&#x27;diet&#x27;,&#x27;optional&#x27;)+tog(&#x27;diet&#x27;);
+  if(step===&#x27;contacts&#x27;){
+    const cs=o.contacts||[];
+    body=&#x27;&lt;h3&gt;Emergency contacts&lt;/h3&gt;&#x27;+why(&#x27;Who should crews call? Put the person most likely to answer first. Their number becomes a tap-to-call button.&#x27;)
+      +[0,1,2].map(i=&gt;{const c=cs[i]||{};return &#x27;&lt;div class=&quot;card&quot; style=&quot;margin:8px 0&quot;&gt;&lt;label style=&quot;margin-top:0&quot;&gt;Name&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(c.name||&#x27;&#x27;)+&#x27;&quot; onchange=&quot;sosContact(&#x27;+i+&#x27;,\&#x27;name\&#x27;,this.value)&quot;&gt;&lt;div class=&quot;grid2&quot;&gt;&lt;div&gt;&lt;label&gt;Relationship&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(c.rel||&#x27;&#x27;)+&#x27;&quot; onchange=&quot;sosContact(&#x27;+i+&#x27;,\&#x27;rel\&#x27;,this.value)&quot;&gt;&lt;/div&gt;&lt;div&gt;&lt;label&gt;Phone&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(c.phone||&#x27;&#x27;)+&#x27;&quot; inputmode=&quot;tel&quot; onchange=&quot;sosContact(&#x27;+i+&#x27;,\&#x27;phone\&#x27;,this.value)&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27;}).join(&#x27;&#x27;)+tog(&#x27;contacts&#x27;);
+  }
+  if(step===&#x27;doctor&#x27;){
+    const g=o.gp||{};
+    body=&#x27;&lt;h3&gt;Doctor and surgery&lt;/h3&gt;&#x27;+why(&#x27;So the hospital can contact your GP for your records. Your pharmacy comes from Settings → Pharmacy.&#x27;)
+      +&#x27;&lt;label&gt;Doctor\&#x27;s name&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(g.name)+&#x27;&quot; onchange=&quot;sosGp(\&#x27;name\&#x27;,this.value)&quot;&gt;&lt;label&gt;Surgery name&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(g.surgery)+&#x27;&quot; onchange=&quot;sosGp(\&#x27;surgery\&#x27;,this.value)&quot;&gt;&lt;label&gt;Surgery address&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(g.address)+&#x27;&quot; onchange=&quot;sosGp(\&#x27;address\&#x27;,this.value)&quot;&gt;&lt;label&gt;Surgery phone&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(g.phone)+&#x27;&quot; inputmode=&quot;tel&quot; onchange=&quot;sosGp(\&#x27;phone\&#x27;,this.value)&quot;&gt;&#x27;+tog(&#x27;gp&#x27;,&#x27;Show doctor on the SOS screen&#x27;)+tog(&#x27;pharmacy&#x27;,&#x27;Show my pharmacy&#x27;);
+  }
+  if(step===&#x27;more&#x27;)body=&#x27;&lt;h3&gt;More, all optional&lt;/h3&gt;&#x27;
+    +&#x27;&lt;label&gt;Blood type&lt;/label&gt;&#x27;+why(&#x27;Only if you are certain, for example from a donor card or blood test. Crews always test it themselves, so a wrong entry is worse than none.&#x27;)+&#x27;&lt;input value=&quot;&#x27;+esc(o.blood)+&#x27;&quot; placeholder=&quot;e.g. O positive&quot; onchange=&quot;sosSet(\&#x27;blood\&#x27;,this.value)&quot;&gt;&#x27;+tog(&#x27;blood&#x27;)
+    +&#x27;&lt;label&gt;Organ donor&lt;/label&gt;&lt;input value=&quot;&#x27;+esc(o.donor)+&#x27;&quot; placeholder=&quot;e.g. Yes&quot; onchange=&quot;sosSet(\&#x27;donor\&#x27;,this.value)&quot;&gt;&#x27;+tog(&#x27;donor&#x27;)
+    +&#x27;&lt;label&gt;Advance decisions (for example, do not resuscitate)&lt;/label&gt;&#x27;+why(&#x27;Say if you have one and where the paperwork is.&#x27;)+&#x27;&lt;input value=&quot;&#x27;+esc(o.advance)+&#x27;&quot; onchange=&quot;sosSet(\&#x27;advance\&#x27;,this.value)&quot;&gt;&#x27;+tog(&#x27;advance&#x27;)
+    +&#x27;&lt;label&gt;NHS number&lt;/label&gt;&#x27;+why(&#x27;Helps hospitals find your records. Off by default because anyone holding the phone could read it.&#x27;)+&#x27;&lt;input value=&quot;&#x27;+esc(o.nhs)+&#x27;&quot; inputmode=&quot;numeric&quot; onchange=&quot;sosSet(\&#x27;nhs\&#x27;,this.value)&quot;&gt;&#x27;+tog(&#x27;nhs&#x27;)
+    +&#x27;&lt;label&gt;Home address&lt;/label&gt;&#x27;+why(&#x27;Off by default. Turn it on only if you want it visible.&#x27;)+&#x27;&lt;input value=&quot;&#x27;+esc(o.address)+&#x27;&quot; onchange=&quot;sosSet(\&#x27;address\&#x27;,this.value)&quot;&gt;&#x27;+tog(&#x27;address&#x27;)
+    +&#x27;&lt;label&gt;Anything else&lt;/label&gt;&lt;textarea rows=&quot;3&quot; onchange=&quot;sosSet(\&#x27;notes\&#x27;,this.value)&quot;&gt;&#x27;+esc(o.notes)+&#x27;&lt;/textarea&gt;&#x27;;
+  if(step===&#x27;key&#x27;)body=&#x27;&lt;h3&gt;Medicines&lt;/h3&gt;&#x27;+why(&#x27;Your tablets come from this app and are all shown. Tick the most important ones (insulin, blood thinners, heart tablets) to list them first with a star.&#x27;)+tog(&#x27;meds&#x27;,&#x27;Show my medicines&#x27;)
+    +(st.items.length?st.items.map(it=&gt;&#x27;&lt;label class=&quot;swtog&quot;&gt;&lt;input type=&quot;checkbox&quot; style=&quot;width:auto&quot; &#x27;+((o.key||[]).includes(it.id)?&#x27;checked&#x27;:&#x27;&#x27;)+&#x27; onchange=&quot;sosKey(\&#x27;&#x27;+it.id+&#x27;\&#x27;,this.checked)&quot;&gt; &#x27;+esc(it.name)+&#x27;&lt;/label&gt;&#x27;).join(&#x27;&#x27;):&#x27;&lt;p class=&quot;mute&quot;&gt;No tablets in the list yet.&lt;/p&gt;&#x27;);
+  if(step===&#x27;done&#x27;)body=&#x27;&lt;h3&gt;All set&lt;/h3&gt;&#x27;+why(&#x27;This is saved. Check it with “Preview the SOS screen” in Settings, add the Tablets SOS icon to your home screen, and keep it up to date.&#x27;)+&#x27;&lt;button class=&quot;btn&quot; onclick=&quot;closeSheet();sosPreview()&quot;&gt;Preview now&lt;/button&gt;&#x27;;
+  const last=SW.step===SW_STEPS.length-1;
+  document.getElementById(&#x27;sheetBody&#x27;).innerHTML=&#x27;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;mute&quot;&gt;Step &#x27;+(SW.step+1)+&#x27; of &#x27;+SW_STEPS.length+&#x27;&lt;/span&gt;&lt;button class=&quot;btn sm sec&quot; onclick=&quot;closeSheet();render(true)&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&#x27;+body
+    +&#x27;&lt;div class=&quot;grid2&quot; style=&quot;margin-top:14px&quot;&gt;&lt;button class=&quot;btn sec&quot; &#x27;+(SW.step?&#x27;&#x27;:&#x27;disabled&#x27;)+&#x27; onclick=&quot;swGo(-1)&quot;&gt;◀ Back&lt;/button&gt;&lt;button class=&quot;btn&quot; onclick=&quot;&#x27;+(last?&#x27;closeSheet();render(true)&#x27;:&#x27;swGo(1)&#x27;)+&#x27;&quot;&gt;&#x27;+(last?&#x27;Finish&#x27;:([&#x27;intro&#x27;,&#x27;who&#x27;].includes(step)?&#x27;Next ▶&#x27;:&#x27;Next / skip ▶&#x27;))+&#x27;&lt;/button&gt;&lt;/div&gt;&#x27;;
+  document.getElementById(&#x27;sheet&#x27;).className=&#x27;sheet show&#x27;;
+}
+
+/* test hook for automated checks */
+window.__tablets={mergeDoc,docNow,syncAll,get PR(){return PR},get st(){return st},set st(v){st=v},sim,computeAlerts,thr,SEED,EMPTY,ymd,pd,loadState,fix};
+render();
+if(needLock())showLock();
+document.addEventListener(&#x27;visibilitychange&#x27;,()=&gt;{if(!document.hidden&amp;&amp;!$(&#x27;sheet&#x27;).classList.contains(&#x27;show&#x27;))render()});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</section>
+</div>
+<script>
+(function(){
+  var tabs=document.querySelectorAll('.tabs button');
+  function show(id){
+    tabs.forEach(function(b){b.setAttribute('aria-selected',b.dataset.t===id?'true':'false')});
+    ['did','how','sum','try'].forEach(function(s){document.getElementById(s).hidden=(s!==id)});
+    window.scrollTo(0,0);
+  }
+  tabs.forEach(function(b){b.addEventListener('click',function(){show(b.dataset.t)})});
+})();
+</script>
+
+</body></html>
