@@ -96,7 +96,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>
 'use strict';
-const BUILD='2026-11-23e',APP_VER='1.5.3',APP_DATE='23 November 2026';
+const BUILD='2026-11-23f',APP_VER='1.6.0',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -258,13 +258,34 @@ function thr(){const s=st.settings;return s.lead+s.gap+s.margin}
 function lastOrderDate(it,r){return r.runOut?addD(r.runOut,-thr()):null}
 
 /* ---------- alerts ---------- */
+const WHY_HINTS=[[/atorvastatin|simvastatin|rosuvastatin/i,'Lowers cholesterol'],[/bisoprolol/i,'Slows the heart and lowers blood pressure (beta blocker)'],[/lisinopril|ramipril/i,'Lowers blood pressure and protects the heart and kidneys'],[/metformin/i,'Type 2 diabetes: lowers blood sugar'],[/dapagliflozin/i,'Type 2 diabetes, also protects the heart and kidneys'],[/linagliptin|trajenta|sitagliptin/i,'Type 2 diabetes: lowers blood sugar'],[/aspirin/i,'Low dose: helps prevent heart attack and stroke'],[/lansoprazole|omeprazole/i,'Reduces stomach acid and protects the stomach'],[/duloxetine/i,'Low mood, anxiety and nerve pain'],[/trazodone/i,'Helps sleep; also low mood and anxiety'],[/senna|lactulose/i,'Constipation'],[/co-?codamol|paracetamol|codeine/i,'Pain relief'],[/alprostadil/i,'Erectile dysfunction (injection)'],[/nebido|testosterone/i,'Testosterone replacement'],[/diabetone/i,'Food supplement to support blood sugar balance'],[/dormir/i,'Sleep supplement'],[/amlodipine/i,'Lowers blood pressure'],[/levothyroxine/i,'Underactive thyroid'],[/clopidogrel/i,'Blood thinner: prevents clots'],[/ticagrelor/i,'Blood thinner: prevents clots (stent)']];
+const whyHint=n=>{for(const [re,txt] of WHY_HINTS)if(re.test(n||''))return txt;return ''};
+const whyShow=it=>it.why||(whyHint(it.name)?'Usually: '+whyHint(it.name):'');
+function whySuggest(){const n=($('ef_name')||{}).value||'';const h=whyHint(n);if(!h)return banner('No suggestion for that name. Type your own.',true);$('ef_why').value=h;banner('Suggestion filled in. Change it if it is not right.')}
+function showDoctor(){
+  const lines=st.items.map(it=>{const am=it.unit==='box'?'':qtyTxt(it,it.am),pm=it.unit==='box'?'':qtyTxt(it,it.pm);return it.name+(am||pm?' — morning '+(am||'none')+', evening '+(pm||'none'):'')+' — '+(it.why||whyHint(it.name)||'(purpose not filled in)')});
+  const txt=lines.join('\n');
+  $('sheetBody').innerHTML='<div class="row"><h2 style="margin:0">For my doctor</h2><button class="btn sm sec" onclick="closeSheet()">Close</button></div><div class="mute">My tablets and what they are for. Suggestions are only a guide: correct them in each tablet\'s note.</div><div class="card" style="white-space:pre-wrap;font-size:14px">'+esc(txt)+'</div><button class="btn" onclick="copyDoctor()">Copy this list</button>';
+  window.__doc=txt;$('sheet').className='sheet show';
+}
+function copyDoctor(){try{navigator.clipboard.writeText(window.__doc||'').then(()=>banner('Copied. Paste it into a message or email.'),()=>banner('Could not copy: select the text instead.',true))}catch(e){banner('Could not copy: select the text instead.',true)}}
+const skipped=it=>!!(it.skipUntil&&it.skipUntil>ymd(new Date()));
+const SKIP_DAYS=[7,14,30,60,90];
+function skipItem(id){
+  const it=st.items.find(i=>i.id===id);if(!it)return;
+  const n=parseInt(($('skd')||{}).value)||30;it.skipUntil=ymd(addD(new Date(),n));
+  save();closeSheet();banner('Not reordering '+it.name.replace(/ \(.*/,'')+' until '+niceS(pd(it.skipUntil)));render();
+}
+function unskipItem(id){const it=st.items.find(i=>i.id===id);if(!it)return;delete it.skipUntil;save();closeSheet();banner('Ordering switched back on');render()}
 function computeAlerts(now){
   const A=[];const S=st.settings;const T=thr();
   const R={};for(const it of st.items)R[it.id]=sim(it,now);
   for(const it of st.items){
     const r=R[it.id];
     if(it.src==='pa'){
-      if(r.out||(r.daysLeft!==null&&r.daysLeft<=T)){
+      const sk=skipped(it)&&!(r.out||(r.daysLeft!==null&&r.daysLeft<=10));
+      if(sk){}
+      else if(r.out||(r.daysLeft!==null&&r.daysLeft<=T)){
         let msg=r.out?'You have run out.':'About '+r.daysLeft+' days left (runs out '+niceS(r.runOut)+').';
         const open=st.orders.find(o=>o.item===it.id&&isOpen(o));
         if(open)continue;
@@ -341,9 +362,9 @@ function vStock(A,R,now){
     const pct=dl===null?100:Math.max(3,Math.min(100,dl/180*100));
     const lo=lastOrderDate(it,r);
     h+='<div class="card" onclick="openItem(\''+it.id+'\')"><div class="row"><span class="name">'+it.name+'</span><span class="pill p-'+cls+'">'+(r.out?'OUT':dl===null?'plenty':dl+' days')+'</span></div>'
-     +'<div class="bar"><i style="width:'+pct+'%;background:'+col+'"></i></div>'
+     +'<div class="bar"><i style="width:'+pct+'%;background:'+col+'"></i></div>'+(whyShow(it)?'<div class="mute" style="font-size:13px;margin:-2px 0 4px">'+esc(whyShow(it))+'</div>':'')
      +'<div class="row"><span class="big">'+qtyTxt(it,r.total)+'</span><span class="mute">'+(r.runOut?'runs out '+niceS(r.runOut):'')+'</span></div>'
-     +'<div class="mute">'+(it.src==='pa'&&lo?'order by '+niceS(lo)+' · ':'')+(r.fv>0.001?'UK '+qtyTxt(it,r.uk)+' · 24B '+qtyTxt(it,r.fv):'')+'</div></div>';
+     +'<div class="mute">'+(skipped(it)?'skipped until '+niceS(pd(it.skipUntil))+' · ':'')+(it.src==='pa'&&lo?'order by '+niceS(lo)+' · ':'')+(r.fv>0.001?'UK '+qtyTxt(it,r.uk)+' · 24B '+qtyTxt(it,r.fv):'')+'</div></div>';
   }
   return h+'<button class="btn sec" onclick="editItem(null)">＋ Add a tablet</button>';
 }
@@ -433,7 +454,7 @@ function addTrip(){const d=ymd(addD(new Date(),30));st.trips.push({from:d,to:ymd
 function vSet(){
   const s=st.settings;
   const f=(k,l)=>'<label>'+l+'</label><input type="number" value="'+s[k]+'" onchange="upSet(\''+k+'\',+this.value)">';
-  return vProfile()+vSecurity()+(typeof sosCard==='function'?sosCard():'')+vPharm()+vPhoneOnly()+vAbout()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
+  return vProfile()+vSecurity()+(typeof sosCard==='function'?sosCard():'')+vPharm()+vPhoneOnly()+'<div class="card"><h2 style="margin-top:0">For my doctor</h2><div class="mute">One list of your tablets, doses and what each is for.</div><button class="btn" onclick="showDoctor()">Show list for my doctor</button></div>'+vAbout()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
    +'<div class="card"><h2 style="margin-top:0">Dose times</h2><div class="grid2"><div><label>Morning</label><input type="time" value="'+s.amTime+'" onchange="upSetS(\'amTime\',this.value)"></div><div><label>Evening</label><input type="time" value="'+s.pmTime+'" onchange="upSetS(\'pmTime\',this.value)"></div></div></div>'
    +'<div class="card"><h2 style="margin-top:0">Import / export tablets (CSV)</h2><div class="mute">Columns: name, unit, morning, evening, box_size, source (prescription / supplement-uk / supplement-spain), stock_now, stock_24b, order_qty, next_issue, days_per_box, note. Empty cells leave things unchanged. Names are matched to your existing tablets; new names are added.</div>'
    +'<label>Choose a CSV file</label><input type="file" accept=".csv,text/csv,text/plain" onchange="csvFile(this)">'
@@ -455,10 +476,12 @@ function openItem(id){
   const it=st.items.find(i=>i.id===id);const now=new Date();const r=sim(it,now);
   const lo=lastOrderDate(it,r);
   let h='<div class="row"><h2 style="margin:0">'+it.name+'</h2><button class="btn sm sec" onclick="closeSheet()">Close</button></div>'
-   +'<div class="mute">'+it.why+'</div>'
+   +'<div class="mute">'+esc(whyShow(it))+'</div>'
    +'<div class="card"><div class="big">'+qtyTxt(it,r.total)+'</div><div class="mute">Morning '+(it.unit==='box'?'1 type':qtyTxt(it,it.am))+' · Evening '+(it.unit==='box'?'2 type':qtyTxt(it,it.pm))+' · pack '+it.pack+'</div>'
    +'<div class="mute">'+(r.runOut?'Runs out '+nice(r.runOut)+' ('+r.daysLeft+' days)':'No run-out in the next 2 years')+(lo&&it.src==='pa'?' · order by '+nice(lo):'')+'</div></div>'
    +'<label>Recount: I actually have</label><input type="number" step="any" id="rc" inputmode="decimal"><button class="btn" onclick="quickRecount(\''+id+'\')">Save recount (UK)</button>'
+   +(it.src==='pa'?'<div class="card"><b>Not reordering this time?</b><div class="mute">'+(skipped(it)?'Skipped until '+niceS(pd(it.skipUntil))+'. It comes back by itself, or if it gets very low.':'Pick how long to stay quiet about it.')+'</div>'
+     +(skipped(it)?'<button class="btn sec" onclick="unskipItem(\''+id+'\')">Stop skipping</button>':'<label>Skip ordering for</label><select id="skd">'+SKIP_DAYS.map(d=>'<option value="'+d+'"'+(d===30?' selected':'')+'>'+d+' days</option>').join('')+'</select><button class="btn" onclick="skipItem(\''+id+'\')">Skip ordering</button>')+'</div>':'')
    +'<button class="btn sec" onclick="editItem(\''+id+'\')">Edit this tablet (name, doses, box size…)</button>'
    +(it.src==='diab'?'<p>'+diabLinks(it.name.replace(/ \(.*/,''))+'</p>':'');
   $('sheetBody').innerHTML=h;$('sheet').className='sheet show';
@@ -490,7 +513,7 @@ function efDraw(){
    +inp('ef_pack',E.unit==='box'?'One box (leave 1)':'Box or bottle size (what + 1 box adds)',E.pack,'28','number')
    +'<label>Where does it come from?</label>'+seg('src',[['pa','Prescription'],['diab','Bought in the UK'],['fv','Bought abroad']])
    +(E.src==='pa'?'<div class="grid2"><div>'+inp('ef_issue','Usual amount ordered',E.issue,'e.g. 84','number')+'</div><div>'+inp('ef_next','Next issue date',E.next,'','date')+'</div></div>':'')
-   +inp('ef_why','Note (what it is for)',E.why,'optional')
+   +inp('ef_why','What it is for (your doctor can see this list)',E.why,'e.g. cholesterol')+'<button class="btn sec" onclick="whySuggest()">Suggest what it is for</button>'
    +(E.id?'':inp('ef_start','How many do you have now?',E.start,'e.g. 56','number'))
    +'<button class="btn" onclick="efSave()">Save</button>'+(E.id?'<button class="btn sec" onclick="efDelete()">Delete this tablet</button>':'');
   document.getElementById('sheetBody').innerHTML=h;document.getElementById('sheet').className='sheet show';
