@@ -6,6 +6,7 @@
 <title>Tablets SOS</title>
 <link rel="manifest" href="manifest-sos.webmanifest">
 <link rel="apple-touch-icon" href="icon-sos-180.png">
+<link rel="icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tablets SOS">
 <meta name="theme-color" content="#b3261e">
@@ -15,6 +16,7 @@
 @media (prefers-color-scheme:dark){:root{--bg:#10151b;--card:#19212a;--ink:#e8eef4;--mute:#9aa9b8;--line:#2a3541;--acc:#6aa2ff;--ok:#4cc58a;--warn:#f0b340;--bad:#ff7a7a;--okbg:#14301f;--warnbg:#3a2f12;--badbg:#3b1b1b}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,sans-serif;padding-bottom:84px}
+#wait{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}#wait[hidden]{display:none}#wtxt{font-size:18px;font-weight:650}#wsec{color:var(--mute);font-size:14px;max-width:320px}
 header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 10px) 16px 8px}
 h1{font-size:22px;margin:0}
 .sub{color:var(--mute);font-size:13px}
@@ -89,14 +91,15 @@ a.lnk{color:var(--acc);font-weight:600}
 </head>
 <body>
 <div id="banner"></div>
-<header><h1>Tablets</h1><div class="sub" id="sub"></div><div id="chips"></div><div id="syncbar" hidden></div></header><div id="lock" hidden></div>
+<header><h1 style="display:flex;align-items:center;gap:8px"><svg width="26" height="26" viewBox="0 0 80 80" aria-hidden="true"><g transform="rotate(-35 40 40)"><rect x="4" y="22" width="72" height="36" rx="18" fill="#e4573d"/><path d="M40 22h18a18 18 0 0 1 0 36H40z" fill="#2a6fdb"/></g><circle cx="40" cy="40" r="14" fill="#fff"/><path d="M32 40l6 6 10-12" fill="none" stroke="#1f9d55" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>Tablets</h1><div class="sub" id="sub"></div><div id="chips"></div><div id="syncbar" hidden></div></header><div id="lock" hidden></div>
 <main id="main"></main>
 <nav id="nav"></nav>
+<div id="wait" hidden><canvas id="wcv" width="200" height="150" style="width:240px;height:180px"></canvas><div id="wtxt"></div><div id="wsec"></div></div>
 <div class="sheet" id="sheet"><div id="sheetBody"></div></div>
 
 <script>window.__SOS=1;
 'use strict';
-const BUILD='2026-11-23f',APP_VER='1.6.0',APP_DATE='23 November 2026';
+const BUILD='2026-11-23g',APP_VER='1.6.1',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -269,6 +272,28 @@ function showDoctor(){
   window.__doc=txt;$('sheet').className='sheet show';
 }
 function copyDoctor(){try{navigator.clipboard.writeText(window.__doc||'').then(()=>banner('Copied. Paste it into a message or email.'),()=>banner('Could not copy: select the text instead.',true))}catch(e){banner('Could not copy: select the text instead.',true)}}
+
+/* ---- waiting screen: one of three little animations, chosen at random each time ---- */
+const WAIT={on:false,t0:0,raf:0,kind:0,P:[]};
+function wRR(x,w,h,r){x.beginPath();x.moveTo(-w/2+r,-h/2);x.lineTo(w/2-r,-h/2);x.arc(w/2-r,-h/2+r,r,-Math.PI/2,0);x.lineTo(w/2,h/2-r);x.arc(w/2-r,h/2-r,r,0,Math.PI/2);x.lineTo(-w/2+r,h/2);x.arc(-w/2+r,h/2-r,r,Math.PI/2,Math.PI);x.lineTo(-w/2,-h/2+r);x.arc(-w/2+r,-h/2+r,r,Math.PI,Math.PI*1.5);x.closePath()}
+function wCap(x,px,py,rot,w,h,c1,c2){x.save();x.translate(px,py);x.rotate(rot);x.fillStyle=c1;wRR(x,w,h,h/2);x.fill();x.save();x.beginPath();x.rect(0,-h/2,w/2,h);x.clip();x.fillStyle=c2;wRR(x,w,h,h/2);x.fill();x.restore();x.restore()}
+function wTab(x,px,py,rot,r,c){x.save();x.translate(px,py);x.rotate(rot);x.fillStyle=c;x.beginPath();x.arc(0,0,r,0,7);x.fill();x.strokeStyle='rgba(255,255,255,.7)';x.lineWidth=2;x.beginPath();x.moveTo(-r*.6,0);x.lineTo(r*.6,0);x.stroke();x.restore()}
+function waitFrame(t){
+  if(!WAIT.on)return;
+  const cv=$('wcv'),c=cv.getContext('2d'),B='#2a6fdb',R='#e4573d',A='#d98a00',G='#1f9d55';c.clearRect(0,0,200,150);
+  if(WAIT.kind===0){for(const p of WAIT.P){p.y+=p.v;p.r+=p.vr;if(p.y>165){p.y=-15;p.x=10+Math.random()*180}const sx=p.x+Math.sin(t/500+p.s)*6;if(p.k===0)wCap(c,sx,p.y,p.r,26,12,B,R);else if(p.k===1)wTab(c,sx,p.y,p.r,8,A);else wCap(c,sx,p.y,p.r,22,10,G,'#9fe1cb')}}
+  else if(WAIT.kind===1){const cols=[[B,R],[A,'#fac775'],[G,'#9fe1cb']];for(let i=0;i<3;i++){const p=((t/1500)+i/3)%1,x=38+124*(.5-.5*Math.cos(2*Math.PI*p)),q=(p*2)%1,y=104-78*Math.sin(Math.PI*q);wCap(c,x,y,p*14,24,11,cols[i][0],cols[i][1])}c.fillStyle='#8a96a3';for(const hx of [38,162]){c.save();c.translate(hx,122);wRR(c,36,14,7);c.fill();c.restore()}}
+  else{const T=t/700,n=Math.floor(T)%8,f=T%1;c.fillStyle='#8a96a333';c.save();c.translate(100,56);wRR(c,176,84,12);c.fill();c.restore();
+    for(let i=0;i<8;i++){const cx=34+(i%4)*44,cy=36+Math.floor(i/4)*40;c.fillStyle='#8a96a355';c.beginPath();c.arc(cx,cy,13,0,7);c.fill();if(i<n){c.fillStyle='#fff';c.beginPath();c.arc(cx,cy,9,0,7);c.fill()}else if(i===n){c.globalAlpha=1-f;wTab(c,cx,cy-f*34,f*3,12*(1-f*.4),B)}else wTab(c,cx,cy,0,11,B);c.globalAlpha=1}
+    const pct=Math.round(((n+f)/8)*100);c.fillStyle='#8a96a355';c.fillRect(20,116,160,8);c.fillStyle=G;c.fillRect(20,116,160*pct/100,8)}
+  const el=Math.round((Date.now()-WAIT.t0)/1000);$('wsec').textContent='Waiting '+el+' seconds'+(el>15?'. Taking longer than usual: the connection may be slow. Still trying...':'.');
+  WAIT.raf=requestAnimationFrame(waitFrame);
+}
+function waitOn(text){
+  WAIT.kind=Math.floor(Math.random()*3);WAIT.P=[];for(let i=0;i<12;i++)WAIT.P.push({x:10+Math.random()*180,y:-Math.random()*150,v:1+Math.random()*1.6,r:Math.random()*6,vr:(Math.random()-.5)*.08,k:i%3,s:Math.random()*6});
+  WAIT.on=true;WAIT.t0=Date.now();$('wtxt').textContent=text||'Please wait';$('wait').hidden=false;cancelAnimationFrame(WAIT.raf);WAIT.raf=requestAnimationFrame(waitFrame);
+}
+function waitOff(){WAIT.on=false;cancelAnimationFrame(WAIT.raf);$('wait').hidden=true}
 const skipped=it=>!!(it.skipUntil&&it.skipUntil>ymd(new Date()));
 const SKIP_DAYS=[7,14,30,60,90];
 function skipItem(id){
@@ -783,30 +808,31 @@ async function welcomeCreate(){
   const id=hex(4),p={id,name,own:PR.list.length===0};
   try{
     PR.list.push(p);PR.active=id;psave();st=loadState(id);
-    if(pin)await makeShared(p,pin);
+    if(pin){waitOn('Creating and backing up your list...');await makeShared(p,pin);waitOff()}
     banner(pin?'Created and backed up. Remember your PIN.':'Created on this device only. Add a PIN in Settings to back it up.');tab='stock';render();
   }catch(e){
-    PR.list=PR.list.filter(x=>x.id!==id);PR.active=PR.list[0]?PR.list[0].id:null;psave();st=PR.active?loadState(PR.active):fix(JSON.parse(JSON.stringify(EMPTY)));
+    waitOff();PR.list=PR.list.filter(x=>x.id!==id);PR.active=PR.list[0]?PR.list[0].id:null;psave();st=PR.active?loadState(PR.active):fix(JSON.parse(JSON.stringify(EMPTY)));
     banner(PINERR[e.code]||('Could not create: '+errTxt(e)),true);render();
   }
 }
 async function setupPin(){
   const p=activeP(),pin=($('np').value||'').trim();
   if(!okPin(pin))return banner('The PIN must be 4 digits',true);
-  try{await makeShared(p,pin);banner('Backed up. Give this PIN only to people who may see this list.');render()}
-  catch(e){banner(PINERR[e.code]||('Could not back up: '+errTxt(e)),true)}
+  waitOn('Backing up your list...');
+  try{await makeShared(p,pin);waitOff();banner('Backed up. Give this PIN only to people who may see this list.');render()}
+  catch(e){waitOff();banner(PINERR[e.code]||('Could not back up: '+errTxt(e)),true)}
 }
 async function openByPin(){
   const pin=($('op').value||'').trim();
   if(!okPin(pin))return banner('Type the 4-digit PIN',true);
-  ensureIds();
+  ensureIds();waitOn('Opening that list...');
   try{
     const r=await api('/v1/tablets/open',{device:PR.device,token:PR.token,pin});
-    if(PR.list.some(p=>p.space===r.space))return banner('That list is already on this device',true);
+    if(PR.list.some(p=>p.space===r.space)){waitOff();return banner('That list is already on this device',true)}
     const id=hex(4),p={id,name:r.name||'Person',own:PR.list.length===0,space:r.space,v:0,opened:true};
     PR.list.push(p);PR.active=id;await setLocalPin(p,pin);psave();st=loadState(id);
-    banner('Opening '+p.name+'…');tab='stock';await syncProfile(p);render();
-  }catch(e){banner(PINERR[e.code]||('Could not open: '+errTxt(e)),true)}
+    banner('Opening '+p.name+'…');tab='stock';await syncProfile(p);waitOff();render();
+  }catch(e){waitOff();banner(PINERR[e.code]||('Could not open: '+errTxt(e)),true)}
 }
 async function changePin(){
   const p=activeP(),pin=($('cp').value||'').trim();
