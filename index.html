@@ -96,7 +96,7 @@ a.lnk{color:var(--acc);font-weight:600}
 
 <script>
 'use strict';
-const BUILD='2026-11-23c';
+const BUILD='2026-11-23d',APP_VER='1.5.2',APP_DATE='23 November 2026';
 const KEY='tablets.v1';
 const DAY=864e5;
 
@@ -433,7 +433,7 @@ function addTrip(){const d=ymd(addD(new Date(),30));st.trips.push({from:d,to:ymd
 function vSet(){
   const s=st.settings;
   const f=(k,l)=>'<label>'+l+'</label><input type="number" value="'+s[k]+'" onchange="upSet(\''+k+'\',+this.value)">';
-  return vProfile()+vSecurity()+(typeof sosCard==='function'?sosCard():'')+vPharm()+vPhoneOnly()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
+  return vProfile()+vSecurity()+(typeof sosCard==='function'?sosCard():'')+vPharm()+vPhoneOnly()+vAbout()+'<div class="card"><h2 style="margin-top:0">Reorder rule</h2><div class="mute">Order when days left ≤ delivery + days to next check + spare = <b>'+thr()+'</b></div>'+f('lead','Delivery days (Patient Access → Day Lewis)')+f('gap','Days until the next ordering run')+f('margin','Spare days')+f('buyLow','Supplements bought in the UK: warn when days left ≤')+f('preTripDays','Warn this many days before leaving the UK')+'</div>'
    +'<div class="card"><h2 style="margin-top:0">Dose times</h2><div class="grid2"><div><label>Morning</label><input type="time" value="'+s.amTime+'" onchange="upSetS(\'amTime\',this.value)"></div><div><label>Evening</label><input type="time" value="'+s.pmTime+'" onchange="upSetS(\'pmTime\',this.value)"></div></div></div>'
    +'<div class="card"><h2 style="margin-top:0">Import / export tablets (CSV)</h2><div class="mute">Columns: name, unit, morning, evening, box_size, source (prescription / supplement-uk / supplement-spain), stock_now, stock_24b, order_qty, next_issue, days_per_box, note. Empty cells leave things unchanged. Names are matched to your existing tablets; new names are added.</div>'
    +'<label>Choose a CSV file</label><input type="file" accept=".csv,text/csv,text/plain" onchange="csvFile(this)">'
@@ -740,6 +740,7 @@ function paintSync(){
   subLine();
 }
 /* ----- PINs ----- */
+const errTxt=e=>e.code||(e.name==='AbortError'?'no reply from the server (timed out)':e.http?('server error '+e.http):('no connection ('+(e.message||e.name)+')'));
 const okPin=p=>/^\d{4}$/.test(p||'');
 async function pinHash(pin,salt){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pin));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function setLocalPin(p,pin){p.salt=hex(8);p.ph=await pinHash(pin,p.salt)}
@@ -763,14 +764,14 @@ async function welcomeCreate(){
     banner(pin?'Created and backed up. Remember your PIN.':'Created on this device only. Add a PIN in Settings to back it up.');tab='stock';render();
   }catch(e){
     PR.list=PR.list.filter(x=>x.id!==id);PR.active=PR.list[0]?PR.list[0].id:null;psave();st=PR.active?loadState(PR.active):fix(JSON.parse(JSON.stringify(EMPTY)));
-    banner(PINERR[e.code]||('Could not create: '+(e.code||'no connection')),true);render();
+    banner(PINERR[e.code]||('Could not create: '+errTxt(e)),true);render();
   }
 }
 async function setupPin(){
   const p=activeP(),pin=($('np').value||'').trim();
   if(!okPin(pin))return banner('The PIN must be 4 digits',true);
   try{await makeShared(p,pin);banner('Backed up. Give this PIN only to people who may see this list.');render()}
-  catch(e){banner(PINERR[e.code]||('Could not back up: '+(e.code||'no connection')),true)}
+  catch(e){banner(PINERR[e.code]||('Could not back up: '+errTxt(e)),true)}
 }
 async function openByPin(){
   const pin=($('op').value||'').trim();
@@ -782,13 +783,13 @@ async function openByPin(){
     const id=hex(4),p={id,name:r.name||'Person',own:PR.list.length===0,space:r.space,v:0,opened:true};
     PR.list.push(p);PR.active=id;await setLocalPin(p,pin);psave();st=loadState(id);
     banner('Opening '+p.name+'…');tab='stock';await syncProfile(p);render();
-  }catch(e){banner(PINERR[e.code]||('Could not open: '+(e.code||'no connection')),true)}
+  }catch(e){banner(PINERR[e.code]||('Could not open: '+errTxt(e)),true)}
 }
 async function changePin(){
   const p=activeP(),pin=($('cp').value||'').trim();
   if(!okPin(pin))return banner('The PIN must be 4 digits',true);
   try{await api('/v1/tablets/setpin',{device:PR.device,token:PR.token,space:p.space,pin});await setLocalPin(p,pin);psave();banner('PIN changed. People with the old PIN can no longer open it on a new device.');render()}
-  catch(e){banner(PINERR[e.code]||('Could not change: '+(e.code||'no connection')),true)}
+  catch(e){banner(PINERR[e.code]||('Could not change: '+errTxt(e)),true)}
 }
 async function showDevices(){
   const p=activeP();
@@ -799,12 +800,12 @@ async function showDevices(){
       +r.devices.map((d,i)=>'<div class="card"><div class="row"><span class="name">Device '+(i+1)+(d.me?' (this one)':'')+'</span>'+(d.me?'':'<button class="btn sm sec" onclick="removeDevice(\''+d.id+'\')">Remove</button>')+'</div><div class="mute">Joined '+ago(d.joined)+' · last used '+ago(d.seen)+'</div></div>').join('')
       +'<p class="mute">Removing a device stops it seeing this list. If a phone is lost, remove it here and change the PIN.</p>';
     document.getElementById('sheet').className='sheet show';
-  }catch(e){banner('Could not get the device list: '+(e.code||'no connection'),true)}
+  }catch(e){banner('Could not get the device list: '+errTxt(e),true)}
 }
 async function removeDevice(t){
   const p=activeP();
   try{await api('/v1/tablets/remove',{device:PR.device,token:PR.token,space:p.space,target:t});banner('Device removed');showDevices()}
-  catch(e){banner('Could not remove: '+(e.code||'no connection'),true)}
+  catch(e){banner('Could not remove: '+errTxt(e),true)}
 }
 async function leaveProfile(id){
   const p=profile(id);if(!p)return;
@@ -943,6 +944,14 @@ function setCal(on){
   banner(on?'Calendar entries on. Allow calendar access if the phone asks.':'Calendar entries off');render(true);setTimeout(calSync,1500);
 }
 function setCalField(k,v){PR.cal[k]=(v||'').trim();psave();banner('Saved')}
+function vAbout(){
+  let a={};try{if(window.AndroidApp&&AndroidApp.about)a=JSON.parse(AndroidApp.about())}catch(e){}
+  const ua=navigator.userAgent,row=(k,v)=>'<div class="row" style="margin:6px 0"><span class="mute">'+k+'</span><span style="text-align:right">'+esc(String(v))+'</span></div>';
+  let h='<div class="card"><h2 style="margin-top:0">About Tablets</h2>'+row('Version',(a.versionName||APP_VER)+(a.versionCode?' (release '+a.versionCode+')':''))+row('Released',APP_DATE)+row('Build',BUILD);
+  if(a.model){h+=row('Phone',a.maker+' '+a.model)+row('Android',a.android+' (API '+a.sdk+')')+row('Installed',a.installed)+row('Last updated',a.updated)}
+  else{const ios=/iPhone|iPad|iPod/.test(ua),m=ua.match(/(?:OS|Android) ([\d_.]+)/);h+=row('Device',ios?'iPhone / iPad (web app)':/Android/.test(ua)?'Android (web)':'Computer (web)')+(m?row('System version',m[1].replace(/_/g,'.')):'')}
+  return h+row('Server',API.replace('https://',''))+'<div class="mute" style="margin-top:8px">Quote these when you ask for help.</div></div>';
+}
 function vPhoneOnly(){
   const ps=permState(),A=IS_ANDROID;
   const grey=A?'':'opacity:.45;';
